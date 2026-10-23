@@ -13,6 +13,7 @@ import { FormScreen } from '@/shared/layout';
 import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
+import { haptics } from '@/shared/ui/haptics';
 import { Notice } from '@/shared/ui/notice';
 import { TextField } from '@/shared/ui/text-field';
 import { showToast } from '@/shared/ui/toast';
@@ -108,6 +109,10 @@ function GoalForm({ currency, goal }: { currency: CurrencyMetadata; goal: GoalRe
     if (!result.ok) {
       setSaving(false);
       const message = goalCommandMessage(result.error);
+      if (result.error.code === 'open_goal_limit') {
+        // A rule refused the save: one warning with the inline explanation (DESIGN_SYSTEM "Haptics").
+        haptics.warning();
+      }
       showErrors(message.field ? { [message.field]: message.message } : {}, message.field ? null : message.message);
       return;
     }

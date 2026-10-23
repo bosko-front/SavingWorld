@@ -1,15 +1,15 @@
 import { capabilitiesFor } from '@/core/access';
-import { utcTimestamp, type Clock } from '@/core/calendar';
-import { getCurrency, type CurrencyMetadata } from '@/core/money';
+import { utcTimestamp, type CivilDate, type Clock } from '@/core/calendar';
+import { DEFAULT_SEPARATORS, getCurrency, type CurrencyMetadata } from '@/core/money';
 import { AppDatabase, type DatabaseTestHooks } from '@/data/db/database';
 import type { Migration } from '@/data/db/migration-runner';
 import { MIGRATIONS } from '@/data/db/migrations';
 import type { SqlExecutor } from '@/data/db/sql';
 import type { IdGenerator } from '@/data/ids';
-import { updateGoalStatus } from '@/data/repositories/goal-repository';
+import { getGoal, updateGoalStatus } from '@/data/repositories/goal-repository';
 import { getEntry } from '@/data/repositories/ledger-repository';
 import { writeCurrency } from '@/data/repositories/settings-repository';
-import { createGoal, type GoalCommandDeps } from '@/features/goals/application/goal-commands';
+import { createGoal, pauseGoal, type GoalCommandDeps } from '@/features/goals/application/goal-commands';
 import { readGoalsOverview } from '@/features/goals/application/goal-queries';
 import { selectGoal } from '@/features/goals/application/goal-selection';
 import {
@@ -20,6 +20,7 @@ import {
   type LedgerCommandDeps,
 } from '@/features/ledger/application/ledger-commands';
 import { readGoalLedger } from '@/features/ledger/application/ledger-queries';
+import { draftValues } from '@/features/ledger/presentation/entry-draft';
 
 import { check, equal, rejects, type Scenario, type ScenarioContext } from './scenario-harness';
 
@@ -666,6 +667,8 @@ export const DATABASE_SCENARIOS: Scenario[] = [
 // Process-restart pair: the seed suite writes a database and leaves it; after the app process is
 // terminated and relaunched, the verify suite reopens it and checks every value.
 const RESTART_NOTE = 'Ünïcødé ✓ survives restart';
+const RESTART_WITHDRAWAL_OP = 'op-r-20-unacknowledged';
+const RESTART_WITHDRAWAL = values('withdrawal', 2_000, '2026-10-05');
 
 export function restartDatabaseName(seedId: string): string {
   return `dbtest-restart-${seedId}.db`;
@@ -692,6 +695,17 @@ export function restartSeedScenario(seedId: string): Scenario {
       const empty = await createGoal({ ...deps, capabilities: capabilitiesFor('pro') }, { operationId: 'op-r-goal-2', title: 'Zero balance goal', targetMinor: 7_500, deadlineDate: '2026-12-31', themeId: 'island' });
       check(empty.ok, 'zero-balance goal');
       check((await selectGoal(deps, empty.value.goalId)).ok, 'select zero-balance goal');
+      // Phase 07: a paused goal with 50 − 20 typed through the form's draft parsing. The withdrawal
+      // commits but its result is dropped, as when the app is killed before the screen sees it; the
+      // test runner then terminates the process and R2 retries the same operation ID.
+      const pro = { ...deps, capabilities: capabilitiesFor('pro') };
+      const paused = await createGoal(pro, { operationId: 'op-r-goal-3', title: 'Paused trip', targetMinor: 10_000, deadlineDate: null, themeId: 'island' });
+      check(paused.ok, 'paused goal');
+      const fifty = draftValues({ kind: 'deposit', amountText: '50', entryDate: '2026-10-04' as CivilDate, noteText: '' }, EUR.exponent, DEFAULT_SEPARATORS);
+      check(fifty.ok, 'typed 50');
+      check((await createEntry(deps, { operationId: 'op-r-50', goalId: paused.value.goalId, ...fifty.value })).ok, 'deposit 50');
+      await createEntry(deps, { operationId: RESTART_WITHDRAWAL_OP, goalId: paused.value.goalId, ...RESTART_WITHDRAWAL });
+      check((await pauseGoal(pro, { operationId: 'op-r-pause', goalId: paused.value.goalId, expectedRevision: 1 })).ok, 'pause');
       await db.close();
       return { database: restartDatabaseName(seedId), goalId, balanceMinor: 10_000 };
     },
@@ -720,24 +734,34 @@ export function restartVerifyScenario(seedId: string): Scenario {
           [
             { id: 'restart-0001', title: 'Restart goal', target_minor: 50_000, status: 'active', revision: 1 },
             { id: 'restart-0004', title: 'Zero balance goal', target_minor: 7_500, status: 'active', revision: 1 },
+            { id: 'restart-0005', title: 'Paused trip', target_minor: 10_000, status: 'paused', revision: 2 },
           ],
           'goals',
         );
         const overview = await readGoalsOverview(db);
         equal(overview.selectedGoalId, 'restart-0004', 'Home selection');
-        equal(overview.goals.map((g) => g.balanceMinor), [10_000, 0], 'balances, including the zero-balance goal');
+        equal(overview.goals.map((g) => g.balanceMinor), [10_000, 0, 3_000], 'balances: zero-balance goal and 50 − 20 = 30');
         equal(
           state.entries,
           [
             { signed_amount_minor: 12_000, entry_date: '2026-10-01', note: RESTART_NOTE, revision: 1 },
             { signed_amount_minor: -2_000, entry_date: '2026-10-03', note: null, revision: 2 },
+            { signed_amount_minor: 5_000, entry_date: '2026-10-04', note: null, revision: 1 },
+            { signed_amount_minor: -2_000, entry_date: '2026-10-05', note: null, revision: 1 },
           ],
           'entries',
         );
-        equal(state.receipts, 5, 'receipts');
+        equal(state.receipts, 9, 'receipts');
+        // The unacknowledged withdrawal: retrying after the restart replays it instead of writing twice.
+        const after = { db, clock, ids: sequentialIds('after') };
+        const retried = await createEntry(after, { operationId: RESTART_WITHDRAWAL_OP, goalId: 'restart-0005', ...RESTART_WITHDRAWAL });
+        check(retried.ok && retried.value.replayed && retried.value.balanceMinor === 3_000, 'unacknowledged withdrawal replays after restart');
+        const over = await createEntry(after, { operationId: 'op-r-31', goalId: 'restart-0005', ...values('withdrawal', 3_100, '2026-10-06') });
+        expectError(over, 'negative_balance', 'withdrawal 31 rejected after restart');
+        equal((await db.read((r) => getGoal(r, 'restart-0005')))?.status, 'paused', 'paused goal stays paused');
         const replay = await createEntry({ db, clock, ids: sequentialIds('after') }, { operationId: 'op-r-1', goalId: 'restart-0001', ...values('deposit', 12_000, '2026-10-01', RESTART_NOTE) });
         check(replay.ok && replay.value.replayed && replay.value.balanceMinor === 10_000, 'receipt replays after restart');
-        return { balanceMinor: 10_000 };
+        return { balanceMinor: 10_000, pausedGoalBalanceMinor: 3_000 };
       } finally {
         await db.close();
         await context.deleteDatabase(name);

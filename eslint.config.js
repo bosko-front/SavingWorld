@@ -30,8 +30,8 @@ const styleGuardrails = [
 // Imports restricted across src/**. Window geometry and the native adaptive container belong to the
 // shared layout layer (docs/ADAPTIVE_LAYOUT.md); `layoutOwner` relaxes only those two entries.
 // SQLite belongs to the data layer (docs/ARCHITECTURE.md): only src/data/db talks to expo-sqlite.
-// The toast engine and SF Symbols each have one shared wrapper (docs/DESIGN_SYSTEM.md).
-function restrictedImports({ layoutOwner, sqliteOwner = false, toastOwner = false, iconOwner = false }) {
+// The toast engine, SF Symbols and haptics each have one shared wrapper (docs/DESIGN_SYSTEM.md).
+function restrictedImports({ layoutOwner, sqliteOwner = false, toastOwner = false, iconOwner = false, hapticsOwner = false }) {
   return [
     'error',
     {
@@ -65,6 +65,14 @@ function restrictedImports({ layoutOwner, sqliteOwner = false, toastOwner = fals
               {
                 name: 'expo-symbols',
                 message: 'Use Icon from @/shared/ui/icon with a semantic name.',
+              },
+            ]),
+        ...(hapticsOwner
+          ? []
+          : [
+              {
+                name: 'expo-haptics',
+                message: 'Use haptics from @/shared/ui/haptics (success, warning, milestone, selection).',
               },
             ]),
         ...(layoutOwner
@@ -113,6 +121,10 @@ module.exports = defineConfig([
   {
     files: ['src/shared/ui/icon.tsx'],
     rules: { 'no-restricted-imports': restrictedImports({ layoutOwner: false, iconOwner: true }) },
+  },
+  {
+    files: ['src/shared/ui/haptics.ts'],
+    rules: { 'no-restricted-imports': restrictedImports({ layoutOwner: false, hapticsOwner: true }) },
   },
   {
     // The SQLite adapter is the one module that imports expo-sqlite.

@@ -1,4 +1,5 @@
-import { formatMoney, MAX_MINOR, type AmountParseError, type CurrencyMetadata, type NumberSeparators } from '@/core/money';
+import type { AmountParseError, CurrencyMetadata, NumberSeparators } from '@/core/money';
+import { amountMessage as sharedAmountMessage } from '@/shared/i18n/amount-messages';
 
 import type { CreateGoalError, EditGoalError, LifecycleError } from '../application/goal-commands';
 import type { LifecycleAction } from '../domain/goal-lifecycle';
@@ -56,30 +57,7 @@ export function goalCommandMessage(error: CreateGoalError | EditGoalError): Form
 
 // Messages for a target amount the parser rejected. They name the global currency's own rules.
 export function amountMessage(error: AmountParseError, currency: CurrencyMetadata, separators: NumberSeparators): string {
-  switch (error) {
-    case 'empty':
-      return 'Enter a target amount.';
-    case 'signed':
-      return 'Enter the amount without a plus or minus sign.';
-    case 'invalid_character':
-      return currency.exponent === 0
-        ? 'Use digits only.'
-        : `Use digits, with “${separators.decimal}” before the decimals.`;
-    case 'malformed':
-      return 'This amount looks incomplete. Check the digits around the decimal separator.';
-    case 'malformed_grouping':
-      return separators.group === ''
-        ? 'Remove the digit grouping and enter the digits only.'
-        : `Group digits in threes with “${separators.group}”, or leave the grouping out.`;
-    case 'too_many_decimals':
-      return currency.exponent === 0
-        ? `${currency.code} amounts have no decimals.`
-        : `${currency.code} amounts have at most ${currency.exponent} decimal places.`;
-    case 'not_positive':
-      return 'Enter a target greater than zero.';
-    case 'too_large':
-      return `Enter at most ${formatMoney(MAX_MINOR, currency)}.`;
-  }
+  return sharedAmountMessage(error, currency, separators, 'target');
 }
 
 export const LIFECYCLE_COPY: Record<LifecycleAction, { label: string; done: string }> = {

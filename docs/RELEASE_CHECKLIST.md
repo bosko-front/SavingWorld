@@ -18,7 +18,7 @@ Product authority is [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx). Q01-Q06 
 - [ ] Initial setup used the latest stable Expo SDK with compatible locked packages and a recorded toolchain/install matrix; no forced peer mismatch or silent downgrade.
 - [ ] App palette and typed tokens are centralized; shared native controls have verified contrast, dynamic text, loading/disabled/error behavior and coherent supported appearance.
 - [ ] All feature screens use shared layout/inset policy rather than model-specific widths or a global scale function.
-- [ ] Duo outer/open, supported orientations and inner split view on either side have native evidence; native bars/side insets do not cover financial controls or sheet actions. Inner split view (app left and right, divider drag) must be checked on a **physical iPhone Duo**: the Xcode 27.1 Device Hub simulator offers no split-view control (DECISIONS D48).
+- [ ] Duo outer/open, supported orientations and inner split view on either side have native evidence; native bars/side insets do not cover financial controls or sheet actions. Inner split view (app left and right, divider drag) must be checked on a **physical iPhone Duo**: the Xcode 27.1 Device Hub simulator offers no split-view control (DECISIONS D48). Also rotate an ordinary iPhone and fold/unfold/rotate the Duo with a typed draft in the Add/Edit Entry form: draft, kind, date and operation ID kept, no extra ledger write (DECISIONS D63).
 - [ ] Required partial-fold/tabletop behavior and physical-only gaps are tested before claiming complete Duo support; no guessed fold coordinate or required hinge effect.
 - [ ] ArrangementView/RNHostView integration and older-iOS fallback are verified; no experimental split-view/navigation dependency entered scope accidentally.
 - [ ] Repeated resizing while editing preserves draft, route, selection and operation ID and creates no additional financial mutation.
@@ -43,7 +43,7 @@ Product authority is [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx). Q01-Q06 
 ## Usability and performance
 
 - [ ] Onboarding explicitly explains manual tracking and absence of actual money transfers.
-- [ ] VoiceOver, Dynamic Type, contrast, touch sizes, Reduce Motion, chart text alternatives and keyboard/focus behavior pass on supported devices. Includes the Phase 06 VoiceOver walkthrough on a **physical iPhone**: onboarding, Create/Edit Goal errors, lifecycle and currency toasts announced once without moving focus, Settings currency lock (DECISIONS D60).
+- [ ] VoiceOver, Dynamic Type, contrast, touch sizes, Reduce Motion, chart text alternatives and keyboard/focus behavior pass on supported devices. Includes the Phase 06 VoiceOver walkthrough on a **physical iPhone**: onboarding, Create/Edit Goal errors, lifecycle and currency toasts announced once without moving focus, Settings currency lock (DECISIONS D60). Also the Phase 07 VoiceOver walkthrough of the Add/Edit Entry form and History: labels and inline errors, kind and date controls, History row labels, the delete confirmation and each ledger toast announced once without moving focus; ledger haptics felt once per commit/rule rejection (DECISIONS D63).
 - [ ] English catalog is complete; currency/date formatting and longer/RTL-ready layouts are verified without claiming untranslated language support.
 - [ ] Airplane-mode core journeys and already verified Pro features work without an app login.
 - [ ] Release build launch/query/frame/memory measurements meet the documented device budgets or a reviewed adjustment.

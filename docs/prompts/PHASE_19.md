@@ -59,6 +59,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 
 - Manual iPhone VoiceOver/text-size/Reduce Motion checklist with screen-by-screen evidence.
 - Carried from Phase 06 (DECISIONS D60): on a physical iPhone, run the VoiceOver walkthrough of onboarding, Create/Edit Goal (inline errors read with the field), Home Pause/Resume/Archive, Collection Reopen and the Settings currency lock; each confirmation toast is announced once and never takes focus.
+- Carried from Phase 07 (DECISIONS D63): on a physical iPhone, run the VoiceOver walkthrough of the Add/Edit Entry form (`/entry-form`: amount/note labels and inline errors read with their field, the Deposit/Withdrawal control, the date picker, the delete confirmation) and History (`/history`: rows read as "Deposit/Withdrawal, signed amount, date, note", closed-goal read-only state); each ledger toast is announced once and never takes focus. Feel the haptics: one success after each committed write, one warning per rule rejection, none otherwise.
 - Formatting tests for at least two numeric/date locales, currency exponents and all user-facing catalog keys.
 - Contrast/touch/layout review, relevant interaction regressions and standard checks.
 

@@ -136,6 +136,8 @@ Haptics confirm a meaningful moment the user caused; they are never the only fee
 
 Never: on navigation, scrolling, every button tap, press-in, Pause/Resume/Archive/Skip, toast display on its own, withdrawal or target-edit scene regression (no punitive feel), purchase or restore results (StoreKit has its own), animation frames or loops, or while the app is in the background. Fire after the commit, in the same place the confirmation toast is shown. One user action produces at most one haptic.
 
+Implemented in Phase 07 (DECISIONS D62): `src/shared/ui/haptics.ts` exports `haptics.success/warning/milestone/selection` over `expo-haptics` ~58.0.7; ESLint allows `expo-haptics` only in that file, and Jest maps it to a recording fake. `success()` follows each committed deposit, withdrawal, entry edit and entry delete together with its toast ("Deposit saved", "Withdrawal saved", "Entry updated", "Entry deleted"). `warning()` plays once per submit refused by `negative_balance`, `negative_running_balance`, `balance_limit`, `future_date`, or the Free open-goal limit on Create Goal and Reopen. Amount format errors, stale or closed-goal refusals and storage failures play nothing. The simulator has no Taptic Engine; the felt result is a physical-device check.
+
 ## Icons
 
 Decided (DECISIONS D43): Saving Worlds uses **SF Symbols only**, so icons match iOS, scale with text and render the same weight as system UI.
@@ -195,7 +197,7 @@ Not planned: `burnt` (last release March 2025, wraps old native toast pods; too 
 
 ## Visual direction (Phase 07.5)
 
-The Phase 02 palette and controls are a foundation, not a finished look. Checkpoint [Phase 07.5](prompts/PHASE_07_5.md) (DECISIONS D49) reviews the real screens after Phase 07, lets the owner choose a Home composition and refines tokens and shared primitives before Phase 08. Known starting points: native large titles duplicated by an in-content heading, screens that are only a stack of full-width buttons, no single primary action per screen, placeholder copy, and a calm palette without an accent that carries meaning. The approved direction will be written into this section.
+The Phase 02 palette and controls are a foundation, not a finished look. Checkpoint [Phase 07.5](prompts/PHASE_07_5.md) (DECISIONS D49) reviews the real screens after Phase 07, lets the owner choose a Home composition and refines tokens and shared primitives before Phase 08. Known starting points: native large titles duplicated by an in-content heading, the Phase 06 deadline picker's SwiftUI inline label beside our own field header (the Phase 07 entry date hides it with `labelsHidden`, D61), Home's stack of Add savings/History/Edit/Pause/Archive buttons, screens that are only a stack of full-width buttons, no single primary action per screen, placeholder copy, and a calm palette without an accent that carries meaning. The approved direction will be written into this section.
 
 ## Change policy
 

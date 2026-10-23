@@ -1,34 +1,36 @@
 # Latest session handoff
 
-Session date: 23 October 2026. Session kind: Phase 06 implementation (goal forms, global currency and lifecycle). Result: **Phase 06 VERIFIED COMPLETE** after the owner moved the VoiceOver walkthrough to the physical-device gate (D60). Next prompt: [PHASE_07](prompts/PHASE_07.md).
+Session date: 23 October 2026. Session kind: Phase 07 implementation (deposits, withdrawals, history and corrections). Result: **Phase 07 VERIFIED COMPLETE** after the owner moved the VoiceOver walkthrough and the native rotation/fold draft check to the physical-device/Duo gate (D63). Next prompt: [PHASE_07_5](prompts/PHASE_07_5.md).
 
-The previous handoff (Phase 05) is superseded; its record remains in [PHASE_05 evidence](evidence/PHASE_05.md).
+The previous handoff (Phase 06) is superseded; its record remains in [PHASE_06 evidence](evidence/PHASE_06.md).
 
 ## Completed
 
-- Read the full v1.2 DOCX and the required docs; verified the Phase 05 data layer in code; baseline checks green (467 tests).
-- Commands: `editGoal`, `changeGoalStatus` (Pause, Resume, Archive, Finish when B ≥ T, Reopen with the Free slot) in `src/features/goals/application/goal-commands.ts`; `selectGoal`; `setGlobalCurrency` in `src/features/settings/application/currency-commands.ts` (lock by any transaction or souvenir; empty-goal targets keep their written amount). All in `executeCommand` with operation IDs, revision checks and receipts (selection excepted, D57).
-- Screens: onboarding with the `@expo/ui` currency menu picker; Create/Edit Goal sheet with the native DatePicker; basic Home with lifecycle actions, Free slot notice and persisted selection; Collection closed goals with Reopen; Settings currency section with lock and no-conversion confirmation. Every command error maps to inline copy.
-- Feedback layer: `src/shared/ui/toast.tsx` (sonner-native behind `showToast`, one toast, queued VoiceOver announcement, Reduce Motion fade, top placement above sheets) and `src/shared/ui/icon.tsx` (SF Symbols semantic map); icons in Button, Notice and TextField errors; gallery demos; ESLint single-owner rules.
-- Native: EAS development-simulator build 9ccf0f42-bcf9-4cb7-bdca-33dba0311a59; `npm run test:db` 27/27 + restart on SE iOS 18.5 (fresh install), 17 Pro Max iOS 26.1 (TZ Pacific/Kiritimati) and Duo iOS 27.1; manual walkthrough with 19 screenshots; carried Phase 04 Hermes Intl check (I01) done.
-- Fixed during simulator checks: typed amounts now use the region's separators (comma was read as grouping); `/dev-db` moved to the root stack so a fresh install can run `test:db`; onboarding moved into an `(onboarding)` group so guarded deep links land on it; expo-font installed for expo-doctor; toast Reduce Motion first-frame flash.
-- Docs: [PHASE_06 evidence](evidence/PHASE_06.md), DECISIONS D56-D59, PROJECT_STATUS, this file, DATA_MODEL, ARCHITECTURE, DESIGN_SYSTEM, ADAPTIVE_LAYOUT, TEST_PLAN, CLAUDE.md, README and a "Carried from Phase 06" note in the Phase 07 prompt and roadmap entry.
+- Read the full v1.2 DOCX and the required docs; verified the Phase 05 ledger commands and Phase 06 screens/helpers in code; baseline checks green (532 tests).
+- Shared Add/Edit Entry form at `/entry-form` (root form sheet; `?goalId=` adds, `?entryId=` corrects) in `src/features/ledger/presentation/`: native segmented deposit/withdrawal, positive amount parsed by `draftValues` (global currency exponent, device separators), native `@expo/ui` DatePicker defaulting to today with no later date, optional 500-character note. Draft, entry revision seen at open and the save/delete operation IDs live above `FormScreen`; a second press while a write runs is ignored; success only after commit (sheet closes, data re-read, one toast, one success haptic); rule rejections and failures stay inline with the draft kept.
+- History at `/history?goalId=` (Home stack): current entries newest first (exact reverse of date/createdAt/id), signed amounts with words and icons, empty state, closed goals read-only. Confirmed deletion from the edit form (native destructive alert, no Undo). Home has Add savings and History (count).
+- Phase 05 `createEntry`/`correctEntry`/`deleteEntry` reused unchanged; new `readEntryContext`, `newestFirst`, `useCommittedRead` (re-reads after every `refreshAppData()` through a store `version`), `ledgerCommandDeps()`; amount-error copy shared in `src/shared/i18n/amount-messages.ts`.
+- Haptics: `expo-haptics` ~58.0.7 (`npx expo install`) behind `src/shared/ui/haptics.ts` (four helpers, ESLint single owner, Jest recording fake). `success()` after each committed create/edit/delete; `warning()` on balance/date rule rejections and on `open_goal_limit` in Create Goal and Reopen.
+- EAS development simulator build a8045c3a-2238-4043-9983-f522e1f2fd0b (contains `HapticsModule`), installed on SE iOS 18.5, 17 Pro Max iOS 26.1 and Duo iOS 27.1.
+- Tests: native `tests/native/ledger-scenarios.ts` L01-L08 in the runner and Jest; restart pair now kills the app after a committed but unacknowledged withdrawal and replays it; `tests/integration/ledger-ui.test.tsx` (14), `tests/unit/ledger-feedback.test.ts` (11).
+- Simulator walkthrough on the 17 Pro Max (RWF, paused goal) with 16 screenshots; found and fixed two defects: History rows lost their style inside `Link asChild`, and SwiftUI's inline date label pushed the date off-screen at the largest text size.
+- Docs: [PHASE_07 evidence](evidence/PHASE_07.md), DECISIONS D61-D63, RELEASE_CHECKLIST and the Phase 19/21 prompts and roadmap entries (D63 carried checks), PROJECT_STATUS, this file, ARCHITECTURE, DATA_MODEL, DESIGN_SYSTEM (haptics implemented, 07.5 starting points), TEST_PLAN, CLAUDE.md, README and a "Carried from Phase 07" note in the Phase 07.5 prompt.
 
 ## Decisions
 
-D56 (currency change and onboarding completion, souvenir lock boundary), D57 (lifecycle transitions, edit guards, selection, Collection Reopen), D58 (toast and icon layer), D59 (region separators, root dev-db route, onboarding group), D60 (owner: Phase 06 VoiceOver walkthrough moves to the physical-device gate in Phases 19/21). No product decision changed.
+D61 (ledger UI structure: one entry-form route, History in the Home stack, form state and retry rules, delete only after confirmation, committed reads, `labelsHidden` on the entry date), D62 (haptics layer and which refusals warn), D63 (owner: Phase 07 VoiceOver walkthrough and native rotation/fold draft check move to the physical-device/Duo gate in Phases 19/21). No product decision changed.
 
 ## Checks
 
-lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (20 suites, 532 tests), `npm run deps:check` PASS, expo-doctor 20/20 PASS, `npm run test:db` PASS on three simulators, release export clean. Manual simulator walkthrough PASS (onboarding, form errors, deadline, toasts over sheets, pause, archive, reopen, currency change, cold restart, largest text, Reduce Motion, keyboard). VoiceOver NOT RUN. Details: [PHASE_06 evidence](evidence/PHASE_06.md).
+lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (22 suites, 565 tests), `npm run deps:check` PASS, expo-doctor 20/20 PASS, `npm run test:db` PASS 35/35 + restart 1/1 on three simulators (final run after all code edits), release export clean. Manual simulator walkthrough PASS. VoiceOver NOT RUN and native rotation/fold with a draft NOT RUN, both carried to the physical-device/Duo gate (D63); felt haptics not possible in the simulator (Phase 19). Details: [PHASE_07 evidence](evidence/PHASE_07.md).
 
 ## Incomplete work and blockers
 
-1. VoiceOver walkthrough NOT RUN (the iOS Simulator has no VoiceOver); by owner decision D60 it is a physical-device check in Phase 19 and Phase 21 / RELEASE_CHECKLIST.
-2. Phase 06 is committed on `main` (a1f356b). Nothing pushed.
-3. Metro was started (`npx expo start --dev-client --clear`) for the native runs and stopped at session end.
+1. Carried by owner decision D63 (not Phase 07 blockers): VoiceOver walkthrough of the entry form and History and felt haptics (Phase 19 on a physical iPhone), native rotation of an ordinary iPhone and Duo fold/unfold/rotate with a typed draft in `/entry-form` (Phase 21), both in RELEASE_CHECKLIST.
+2. Phase 07 is uncommitted on `main` (base 75c5f78). Nothing pushed.
+3. An `expo start` on port 8081 for this project was already running when the session began (pid 46517); it was used and left running. The Duo and SE app databases are not onboarded.
 
 ## Exact next session
 
-1. In ~/Desktop/SavingWorld start Claude Code with the full `docs/prompts/PHASE_07.md` (deposits, withdrawals, history and corrections).
-2. Read v1.2 and the required docs, rerun lint/typecheck/tests and `npm run test:db` (Metro + a booted simulator with dev build 9ccf0f42), then build on the Phase 06 screens and helpers named in the Phase 07 "Carried from Phase 06" note. Phase 07 installs `expo-haptics`, which needs a new development build.
+1. In ~/Desktop/SavingWorld start Claude Code with the full `docs/prompts/PHASE_07_5.md` (visual direction and design review checkpoint; owner approval of a Home composition before Phase 08).
+2. Read v1.2 and the required docs, rerun lint/typecheck/tests, then review every real screen including `/entry-form` and `/history` on the device matrix (Metro + development build a8045c3a), as its "Carried from Phase 07" note describes.

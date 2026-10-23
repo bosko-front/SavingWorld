@@ -23,7 +23,8 @@ import { useGoalAction } from './use-goal-action';
 
 // Basic Home (Phase 06): the selected open goal's saved amount, target, remaining and percentage,
 // with Edit, Pause/Resume and Archive. Phase 08 replaces the presentation with the dashboard on
-// AdaptiveGoalLayout, and Phase 07 adds Add savings. Free shows at most one open goal; with more
+// AdaptiveGoalLayout. Phase 07 added Add savings and History (the shared entry form and the
+// goal's current entries). Free shows at most one open goal; with more
 // open goals (Pro) a simple list chooses which one Home shows. The choice is stored, and after a
 // restart a missing or closed choice falls back to the oldest open goal.
 export function HomeScreen() {
@@ -162,6 +163,18 @@ function SelectedGoal({ summary, currency }: { summary: GoalSummary; currency: C
         ) : null}
       </Card>
       {failure?.goalId === goal.id ? <Notice tone="error" title="Not changed" message={failure.message} testID="home-action-error" /> : null}
+      <Link href={{ pathname: '/entry-form', params: { goalId: goal.id } }} asChild>
+        <Button label="Add savings" icon="deposit" disabled={busy} testID="home-add-savings" />
+      </Link>
+      <Link href={{ pathname: '/history', params: { goalId: goal.id } }} asChild>
+        <Button
+          label={summary.entryCount === 0 ? 'History' : `History (${summary.entryCount})`}
+          variant="secondary"
+          icon="history"
+          disabled={busy}
+          testID="home-history"
+        />
+      </Link>
       <Link href={{ pathname: '/goal-form', params: { goalId: goal.id } }} asChild>
         <Button label="Edit goal" variant="secondary" disabled={busy} testID="home-edit" />
       </Link>

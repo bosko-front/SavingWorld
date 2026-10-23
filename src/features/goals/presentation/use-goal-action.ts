@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { goalCommandDeps, refreshAppData } from '@/bootstrap/app-data';
 import { randomUuid } from '@/data/ids';
 import type { GoalRecord } from '@/data/repositories/goal-repository';
+import { haptics } from '@/shared/ui/haptics';
 import { showToast } from '@/shared/ui/toast';
 
 import { changeGoalStatus } from '../application/goal-commands';
@@ -38,6 +39,11 @@ export function useGoalAction() {
     await refreshAppData();
     setPending(null);
     if (!result.ok) {
+      if (result.error.code === 'open_goal_limit') {
+        // Reopen refused by the Free slot rule: one warning with the inline explanation. Pause,
+        // Resume and Archive never get a haptic (DESIGN_SYSTEM "Haptics").
+        haptics.warning();
+      }
       setFailure({ goalId: goal.id, message: lifecycleMessage(action, result.error) });
       return false;
     }

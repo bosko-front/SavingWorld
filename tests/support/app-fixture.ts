@@ -11,6 +11,7 @@ import { systemClock } from '@/core/calendar';
 import { randomUuid } from '@/data/ids';
 import { setGlobalCurrency } from '@/features/settings/application/currency-commands';
 
+import { resetFakeHaptics } from './expo-haptics-fake';
 import { createNodeSqliteDriver, temporaryDirectory } from './node-sqlite-driver';
 import { resetFakeToasts } from './sonner-native-fake';
 
@@ -41,4 +42,5 @@ export async function resetApp(): Promise<void> {
   await resetAppDatabaseForTests();
   useAppDataStore.setState({ state: { status: 'idle' } });
   resetFakeToasts();
+  resetFakeHaptics();
 }

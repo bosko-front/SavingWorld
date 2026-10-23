@@ -65,6 +65,15 @@ function AppNavigator() {
             sheetAllowedDetents: [1.0],
           }}
         />
+        <Stack.Screen
+          name="entry-form"
+          options={{
+            title: 'Add savings',
+            presentation: 'formSheet',
+            sheetGrabberVisible: true,
+            sheetAllowedDetents: [1.0],
+          }}
+        />
       </Stack.Protected>
       {/* Development/test-only native database runner (`npm run test:db`), reachable before
           onboarding so a fresh install can run it; unreachable in release builds. */}

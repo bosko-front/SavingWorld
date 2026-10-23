@@ -12,6 +12,7 @@ export default function HomeStackLayout() {
       <Stack.Screen name="index" options={{ title: 'Home' }} />
       <Stack.Screen name="details" options={{ title: 'Details', headerLargeTitleEnabled: false }} />
       <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+      <Stack.Screen name="history" options={{ title: 'History', headerLargeTitleEnabled: false }} />
       {/* Development/test-only gallery and layout lab. Unreachable in release builds (__DEV__ false).
           The native database runner is a root route (src/app/dev-db.tsx). */}
       <Stack.Protected guard={__DEV__}>

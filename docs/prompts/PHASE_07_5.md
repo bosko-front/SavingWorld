@@ -62,6 +62,8 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 - Native screenshots on the device matrix before and after, default and largest text; Duo checks as in ADAPTIVE_LAYOUT (Device Hub automation notes there).
 - Release export string check for mock/development code.
 
+- Carried from Phase 07 (evidence/PHASE_07.md, DECISIONS D61-D62): review the real ledger screens too: `/entry-form` (Add savings / Edit entry sheet) and `/history`. Known starting points found on the simulator: the Phase 06 deadline picker still shows SwiftUI's inline "Deadline" label beside our own header (the entry date hides it with `labelsHidden`), Home is a stack of five full-width buttons (Add savings, History, Edit, Pause/Resume, Archive), a toast covers the back button for about four seconds, and dates in our text use the language tag while native pickers use the region (Phase 19). Keep the ledger behavior (draft, operation IDs, in-flight guard, toast + haptic only after commit) unchanged.
+
 ## Definition of Done
 
 Every acceptance criterion above has evidence; required dependencies are verified; relevant automated/native/manual checks pass; no known critical regression remains; documentation and handoff reflect actual state. Required external checks marked NOT RUN keep the phase incomplete. Use the detailed common Definition of Done in DEVELOPMENT_RULES. Owner approval of the direction is mandatory; without it the phase stays IN PROGRESS.

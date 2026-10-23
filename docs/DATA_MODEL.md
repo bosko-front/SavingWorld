@@ -46,7 +46,7 @@ Start at zero; no currency/exponent/balance column. Index status/updated time. a
 
 id TEXT PRIMARY KEY, goal_id TEXT NOT NULL REFERENCES goals(id), signed_amount_minor INTEGER CHECK(signed_amount_minor!=0 AND abs(signed_amount_minor)<=1000000000000), entry_date TEXT NOT NULL, note TEXT NULL, created_at_utc TEXT NOT NULL, updated_at_utc TEXT NOT NULL, revision INTEGER CHECK(revision>=1).
 
-Index (goal_id,entry_date,created_at_utc,id). Currency comes only from AppSettings. created_at_utc is immutable on correction. Current values overwrite on edit; confirmed deletion removes the entry. No ledger_revisions table, before/after snapshots or audit UI. Row revision is concurrency protection, not retained financial history. Validate date/length/Unicode and chronological balance at the command boundary.
+Phase 07 added the UI (DECISIONS D61): one Add/Edit Entry form and History on the unchanged Phase 05 commands; History shows current rows newest first, the exact reverse of the validation order. Index (goal_id,entry_date,created_at_utc,id). Currency comes only from AppSettings. created_at_utc is immutable on correction. Current values overwrite on edit; confirmed deletion removes the entry. No ledger_revisions table, before/after snapshots or audit UI. Row revision is concurrency protection, not retained financial history. Validate date/length/Unicode and chronological balance at the command boundary.
 
 ### operation_receipts (Phase 05; extended by later commands)
 
