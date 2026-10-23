@@ -28,10 +28,9 @@ lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (23 suites, 612 tests)
 
 1. Not blockers: closed-Duo shots exist only in landscape; VoiceOver of the new rows/badges/progress bar/header button is a physical-device check (Phases 19/21).
 2. For Phase 08: on the SE the stacked scene (≤ 45% of the visible height) pushed Add savings below the fold in the mocks; check with the real scene and adjust the shared cap in `src/shared/layout/` if needed (named in the Phase 08 prompt).
-3. Phase 07.5 is **not committed**; the working tree holds all changes and `docs/evidence/phase-07-5/` (about 11 MB of JPEG screenshots). Nothing pushed.
+3. Phase 07.5 is committed on `main` (5251eda) with its code, docs and `docs/evidence/phase-07-5/` screenshots (about 14 MB). Nothing pushed.
 4. Simulator data: SE has RSD "Summer trip" (450.00 deposit, 120.00 withdrawal); Duo has RSD "New bike" (250.00 deposit); 17 Pro Max keeps the paused RWF goal. Metro (pid 46517) was left running. The Expo dev-menu onboarding sheet was disabled per simulator with `defaults write com.bosko123.savingworlds EXDevMenuIsOnboardingFinished -bool YES`.
 
 ## Exact next session
 
-1. Commit Phase 07.5 if the owner approves.
-2. In ~/Desktop/SavingWorld start Claude Code with the full `docs/prompts/PHASE_08.md` (Free dashboard and deadline estimates). Build Home as direction A by extending `src/features/goals/presentation/home-screen.tsx`; `/dev-home?option=a` shows the target layout.
+1. In ~/Desktop/SavingWorld start Claude Code with the full `docs/prompts/PHASE_08.md` (Free dashboard and deadline estimates). Build Home as direction A by extending `src/features/goals/presentation/home-screen.tsx`; `/dev-home?option=a` shows the target layout.
