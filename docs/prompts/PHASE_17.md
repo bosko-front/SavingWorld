@@ -29,6 +29,7 @@ Approved Garden art and provenance plus verified implementation of v1.2 Q03/Q05 
 - Persist theme changes as metadata through a capability-checked command while preserving target, currency, ledger, challenge evidence and current milestone.
 - Keep completion snapshots on their historical theme/version; switching an open live goal already at100% does not rewrite its souvenir or award another.
 - Use a brief bounded transition and accessible confirmation; verify all Garden states offline and implement v1.2 verified-loss Island fallback with Garden souvenirs retained and excess open goals archived before further entries.
+- Call `haptics.selection()` when the user picks Island or Garden in a custom theme picker; the theme change confirmation uses the shared toast.
 
 ## Expected files and modules
 

@@ -29,6 +29,8 @@ Q01/Q02 are resolved by v1.2. No further owner choice is required for currency, 
 - Implement active/paused/completed/archived commands. Free counts active+paused<=1 for Create and Reopen, with completed/archived excluded; Pro capability contract permits unlimited open goals later.
 - Pause/Resume and Archive preserve history. paused can edit/add transactions without resuming reminders. completed/archived are read-only until Reopen checks the slot and sets active; never automatically Finish at 100%. Define guarded Finish requiring B>=T for Phase 11 integration. No whole-goal deletion.
 - Implement basic Home open-goal summary/selection and restart fallback. Keep Island-only selection until paid Garden integration; use shared accessible/adaptive controls.
+- Set up the shared feedback layer from DESIGN_SYSTEM "Transient feedback (toasts)" and "UX library plan": install `sonner-native`, `react-native-svg` and `expo-symbols` with `npx expo install`; create `src/shared/ui/toast.tsx` (`showToast({ tone, title })` plus a `<Toaster />` host in the root layout) rendered with tokens/AppText, one toast at a time, VoiceOver announcement, Reduce Motion fade and top placement; add a gallery demo. Use it only for committed confirmations here (goal created/saved, paused, resumed, archived, reopened, currency changed); errors stay inline. Use `@expo/ui` Picker for the currency choice. Rebuild the development client for the new native modules.
+- Create `src/shared/ui/icon.tsx` (expo-symbols `SymbolView` with the DESIGN_SYSTEM "Icons" semantic name map, token colors, size following text scale, hidden from VoiceOver by default) and replace the TextField warning glyph with the `error` icon. Use icons in toasts, Notice and goal lifecycle actions; no icon fonts, custom SVG icons or emoji.
 
 ## Expected files and modules
 
@@ -39,6 +41,8 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 - `src/app/ onboarding and goal route adapters`
 - `src/core/access/ Free open-slot policy`
 - `goal/currency/lifecycle repository and UI tests`
+- `src/shared/ui/toast.tsx` shared toast wrapper, root-layout host and gallery demo
+- `src/shared/ui/icon.tsx` shared SF Symbols icon component and semantic name map
 
 ## Technical requirements
 
@@ -51,12 +55,14 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 - Global currency and zero-balance goal survive restart; second goal never has its own currency picker.
 - A paused goal consumes the Free slot; Archive frees it; Reopen at the limit fails and at >=100% remains active.
 - Currency changes update empty goals without conversion, fail with any transaction or collectible, and unlock again only if neither exists.
+- Committed goal/currency actions show one announced confirmation toast; failures show inline errors and keep input; no screen imports a toast library directly.
 
 ## Tests and verification
 
 - Repository-backed Create/Reopen concurrent slot checks and closed/paused edit guards; confirm no goal-delete route.
 - Currency fixtures: empty goals change globally, transaction blocks, deleting last transaction without collectible permits change, collectible alone blocks; use a boundary fixture before Phase 11 introduces real collectible storage.
 - UI cancel/invalid target/deadline/write-error tests; native cold restart/selection and VoiceOver/keyboard walkthrough; standard checks.
+- Toast wrapper tests (announcement called once, a new toast replaces the current one, no toast on failed write) and a simulator check with VoiceOver, Reduce Motion and the largest text size.
 
 ## Definition of Done
 

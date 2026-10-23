@@ -29,6 +29,8 @@ Q01/Q02 are final v1.2 rules, not approval gates.
 - Implement current transaction History with edit and confirmed deletion. Overwrite corrected current values; do not keep ledger audit tables, old-entry snapshots or audit detail screens. Preserve immutable createdAt for ordering/eligibility.
 - For every create/edit/delete, order the candidate goal history by date, createdAt, id and reject any negative subtotal or final balance. Correcting an amount/date/sign revalidates the entire affected sequence.
 - Guard completed/archived as read-only until Reopen. paused remains editable without Resume. Invalidate balance, stage, estimates and later challenge/statistics queries after commit.
+- Feedback per DESIGN_SYSTEM: after a committed create/edit/delete, show the Phase 06 `showToast` confirmation ("Deposit saved", "Withdrawal saved", "Entry updated", "Entry deleted") and a light success haptic; install `expo-haptics` with `npx expo install` and rebuild the development client. Deletion still needs a native confirmation first and has no Undo. Use the `@expo/ui` DatePicker for the entry date. Rejections and write failures stay inline with the draft preserved.
+- Create `src/shared/ui/haptics.ts` with the four DESIGN_SYSTEM "Haptics" helpers. Call `success()` once after each committed create/edit/delete (with the toast) and `warning()` once per rejected submit (negative running balance, future date) alongside the inline explanation; also wire `warning()` into the Phase 06 Free-limit Create rejection. No haptic on press-in, navigation or failed I/O.
 
 ## Expected files and modules
 
@@ -39,6 +41,7 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 - `src/app/ transaction/history route adapters`
 - `src/features/goals/ query invalidation and lifecycle guards`
 - `ledger UI/native persistence and failure tests`
+- reuse of `src/shared/ui/toast.tsx` and a small shared haptics helper
 
 ## Technical requirements
 
@@ -51,6 +54,7 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 - Deposit50-withdraw20 yields30 after restart; withdrawal31 is rejected.
 - Withdrawal dated before the first deposit and deletion of its funding deposit are rejected, including positive-final-total counterexamples.
 - Edits/deletions apply once, stale/retried writes are safe, closed goals reject mutation and paused goals remain paused.
+- Each committed financial write produces exactly one confirmation toast and haptic; a rejected or failed write produces none.
 
 ## Tests and verification
 

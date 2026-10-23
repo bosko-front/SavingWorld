@@ -29,6 +29,7 @@ No unresolved product gate. Free and Pro use the identical catalog.
 - Add savings opens the same Home transaction form and command with the same operation ID/retry behavior. Saving one eligible Home or Challenges entry updates money exactly once and recalculates progress automatically; no separate confirmation/evidence-link screen.
 - Offer Skip without penalty/history loss; a new attempt selects an available fixed type. Do not offer pause/resume, amount/frequency editing, custom creation, challenge reminders or a custom-feature paywall.
 - Keep goal Pause/Resume separate: paused goal can still edit/add without resuming the global reminder. Closed goals stay read-only until Reopen.
+- Call `haptics.selection()` when choosing a challenge type in a custom control and `haptics.success()` when an attempt becomes Completed while its screen is visible; no haptic for Skip or Not completed.
 
 ## Expected files and modules
 

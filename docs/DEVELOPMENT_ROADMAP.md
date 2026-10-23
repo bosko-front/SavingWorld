@@ -363,6 +363,8 @@ Q01/Q02 are resolved by v1.2. No further owner choice is required for currency, 
 - Implement active/paused/completed/archived commands. Free counts active+paused<=1 for Create and Reopen, with completed/archived excluded; Pro capability contract permits unlimited open goals later.
 - Pause/Resume and Archive preserve history. paused can edit/add transactions without resuming reminders. completed/archived are read-only until Reopen checks the slot and sets active; never automatically Finish at 100%. Define guarded Finish requiring B>=T for Phase 11 integration. No whole-goal deletion.
 - Implement basic Home open-goal summary/selection and restart fallback. Keep Island-only selection until paid Garden integration; use shared accessible/adaptive controls.
+- Set up the shared feedback layer from DESIGN_SYSTEM "Transient feedback (toasts)" and "UX library plan": install `sonner-native`, `react-native-svg` and `expo-symbols` with `npx expo install`; create `src/shared/ui/toast.tsx` (`showToast({ tone, title })` plus a `<Toaster />` host in the root layout) rendered with tokens/AppText, one toast at a time, VoiceOver announcement, Reduce Motion fade and top placement; add a gallery demo. Use it only for committed confirmations here (goal created/saved, paused, resumed, archived, reopened, currency changed); errors stay inline. Use `@expo/ui` Picker for the currency choice. Rebuild the development client for the new native modules.
+- Create `src/shared/ui/icon.tsx` (expo-symbols `SymbolView` with the DESIGN_SYSTEM "Icons" semantic name map, token colors, size following text scale, hidden from VoiceOver by default) and replace the TextField warning glyph with the `error` icon. Use icons in toasts, Notice and goal lifecycle actions; no icon fonts, custom SVG icons or emoji.
 
 ## Expected files and modules
 
@@ -373,6 +375,8 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 - `src/app/ onboarding and goal route adapters`
 - `src/core/access/ Free open-slot policy`
 - `goal/currency/lifecycle repository and UI tests`
+- `src/shared/ui/toast.tsx` shared toast wrapper, root-layout host and gallery demo
+- `src/shared/ui/icon.tsx` shared SF Symbols icon component and semantic name map
 
 ## Technical requirements
 
@@ -385,12 +389,14 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 - Global currency and zero-balance goal survive restart; second goal never has its own currency picker.
 - A paused goal consumes the Free slot; Archive frees it; Reopen at the limit fails and at >=100% remains active.
 - Currency changes update empty goals without conversion, fail with any transaction or collectible, and unlock again only if neither exists.
+- Committed goal/currency actions show one announced confirmation toast; failures show inline errors and keep input; no screen imports a toast library directly.
 
 ## Tests and verification
 
 - Repository-backed Create/Reopen concurrent slot checks and closed/paused edit guards; confirm no goal-delete route.
 - Currency fixtures: empty goals change globally, transaction blocks, deleting last transaction without collectible permits change, collectible alone blocks; use a boundary fixture before Phase 11 introduces real collectible storage.
 - UI cancel/invalid target/deadline/write-error tests; native cold restart/selection and VoiceOver/keyboard walkthrough; standard checks.
+- Toast wrapper tests (announcement called once, a new toast replaces the current one, no toast on failed write) and a simulator check with VoiceOver, Reduce Motion and the largest text size.
 
 ## Definition of Done
 
@@ -421,6 +427,8 @@ Q01/Q02 are final v1.2 rules, not approval gates.
 - Implement current transaction History with edit and confirmed deletion. Overwrite corrected current values; do not keep ledger audit tables, old-entry snapshots or audit detail screens. Preserve immutable createdAt for ordering/eligibility.
 - For every create/edit/delete, order the candidate goal history by date, createdAt, id and reject any negative subtotal or final balance. Correcting an amount/date/sign revalidates the entire affected sequence.
 - Guard completed/archived as read-only until Reopen. paused remains editable without Resume. Invalidate balance, stage, estimates and later challenge/statistics queries after commit.
+- Feedback per DESIGN_SYSTEM: after a committed create/edit/delete, show the Phase 06 `showToast` confirmation ("Deposit saved", "Withdrawal saved", "Entry updated", "Entry deleted") and a light success haptic; install `expo-haptics` with `npx expo install` and rebuild the development client. Deletion still needs a native confirmation first and has no Undo. Use the `@expo/ui` DatePicker for the entry date. Rejections and write failures stay inline with the draft preserved.
+- Create `src/shared/ui/haptics.ts` with the four DESIGN_SYSTEM "Haptics" helpers. Call `success()` once after each committed create/edit/delete (with the toast) and `warning()` once per rejected submit (negative running balance, future date) alongside the inline explanation; also wire `warning()` into the Phase 06 Free-limit Create rejection. No haptic on press-in, navigation or failed I/O.
 
 ## Expected files and modules
 
@@ -431,6 +439,7 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 - `src/app/ transaction/history route adapters`
 - `src/features/goals/ query invalidation and lifecycle guards`
 - `ledger UI/native persistence and failure tests`
+- reuse of `src/shared/ui/toast.tsx` and a small shared haptics helper
 
 ## Technical requirements
 
@@ -443,6 +452,7 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 - Deposit50-withdraw20 yields30 after restart; withdrawal31 is rejected.
 - Withdrawal dated before the first deposit and deletion of its funding deposit are rejected, including positive-final-total counterexamples.
 - Edits/deletions apply once, stale/retried writes are safe, closed goals reject mutation and paused goals remain paused.
+- Each committed financial write produces exactly one confirmation toast and haptic; a rejected or failed write produces none.
 
 ## Tests and verification
 
@@ -479,6 +489,7 @@ None beyond verified dependencies.
 - Recalculate after deposits, withdrawals, corrections, target/deadline edits and foreground civil-date changes.
 - Show overfunding numerically without increasing scene unlocks beyond ten; leave a correctly sized world region ready for Phase 09.
 - Keep history and Add savings/Withdraw actions visible and accessible on small screens and large text.
+- If the Home goal switcher is a custom control, call `haptics.selection()` when the selected goal changes; a native `@expo/ui` picker needs no extra haptic.
 
 ## Expected files and modules
 
@@ -599,6 +610,7 @@ Phase 09 must have verified production Island assets.
 - Coalesce large deposits crossing several thresholds into a short final-state-correct sequence; quiet regression on withdrawals and target edits.
 - Cancel/supersede stale animations on rapid commits, navigation, background or theme changes; reload directly into the persisted final stage.
 - Respect OS Reduce Motion and avoid any financial writes or eligibility logic inside animation callbacks.
+- Call `haptics.milestone()` once per committed unlock sequence (coalesced with the animation, also under Reduce Motion); no haptic for regression after withdrawals or target edits.
 
 ## Expected files and modules
 
@@ -657,6 +669,7 @@ Q03 is resolved by v1.2. No retention/award reapproval or souvenir-deletion poli
 - Integrate explicit Finish action for open goals at >=100%: set completed, make read-only and release the Free slot. Reopen on completed/archived checks active+paused slot limit then sets active, enables edits and never auto-finishes even if already >=100%.
 - Build Collection souvenir/detail and completed/archived goal views with clear historical/current captions. A live regressed scene and permanent completed souvenir may coexist. No goal/souvenir deletion.
 - Ensure target/theme/ledger edits respect closed-goal guards and the global currency lock includes collectibles even if every transaction was deleted after Reopen.
+- Call `haptics.success()` for the first-100% souvenir moment (instead of the milestone haptic) and after Finish; `haptics.warning()` when Reopen is refused by the Free open-goal limit. Use the `finish`, `reopen`, `archive` and `souvenir` icons from the shared icon map.
 
 ## Expected files and modules
 
@@ -774,6 +787,7 @@ No unresolved product gate. Free and Pro use the identical catalog.
 - Add savings opens the same Home transaction form and command with the same operation ID/retry behavior. Saving one eligible Home or Challenges entry updates money exactly once and recalculates progress automatically; no separate confirmation/evidence-link screen.
 - Offer Skip without penalty/history loss; a new attempt selects an available fixed type. Do not offer pause/resume, amount/frequency editing, custom creation, challenge reminders or a custom-feature paywall.
 - Keep goal Pause/Resume separate: paused goal can still edit/add without resuming the global reminder. Closed goals stay read-only until Reopen.
+- Call `haptics.selection()` when choosing a challenge type in a custom control and `haptics.success()` when an attempt becomes Completed while its screen is visible; no haptic for Skip or Not completed.
 
 ## Expected files and modules
 
@@ -1006,6 +1020,7 @@ Approved Garden art and provenance plus verified implementation of v1.2 Q03/Q05 
 - Persist theme changes as metadata through a capability-checked command while preserving target, currency, ledger, challenge evidence and current milestone.
 - Keep completion snapshots on their historical theme/version; switching an open live goal already at100% does not rewrite its souvenir or award another.
 - Use a brief bounded transition and accessible confirmation; verify all Garden states offline and implement v1.2 verified-loss Island fallback with Garden souvenirs retained and excess open goals archived before further entries.
+- Call `haptics.selection()` when the user picks Island or Garden in a custom theme picker; the theme change confirmation uses the shared toast.
 
 ## Expected files and modules
 
@@ -1124,6 +1139,7 @@ Production support/privacy destinations and publisher information from Q09 are n
 - Move remaining user-visible strings and accessibility descriptions into the English catalog; test longer strings/RTL layout readiness and alternate numeric/date locales without claiming translations.
 - Complete Settings/help explanation that app deletion/device loss may permanently remove local data and the app cannot restore it. Restore Purchases returns the license only. No backup/export/import/sync button or recovery promise; OS backup caveats cannot imply app data restoration.
 - Check global currency is editable only in Settings with zero transactions and zero collectibles, applies to every empty goal without conversion, and never appears as an editable goal field; verify the single Sunday 18:00 global reminder switch, permission-denial paths remain usable, and privacy/support links use resolved legitimate destinations or remain explicitly pending release dependencies.
+- Audit haptics and icons against DESIGN_SYSTEM: every haptic has a matching visual/text confirmation, at most one per action, none on navigation/regression/purchase; every icon is decorative or labelled, uses the shared map and scales with text.
 
 ## Expected files and modules
 

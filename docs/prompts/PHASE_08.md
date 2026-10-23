@@ -29,6 +29,7 @@ None beyond verified dependencies.
 - Recalculate after deposits, withdrawals, corrections, target/deadline edits and foreground civil-date changes.
 - Show overfunding numerically without increasing scene unlocks beyond ten; leave a correctly sized world region ready for Phase 09.
 - Keep history and Add savings/Withdraw actions visible and accessible on small screens and large text.
+- If the Home goal switcher is a custom control, call `haptics.selection()` when the selected goal changes; a native `@expo/ui` picker needs no extra haptic.
 
 ## Expected files and modules
 

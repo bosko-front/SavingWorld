@@ -67,4 +67,36 @@ describe('app navigation shell', () => {
     await goBack();
     expect(screen).toHavePathname('/');
   });
+
+  it('opens the development component gallery from Settings', async () => {
+    await renderRouter(appDir, { initialUrl: '/settings' });
+    await userEvent.press(screen.getByRole('button', { name: 'Component gallery (development only)' }));
+    expect(screen).toHavePathname('/dev-gallery');
+    expect(screen.getByText('Text roles')).toBeOnTheScreen();
+    expect(screen.getAllByRole('button', { name: 'Saving' }).length).toBeGreaterThan(0);
+  });
+});
+
+describe('release routes', () => {
+  const globals = globalThis as { __DEV__?: boolean };
+  const originalDev = globals.__DEV__;
+
+  beforeEach(() => {
+    globals.__DEV__ = false;
+  });
+
+  afterEach(() => {
+    globals.__DEV__ = originalDev;
+  });
+
+  it('hides the gallery entry and redirects its deep link when __DEV__ is false', async () => {
+    await renderRouter(appDir, { initialUrl: '/settings' });
+    expect(screen.queryByText('Component gallery (development only)')).not.toBeOnTheScreen();
+
+    await act(async () => {
+      router.navigate('/dev-gallery');
+    });
+    expect(screen).not.toHavePathname('/dev-gallery');
+    expect(screen.queryByText('Text roles')).not.toBeOnTheScreen();
+  });
 });

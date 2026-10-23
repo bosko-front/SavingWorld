@@ -58,12 +58,16 @@ Phase 01 records every selected version, why it is needed, whether the template 
 | Phase 01 tooling | TypeScript, SDK-compatible ESLint config, jest-expo/Jest/types, React Native Testing Library and reproducible EAS CLI | Create real lint/typecheck/test scripts and a small meaningful smoke suite. |
 | Phase 01 EAS configuration | eas.json profiles, project/update URL and runtime configuration | Link the intended owner/project, configure explicit channels/environments and produce a real EAS dev build. No production OTA publish. |
 | Phase 20 OTA verification | Existing expo-updates/EAS tooling and release-mode preview artifact | Actual compatible update, offline activation and recovery proof; a dev-client bundle load is insufficient. |
-| Phase 02 styling | No extra styling package | Shared StyleSheet tokens/primitives and native appearance integration. |
+| Phase 02 styling | No extra styling package | Shared StyleSheet tokens/primitives and native appearance integration. The UX library plan (versions, uses, rejected options) is in DESIGN_SYSTEM and DECISIONS D41. |
 | Phase 03 adaptation | Use the foundation safe-area and @expo/ui packages | Verify ArrangementView/RNHostView and the older-iOS fallback in a native build. No expo-hinge requirement. |
-| Phase 09 scenes | Expo-compatible image/asset packages only when the approved renderer needs them | Validate static asset references and memory; avoid an unused second image pipeline. |
+| Phase 03 forms (conditional) | react-native-keyboard-controller | Only if FormScreen cannot keep Save/errors visible above the keyboard with built-in behavior; native rebuild. |
+| Phase 06 feedback | sonner-native, react-native-svg, expo-symbols | Shared `src/shared/ui/toast.tsx` wrapper per DESIGN_SYSTEM toast rules, first SF Symbols; native rebuild. |
+| Phase 07 feedback | expo-haptics | Success haptic after committed financial writes; reuses the Phase 06 toast; native rebuild. |
+| Phase 06/07/14 native inputs | Existing @expo/ui (DatePicker, Picker, Switch) | No extra date-picker package. |
+| Phase 09 scenes | expo-image, when the approved renderer needs it | Validate static asset references and memory; avoid an unused second image pipeline. |
 | Phase 14 reminders | expo-notifications | Add its actual local scheduling/native configuration when reminders are implemented. |
 | Phase 15 purchases | Selected compatible expo-iap or the bounded verified StoreKit adapter | Add purchase native configuration and rebuild when it can be tested. No hosted service by default. |
-| Phase 18 statistics | react-native-svg, if used for the minimal chart | No general chart framework. |
+| Phase 18 statistics | react-native-svg (installed in Phase 06 for toasts) for the minimal chart | No general chart framework. |
 
 Phase 01 locked Expo SDK 58.0.17 with React Native 0.88.0, React 19.3.0 and Expo Router 58.0.25 on 23 October 2026. The exact install matrix, template-supplied packages, removed template packages and EAS CLI pin are in [PHASE_01 evidence](evidence/PHASE_01.md) and DECISIONS D31-D36.
 

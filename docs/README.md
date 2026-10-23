@@ -64,7 +64,7 @@ You may repeat a phase across multiple focused sessions. The 22-phase plan descr
 
 ## What exists now
 
-Documentation and preserved product sources, including the local v1.2 DOCX, plus the Phase 01 Expo SDK 58 project shell (package.json/lockfile, app.config.ts, eas.json, native tab/stack routes, lint/typecheck/test scripts) and the root CLAUDE.md entry point. See [project status](PROJECT_STATUS.md) for what is verified. Remaining planned source paths in architecture/phase documents are future targets and are labelled accordingly. Links between current documentation must resolve now. Evidence files for implementation phases are created when those phases run, not pre-filled with invented passing results.
+Documentation and preserved product sources, including the local v1.2 DOCX, plus the Phase 01 Expo SDK 58 project shell (package.json/lockfile, app.config.ts, eas.json, native tab/stack routes, lint/typecheck/test scripts), the Phase 02 palette, typed tokens, shared native controls and development-only component gallery, and the root CLAUDE.md entry point. See [project status](PROJECT_STATUS.md) for what is verified. Remaining planned source paths in architecture/phase documents are future targets and are labelled accordingly. Links between current documentation must resolve now. Evidence files for implementation phases are created when those phases run, not pre-filled with invented passing results.
 
 Planning revisions added early styling/adaptive phases and a focused EAS delivery phase; use the current prompt index rather than old saved phase numbers.
 

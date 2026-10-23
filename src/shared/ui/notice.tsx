@@ -1,0 +1,50 @@
+import { StyleSheet, View } from 'react-native';
+
+import { borders, colors, radii, spacing } from '@/shared/theme';
+
+import { AppText } from './app-text';
+
+export type NoticeTone = 'error' | 'success' | 'info';
+
+// Tone colors; tests/unit/contrast.test.ts checks title, message and accent against each surface.
+export const noticeColors = {
+  error: { surface: colors.errorSurface, accent: colors.error, titleTone: 'error' },
+  success: { surface: colors.successSurface, accent: colors.success, titleTone: 'success' },
+  info: { surface: colors.infoSurface, accent: colors.info, titleTone: 'info' },
+} as const;
+
+type NoticeProps = {
+  tone: NoticeTone;
+  // States the outcome in words ("Couldn't save"), so meaning never depends on color.
+  title: string;
+  message?: string;
+  testID?: string;
+};
+
+// Inline feedback for errors, confirmations and information inside a screen or form.
+export function Notice({ tone, title, message, testID }: NoticeProps) {
+  const toneColors = noticeColors[tone];
+  return (
+    <View
+      testID={testID}
+      accessible
+      accessibilityRole={tone === 'error' ? 'alert' : 'text'}
+      accessibilityLabel={message ? `${title}. ${message}` : title}
+      style={[styles.container, { backgroundColor: toneColors.surface, borderLeftColor: toneColors.accent }]}>
+      <AppText role="headline" tone={toneColors.titleTone}>
+        {title}
+      </AppText>
+      {message ? <AppText role="callout">{message}</AppText> : null}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    gap: spacing.xs,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radii.md,
+    borderLeftWidth: borders.emphasis * 2,
+  },
+});

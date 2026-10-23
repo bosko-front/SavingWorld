@@ -29,6 +29,7 @@ Q03 is resolved by v1.2. No retention/award reapproval or souvenir-deletion poli
 - Integrate explicit Finish action for open goals at >=100%: set completed, make read-only and release the Free slot. Reopen on completed/archived checks active+paused slot limit then sets active, enables edits and never auto-finishes even if already >=100%.
 - Build Collection souvenir/detail and completed/archived goal views with clear historical/current captions. A live regressed scene and permanent completed souvenir may coexist. No goal/souvenir deletion.
 - Ensure target/theme/ledger edits respect closed-goal guards and the global currency lock includes collectibles even if every transaction was deleted after Reopen.
+- Call `haptics.success()` for the first-100% souvenir moment (instead of the milestone haptic) and after Finish; `haptics.warning()` when Reopen is refused by the Free open-goal limit. Use the `finish`, `reopen`, `archive` and `souvenir` icons from the shared icon map.
 
 ## Expected files and modules
 

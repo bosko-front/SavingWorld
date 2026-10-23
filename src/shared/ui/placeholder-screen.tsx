@@ -1,8 +1,12 @@
 import type { ReactNode } from 'react';
-import { PlatformColor, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
-// Temporary Phase 01 shell content. Phase 02 replaces these system colors and text styles with
-// shared palette tokens and primitives; Phase 03 replaces the inset/layout policy.
+import { colors, spacing } from '@/shared/theme';
+
+import { AppText } from './app-text';
+
+// Temporary shell content until feature screens exist. It uses the Phase 02 tokens and text roles;
+// Phase 03 replaces its inset/layout policy with the shared Screen primitives.
 type PlaceholderScreenProps = {
   title: string;
   description: string;
@@ -15,10 +19,10 @@ export function PlaceholderScreen({ title, description, children }: PlaceholderS
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={styles.content}
       style={styles.scroll}>
-      <Text accessibilityRole="header" style={styles.title}>
+      <AppText role="title" accessibilityRole="header">
         {title}
-      </Text>
-      <Text style={styles.description}>{description}</Text>
+      </AppText>
+      <AppText tone="secondary">{description}</AppText>
       {children ? <View style={styles.children}>{children}</View> : null}
     </ScrollView>
   );
@@ -27,22 +31,13 @@ export function PlaceholderScreen({ title, description, children }: PlaceholderS
 const styles = StyleSheet.create({
   scroll: {
     flex: 1,
-    backgroundColor: PlatformColor('systemGroupedBackground'),
+    backgroundColor: colors.canvas,
   },
   content: {
-    padding: 16,
-    gap: 12,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '600',
-    color: PlatformColor('label'),
-  },
-  description: {
-    fontSize: 17,
-    color: PlatformColor('secondaryLabel'),
+    padding: spacing.lg,
+    gap: spacing.md,
   },
   children: {
-    gap: 12,
+    gap: spacing.md,
   },
 });

@@ -29,6 +29,7 @@ Phase 09 must have verified production Island assets.
 - Coalesce large deposits crossing several thresholds into a short final-state-correct sequence; quiet regression on withdrawals and target edits.
 - Cancel/supersede stale animations on rapid commits, navigation, background or theme changes; reload directly into the persisted final stage.
 - Respect OS Reduce Motion and avoid any financial writes or eligibility logic inside animation callbacks.
+- Call `haptics.milestone()` once per committed unlock sequence (coalesced with the animation, also under Reduce Motion); no haptic for regression after withdrawals or target edits.
 
 ## Expected files and modules
 

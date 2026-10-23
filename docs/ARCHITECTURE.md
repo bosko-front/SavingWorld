@@ -29,7 +29,7 @@ flowchart TD
 
 All paths below are future implementation targets unless noted. Actual documentation links resolve now; future code paths are not broken documentation links.
 
-Phase 01 created the shell that exists today: `src/app/_layout.tsx` (root Stack and root-level native form sheets), `src/app/(tabs)/_layout.tsx` (NativeTabs), one native Stack per tab in `src/app/(tabs)/(home)/`, `(challenges)/` and `(collection)/` with Settings and a temporary detail route in the Home stack, `src/bootstrap/` (redacted build/update diagnostics) and temporary `src/shared/ui/` placeholders that Phase 02 replaces. Tests live in `tests/unit/` and `tests/integration/`.
+Phase 01 created the shell that exists today: `src/app/_layout.tsx` (root Stack and root-level native form sheets), `src/app/(tabs)/_layout.tsx` (NativeTabs), one native Stack per tab in `src/app/(tabs)/(home)/`, `(challenges)/` and `(collection)/` with Settings and a temporary detail route in the Home stack, `src/bootstrap/` (redacted build/update diagnostics). Phase 02 added `src/shared/theme/` (private palette, semantic tokens, native navigation appearance), `src/shared/ui/` (AppText, Button, TextField, Card, AmountText, Notice and the temporary PlaceholderScreen) and the development-only gallery (`src/dev/` behind the guarded Home-stack route `dev-gallery`); see [DESIGN_SYSTEM](DESIGN_SYSTEM.md). Tests live in `tests/unit/` and `tests/integration/`.
 
 ```text
 src/app/                         route adapters and navigation layouts
@@ -49,8 +49,9 @@ src/features/reminders/          persisted preferences and OS scheduling adapter
 src/features/billing/            native adapter, entitlement reconciliation and capability queries
 src/features/statistics/         global-currency totals, 30-day series and Pro UI
 src/features/settings/           local preferences and privacy/data screens
-src/shared/theme/                palette, typed semantic tokens and theme access
-src/shared/ui/                   accessible native controls
+src/shared/theme/                palette, typed semantic tokens and native appearance (exists)
+src/shared/ui/                   accessible native controls (exists)
+src/dev/                         development-only tools such as the component gallery (exists)
 src/shared/layout/               screen/inset policy, measured regions and adaptive adapter
 src/shared/i18n/                 English strings and formatting helpers
 assets/themes/island/            approved local layered exports

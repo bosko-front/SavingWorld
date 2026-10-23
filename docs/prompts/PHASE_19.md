@@ -29,6 +29,7 @@ Production support/privacy destinations and publisher information from Q09 are n
 - Move remaining user-visible strings and accessibility descriptions into the English catalog; test longer strings/RTL layout readiness and alternate numeric/date locales without claiming translations.
 - Complete Settings/help explanation that app deletion/device loss may permanently remove local data and the app cannot restore it. Restore Purchases returns the license only. No backup/export/import/sync button or recovery promise; OS backup caveats cannot imply app data restoration.
 - Check global currency is editable only in Settings with zero transactions and zero collectibles, applies to every empty goal without conversion, and never appears as an editable goal field; verify the single Sunday 18:00 global reminder switch, permission-denial paths remain usable, and privacy/support links use resolved legitimate destinations or remain explicitly pending release dependencies.
+- Audit haptics and icons against DESIGN_SYSTEM: every haptic has a matching visual/text confirmation, at most one per action, none on navigation/regression/purchase; every icon is decorative or labelled, uses the shared map and scales with text.
 
 ## Expected files and modules
 

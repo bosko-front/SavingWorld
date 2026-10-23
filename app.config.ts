@@ -4,6 +4,9 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
 // See docs/EAS_AND_OTA.md for the runtime/channel contract these values implement.
 const EAS_PROJECT_ID = '25d3089f-a32e-461f-baf2-7c95a396984e';
 const IOS_BUNDLE_IDENTIFIER = 'com.bosko123.savingworlds';
+// Native launch color. The Expo config loader cannot import the TypeScript palette module, so this
+// copies LAUNCH_BACKGROUND (src/shared/theme/palette.ts); tests/unit/contrast.test.ts guards the match.
+const LAUNCH_BACKGROUND = '#F6F4EA';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -18,8 +21,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   platforms: ['ios'],
   // Native resizing stays enabled; adaptive layout is owned by Phase 03, not an orientation lock.
   orientation: 'default',
-  // Phase 02 owns the palette and the supported appearance decision.
-  userInterfaceStyle: 'automatic',
+  // Release 1.0 ships one light palette (DESIGN_SYSTEM, DECISIONS D37). Forcing the light
+  // appearance keeps native bars, sheets and system controls legible over the light app surfaces
+  // when the OS is set to Dark. Do not switch to 'automatic' without a complete dark palette.
+  userInterfaceStyle: 'light',
+  // Root view color behind screens during launch and transitions (applied by expo-system-ui).
+  backgroundColor: LAUNCH_BACKGROUND,
   icon: './assets/images/icon.png',
   ios: {
     bundleIdentifier: IOS_BUNDLE_IDENTIFIER,
@@ -38,7 +45,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-splash-screen',
       {
-        backgroundColor: '#F6F4EA',
+        backgroundColor: LAUNCH_BACKGROUND,
         image: './assets/images/splash-icon.png',
         imageWidth: 76,
       },

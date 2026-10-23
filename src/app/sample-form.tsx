@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
-import { Button } from 'react-native';
 
+import { Button } from '@/shared/ui/button';
 import { PlaceholderScreen } from '@/shared/ui/placeholder-screen';
 
 // Temporary Phase 01 route proving native sheet presentation and dismissal. It has no fields and
@@ -11,7 +11,7 @@ export default function SampleFormScreen() {
     <PlaceholderScreen
       title="Native form sheet"
       description="Forms will be presented here as native sheets above the tabs.">
-      <Button title="Done" onPress={() => router.back()} />
+      <Button label="Done" onPress={() => router.back()} />
     </PlaceholderScreen>
   );
 }

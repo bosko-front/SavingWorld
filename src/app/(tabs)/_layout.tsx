@@ -1,9 +1,11 @@
 import { NativeTabs } from 'expo-router/native-tabs';
 
+import { nativeTabsAppearance } from '@/shared/theme';
+
 // OS-native tab bar; the system adapts its chrome (including on iPhone Duo). No custom tab bar.
 export default function TabsLayout() {
   return (
-    <NativeTabs>
+    <NativeTabs tintColor={nativeTabsAppearance.tintColor}>
       <NativeTabs.Trigger name="(home)">
         <NativeTabs.Trigger.Icon sf={{ default: 'house', selected: 'house.fill' }} />
         <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
