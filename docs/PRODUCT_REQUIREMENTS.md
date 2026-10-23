@@ -1,0 +1,85 @@
+# Saving Worlds product requirements
+
+Baseline aligned 23 October 2026 to the local [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx), the supreme product authority for Release 1.0. It supersedes conflicting v1.1 text and 22 October feature decisions. [Setup/layout](sources/SETUP_AND_LAYOUT_DECISIONS_2026-10-22.md) and [EAS/OTA](sources/EAS_AND_OTA_DECISIONS_2026-10-22.md) remain compatible engineering instructions. See [reconciliation](SOURCE_RECONCILIATION.md). R01-R26 remain traceability IDs; their current definitions below are authoritative.
+
+Saving Worlds is an English-language iOS savings tracker. Users manually record money actually set aside and build cozy isometric worlds. The app does not hold/transfer money, connect to banks, verify bank balances or give financial advice.
+
+## Confirmed release 1.0 scope
+
+| ID | Requirement | Acceptance outcome |
+| --- | --- | --- |
+| R01 | iOS first, React Native, Expo and TypeScript | Installable iPhone app; Android deferred. Latest stable compatible SDK is selected and locked at setup. |
+| R02 | No app account, backend, sync or AI | Core tracking works offline. Purchase and delivery services never gate the local ledger. |
+| R03 | Local SQLite ledger | Balance is derived from saved transactions and survives restart; no editable balance replacement. |
+| R04 | Explicit goal lifecycle | Positive target, free title, optional deadline and available theme. active/paused are open; completed/archived are closed and read-only until Reopen. No whole-goal deletion. |
+| R05 | One Free open goal | Count active + paused <= 1; completed/archived do not count. Create and Reopen check the limit atomically; Pro has unlimited open goals. |
+| R06 | Deposits, withdrawals, correction and confirmed deletion | Positive input amount plus kind; local date defaults to today, optional note. No future dates. Reject any mutation causing a negative current or chronological running balance, ordered by date, createdAt, id. No correction audit or previous-entry versions. |
+| R07 | One global currency | Chosen during onboarding; later change only in Settings while no transaction and no collectible exists. Applies to every goal, including empty ones; disclose no conversion. Store integer minor units using that currency's exponent. No per-goal currency. |
+| R08 | Free financial views and optional deadline | Current balance, percentage, remaining and history. Weekly/monthly estimates use the exact inclusive-day formulas below, not contribution schedules. Overfunding remains numeric. |
+| R09 | Shared live progression | Base at 0% plus ten unlocks at 10%-100%; derive from current balance/target. Withdrawals/corrections/target increases can regress the scene; scene caps at 100%. |
+| R10 | Island | Complete Free theme with local assets and exact sequence below. |
+| R11 | Garden | Complete Pro theme in the first public release with exact sequence below. |
+| R12 | Scene experience | Cozy isometric 2.5D layers and short feedback using Reanimated; no full 3D engine. Reduced Motion remains fully usable. |
+| R13 | Permanent souvenir and explicit Finish | First saved transaction mutation or target edit reaching >=100% atomically awards one immutable souvenir per goal, also Free, with theme/version at that time. It persists after corrections, withdrawals and theme/target changes. Finish separately sets completed at >=100%; Reopen sets active after a limit check, never auto-finishes. No duplicate souvenir. |
+| R14 | Three fixed challenges for Free and Pro | First step, Next milestone, Weekly step only; at most one unfinished attempt per goal. Skip preserves history. No challenge pause, amount/rule/frequency editing or custom challenge. |
+| R15 | Fixed attempt rules | Catalog, frozen targets, eligibility, stored week/timezone and historical-attempt behavior follow MVP v1.2 section 7 and DATA_MODEL. Historical attempts never automatically reactivate or consume the active slot. |
+| R16 | Calculated challenge results | Challenge Add savings opens the same transaction form as Home. Derive progress from eligible saved records; no challenge creates or duplicates a transaction, money or reward. Corrections/deletions recalculate results without erasing attempt history or repeating notifications. |
+| R17 | One optional global weekly local reminder | Sunday 18:00 device local time, permission requested on opt-in. Schedule only while at least one active goal exists; paused/completed/archived do not trigger it. No per-goal/per-challenge schedule or challenge notification. |
+| R18 | Pro lifetime | One restorable Apple non-consumable: unlimited open goals, Garden, open-goal Island/Garden switching and the four R19 statistics. Same challenges as Free. No ads/subscriptions; final price open. |
+| R19 | Four precise Pro statistics | Current total across all goals; current calendar-month deposits and withdrawals; total daily balance for the last 30 calendar days including prior-window opening balance; count goals whose status is completed. Archived goals contribute to money totals/chart. No forecasting. |
+| R20 | Simple Pro theme switching | Island/Garden selection and switching on open active/paused goals only. Preserve ledger, target, live milestone and existing souvenir. No manual placement, scene editor or additional personalization. |
+| R21 | Purchase resilience | Localized price, buy and Restore Purchases; handle verified/pending/cancel/error/offline/revocation. Offline failure retains prior verified rights. Confirmed loss preserves data: choose at most one open Free goal and archive others before further entries; open Free goal uses Island, Garden souvenirs persist. Restore returns license, not local data. |
+| R22 | English UI, accessibility and privacy | Readable contrast/text, VoiceOver, Reduce Motion and honest empty/error/complete states. No financial history sent to a server. |
+| R23 | Local-data boundaries | No backup, export/import, sync or backup button in v1. Explain that deletion/loss of device may permanently remove data and the app cannot restore it. OS behavior is not an app recovery promise. |
+| R24 | Early setup and global styling | Phase 01 installs the compatible foundation packages on the latest stable Expo SDK; Phase 02 chooses the app palette and shared typed style tokens/primitives. No per-screen copied palette or global screen-ratio scaling. |
+| R25 | Shared adaptive iPhone/Duo layout | Phase 03 establishes live window/container layout, native navigation, four-edge safe-area behavior and runtime-guarded native adaptation. Later forms/scenes remain usable through resizing, fold, rotation and supported split view while preserving drafts and ledger state. Verify ordinary phones and Duo natively. |
+| R26 | EAS build and compatible OTA delivery | EAS Build/Update configuration is required in Phase 01; release-mode update/rollback proof is Phase 20. Core savings stays offline. Same-runtime OTA preserves native and persisted-data contracts; no forced reload during financial work and no OTA-only schema migration. |
+
+## Exact progression content
+
+Each row represents the resulting scene at that threshold. Previously earned elements persist unless a later state explicitly replaces them, such as the larger house replacing the small house. Art manifests define that replacement. State 0 is not one of the ten unlocks.
+
+| State | Threshold | Island | Garden |
+| --- | --- | --- | --- |
+| 0 | 0% | Empty island | Empty garden |
+| 1 | 10% | First tree | First seedlings |
+| 2 | 20% | Path | Small flower bed |
+| 3 | 30% | Flowers and bushes | More flowers |
+| 4 | 40% | Small house | Decorative tree |
+| 5 | 50% | Bridge | Garden pathway |
+| 6 | 60% | Pond | Small fountain |
+| 7 | 70% | Additional trees | Bench and decorations |
+| 8 | 80% | Larger house and details | Gazebo |
+| 9 | 90% | Final decorations | Final plants and ornaments |
+| 10 | 100% | Completed island | Completed garden |
+
+A €2,000 goal at €199.99 has state 0; at €200 it has state 1; at €1,000 it has state 5; at €2,000 it has state 10. A withdrawal to €1,800 shows state 9. At €2,100 it still shows state 10 and reports €2,100 saved, €0 remaining and 105% numerically. The first saved qualifying mutation awards one permanent souvenir per goal, without changing goal status.
+
+
+## Main user journeys
+
+1. Read the short introduction and select one global currency before goal creation. No account or notification permission wall.
+2. Create a zero-balance goal with positive target, optional deadline and available theme; currency is read-only information from Settings.
+3. Add a deposit/withdrawal through one form shared by Home and Challenges. Commit only after lifecycle, currency, amount, date and chronological-balance validation. Correct or confirm deletion from History; preserve retryable input on failure.
+4. At the first saved >=100%, receive one permanent Collection souvenir; the goal remains open. Finish explicitly closes it and frees the Free slot. Reopen checks the slot and re-enables edits without automatic Finish.
+5. Select a fixed challenge; eligible Home/Challenges records update its result automatically. Skip preserves history; closed attempts never reactivate automatically.
+6. Optionally enable the single Sunday 18:00 global reminder. Editing a paused goal does not resume reminders.
+7. Buy/restore Pro to use Garden, unlimited open goals, simple theme switching and four statistics. Restore Purchases never restores savings data.
+
+## Exact deadline and challenge contracts
+
+New/changed deadlines may be today or a future local date; existing deadlines can expire. With R=max(0,T-B) and D inclusive calendar days from today through an unexpired deadline, weekly=min(R,ceil(R*7/D)); monthly=min(R,ceil(R*30/D)), rounded upward in minor units. R=100.00,D=30 gives 23.34 weekly and 100.00 monthly. Deadline today gives R for both; no deadline gives no estimate; past deadline with R>0 gives Overdue without an estimate; R=0 gives zero estimates and no Overdue.
+
+[DATA_MODEL](DATA_MODEL.md) specifies all three fixed challenge rules, transaction eligibility, frozen targets and stored calendar-week boundaries from v1.2 section 7. These are settled product rules, not Q04 questions.
+
+## Screen inventory
+
+Onboarding/global currency; Home/open-goal switcher with Pause/Resume, Archive and Finish; Create/Edit Goal; shared Add/Edit Transaction; History; fixed Challenges/detail/history; Collection/closed-goal detail with Reopen; one Pro Statistics screen; open-goal Theme picker; Pro paywall/restore; Settings/global currency lock, weekly reminder switch and local-data explanation. [UI contracts](UI_UX_GUIDELINES.md), [design system](DESIGN_SYSTEM.md) and [adaptive layout](ADAPTIVE_LAYOUT.md) define presentation.
+
+## Explicit exclusions
+
+Accounts, backend, banks, transfers, AI, Android launch, backup, export/import, sync, per-goal currencies, FX, separate correction audit, whole-goal deletion, custom/advanced challenges, challenge pause or editable schedules, XP, punitive streaks, monetary rewards, extra themes, manual placement/editor/color customization, advanced analytics, forecasts, subscriptions and ads. Future theme rights are not promised.
+
+## Remaining release dependencies
+
+Q01-Q06 are resolved by v1.2; no owner reapproval is needed for those behaviors. Final name/identity, Pro price/sale copy, licensed art and actual store/native/EAS identifiers/access remain release dependencies in [reconciliation](SOURCE_RECONCILIATION.md). None changes the settled functional scope. Every R01-R26 must have appropriate real implementation/native evidence before release; no implementation has started.
