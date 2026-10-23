@@ -27,7 +27,7 @@ lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (22 suites, 565 tests)
 ## Incomplete work and blockers
 
 1. Carried by owner decision D63 (not Phase 07 blockers): VoiceOver walkthrough of the entry form and History and felt haptics (Phase 19 on a physical iPhone), native rotation of an ordinary iPhone and Duo fold/unfold/rotate with a typed draft in `/entry-form` (Phase 21), both in RELEASE_CHECKLIST.
-2. Phase 07 is uncommitted on `main` (base 75c5f78). Nothing pushed.
+2. Phase 07 is committed on `main` (e189f25). Nothing pushed.
 3. An `expo start` on port 8081 for this project was already running when the session began (pid 46517); it was used and left running. The Duo and SE app databases are not onboarded.
 
 ## Exact next session

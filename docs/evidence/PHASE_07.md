@@ -5,7 +5,7 @@ Session date: 23 October 2026. Phase state: **VERIFIED COMPLETE** (owner decisio
 ## Starting state and dependency evidence
 
 - Read the full v1.2 DOCX (textutil) and README, PRODUCT_REQUIREMENTS, SOURCE_RECONCILIATION, DECISIONS, DEVELOPMENT_RULES, PROJECT_STATUS, SESSION_HANDOFF, ARCHITECTURE, DATA_MODEL, TECH_STACK, TEST_PLAN, DESIGN_SYSTEM, ADAPTIVE_LAYOUT, EAS_AND_OTA and the Phase 07 roadmap entry and prompt.
-- Git: `main` at 75c5f78 (Phase 06 docs commit), clean working tree at start. Phase 07 is uncommitted.
+- Git: `main` at 75c5f78 (Phase 06 docs commit), clean working tree at start. Phase 07 committed on `main` as e189f25 (not pushed).
 - Baseline before changes: lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (20 suites, 532 tests).
 - Phase 05/06 dependencies verified in code: `createEntry`/`correctEntry`/`deleteEntry` (operation IDs, receipts, revision checks, candidate-history validation in date/createdAt/id order, closed-goal guard, confirmation flag), `validateCandidateHistory`, schema 1 triggers (no ledger change on completed/archived goals), `setGlobalCurrency` lock, lifecycle commands (paused stays editable), `useAppDataStore`/`refreshAppData`, `showToast`, `Icon`. The ledger application layer needed no change; Phase 07 reuses it (mapping below).
 

@@ -18,7 +18,7 @@ Updated 23 October 2026 after the Phase 07 implementation session. Functional sc
 - Checks at Phase 04 close: lint, typecheck, 421 Jest tests (13 suites), `expo install --check` and expo-doctor 20/20 PASS; no native change, build or update.
 - Checks at Phase 03 close: lint, typecheck, 119 Jest tests (7 suites), `expo install --check` and expo-doctor 20/20 PASS; release export contains no lab/sample code. Native: Duo closed/partially open/open in portrait and landscape, shell screen on the closed display, native sheet through rotate/fold/unfold and repeated changes while typing PASS (screenshots + `[layout-lab]` logs); SE iOS 18.5 and 17 Pro Max iOS 26.1 fallback, keyboard, largest text and 17 Pro Max landscape side insets PASS. Fixed: double side-column inset inside the native arrangement, and controls unreachable when the system collapses the arrangement on the closed display in landscape (DECISIONS D47).
 - Screens now write goals, lifecycle states, the selected goal, the global currency and ledger entries (create, correct, confirmed delete). No billing or reminders.
-- Git: `main` has commits through Phase 06 (75c5f78). Phase 07 is uncommitted. Nothing pushed.
+- Git: `main` has commits through Phase 07 (e189f25). Nothing pushed.
 - Planning change (owner request, docs only): checkpoint Phase 07.5 "Visual direction and design review" sits between 07 and 08, so the Home dashboard is built on an owner-approved design (DECISIONS D49, [PHASE_07_5](prompts/PHASE_07_5.md)).
 - Both DOCX sources and historical source/evidence content are retained unchanged.
 
@@ -76,7 +76,7 @@ Q01-Q06 are RESOLVED in [SOURCE_RECONCILIATION](SOURCE_RECONCILIATION.md). One g
 
 ## Next action and continuation
 
-Start a new Claude Code session in ~/Desktop/SavingWorld with the full [PHASE_07_5](prompts/PHASE_07_5.md) prompt (visual direction and design review checkpoint, owner approval before Phase 08). It now also reviews `/entry-form` and `/history` (see its "Carried from Phase 07" note). Commit the Phase 07 working tree when the owner asks. Keep implementation, native verification, production publication, store upload/submission and live status distinct.
+Start a new Claude Code session in ~/Desktop/SavingWorld with the full [PHASE_07_5](prompts/PHASE_07_5.md) prompt (visual direction and design review checkpoint, owner approval before Phase 08). It now also reviews `/entry-form` and `/history` (see its "Carried from Phase 07" note). Keep implementation, native verification, production publication, store upload/submission and live status distinct.
 
 ## Ongoing updates
 
