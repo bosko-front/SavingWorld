@@ -538,10 +538,11 @@ Complete the financial dashboard and understandable weekly/monthly deadline guid
 
 ## Dependencies and decision gates
 
-Phase 07.5 (which depends on Phase 07). Build Home in the visual direction approved in Phase 07.5; if approval was deferred, record it and use the existing tokens.
+Phase 07.5 (which depends on Phase 07). Build Home in the approved direction A "Calm hero" with the honey accent (DECISIONS D64, DESIGN_SYSTEM "Visual direction").
 
 ## Exact scope
 
+- Compose Home as direction A (D64): scene region, title + status badge, display amount, progress bar with percent and remaining, next-milestone callout, deadline line, one Add savings, grouped rows; extend the Phase 07.5 Home and keep Add savings reachable on the SE with the real scene.
 - Show current saved, target, remaining amount and numerical percentage directly from ledger queries.
 - Integrate optional deadline weekly/monthly suggestions using v1.2 inclusive-day D and the exact formulas in DATA_MODEL (remaining 100.00,D=30 => weekly 23.34/monthly 100.00). Display the calculation explanation and no-deadline/overdue/complete states.
 - Recalculate after deposits, withdrawals, corrections, target/deadline edits and foreground civil-date changes.
@@ -607,6 +608,7 @@ Approved Island artwork and ownership/license provenance are required for visual
 - Integrate approved Island base and all ten milestone outcomes: tree, path, flowers/bushes, house, bridge, pond, trees, larger house/details, final decorations, completed island.
 - Render the exact current stage computed by the shared financial engine, including empty base and 100% cap.
 - Implement accessible scene/next-stage descriptions and a scene-only error fallback that keeps financial tracking usable.
+- Render the scene in the Phase 07.5/08 scene region (rounded `radii.xl` 4:3 box measured with `useMeasuredSize`/`fitAspect`), replacing the development placeholder; feed the next-milestone callout's stage name from the manifest.
 - Validate asset alignment and decoded memory on an iPhone; keep development scene inspection controls out of release flows.
 
 ## Expected files and modules
@@ -664,10 +666,11 @@ Phase 09 must have verified production Island assets.
 ## Exact scope
 
 - Connect post-commit old/new stage and mutation revisions to short Reanimated reveals and bounded completion feedback.
-- Provide small numerical/progress feedback for savings changes inside a milestone interval.
+- Provide small numerical/progress feedback for savings changes inside a milestone interval, by animating the shared `ProgressBar` fill and percent (accent role, D64) rather than a new indicator.
 - Coalesce large deposits crossing several thresholds into a short final-state-correct sequence; quiet regression on withdrawals and target edits.
 - Cancel/supersede stale animations on rapid commits, navigation, background or theme changes; reload directly into the persisted final stage.
 - Respect OS Reduce Motion and avoid any financial writes or eligibility logic inside animation callbacks.
+- Animated empty states (D69): gentle looping Reanimated motion on the centered empty states (stage-0 Island on Home, floating icon tiles elsewhere), paused off-screen, still under Reduce Motion; Skia only with a measured need and a recorded decision.
 - Call `haptics.milestone()` once per committed unlock sequence (coalesced with the animation, also under Reduce Motion); no haptic for regression after withdrawals or target edits.
 
 ## Expected files and modules
@@ -725,7 +728,7 @@ Q03 is resolved by v1.2. No retention/award reapproval or souvenir-deletion poli
 - Add collectibles with unique goal_id, theme_id, theme_version and earned_at timestamp. Award at the first saved transaction mutation or target edit yielding B>=T, atomically with the triggering mutation, including Free. Do not change goal status at threshold.
 - Retain the souvenir permanently even after correcting an initial mistake, withdrawal, target/theme changes, Archive, Finish or Reopen. Re-crossing 100% or retrying a command never duplicates it; preserve referenced historical theme versions.
 - Integrate explicit Finish action for open goals at >=100%: set completed, make read-only and release the Free slot. Reopen on completed/archived checks active+paused slot limit then sets active, enables edits and never auto-finishes even if already >=100%.
-- Build Collection souvenir/detail and completed/archived goal views with clear historical/current captions. A live regressed scene and permanent completed souvenir may coexist. No goal/souvenir deletion.
+- Build Collection souvenir/detail and completed/archived goal views with clear historical/current captions. A live regressed scene and permanent completed souvenir may coexist. No goal/souvenir deletion. Follow the Phase 07.5 look: `SectionHeader` sections, `StatusBadge` for Completed/Archived, `EmptyState` when empty; Finish joins Home's Pause/Archive row group at >= 100%.
 - Ensure target/theme/ledger edits respect closed-goal guards and the global currency lock includes collectibles even if every transaction was deleted after Reopen.
 - Call `haptics.success()` for the first-100% souvenir moment (instead of the milestone haptic) and after Finish; `haptics.warning()` when Reopen is refused by the Free open-goal limit. Use the `finish`, `reopen`, `archive` and `souvenir` icons from the shared icon map.
 
@@ -840,7 +843,7 @@ No unresolved product gate. Free and Pro use the identical catalog.
 
 ## Exact scope
 
-- Build First step, Next milestone and Weekly step cards with availability explanations, frozen target/period and one unfinished-attempt limit.
+- Build First step, Next milestone and Weekly step cards with availability explanations, frozen target/period and one unfinished-attempt limit. Replace the Phase 07.5 Challenges `EmptyState`; follow the shared look (one primary action, `ListGroup` rows for history, `StatusBadge` for results, progress with the shared `ProgressBar`).
 - Show current progress plus historical Completed/Not completed/Skipped attempts. Corrections may adjust a historical result without reactivating it or displacing the current attempt.
 - Add savings opens the same Home transaction form and command with the same operation ID/retry behavior. Saving one eligible Home or Challenges entry updates money exactly once and recalculates progress automatically; no separate confirmation/evidence-link screen.
 - Offer Skip without penalty/history loss; a new attempt selects an available fixed type. Do not offer pause/resume, amount/frequency editing, custom creation, challenge reminders or a custom-feature paywall.

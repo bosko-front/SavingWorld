@@ -34,6 +34,20 @@ export const colors = {
   successSurface: palette.sage100,
   info: palette.blue700,
   infoSurface: palette.blue50,
+  // Warm accent (Phase 07.5): progress fill and milestone markers (graphics, at least 3:1 on every
+  // surface and on progressTrack); accentText for short accent labels; accentSurface for the
+  // next-milestone callout. Never a money or error meaning.
+  accent: palette.honey600,
+  accentText: palette.honey800,
+  accentSurface: palette.sand100,
+  progressTrack: palette.sand200,
+  // Progress fill by range (DECISIONS D66): honey below 30%, olive 30-59%, soft green 60-99%,
+  // strong green at 100% or more. Each is at least 3:1 on progressTrack and every surface. No red or
+  // orange: low progress is never a warning.
+  progressLow: palette.honey600,
+  progressMid: palette.olive600,
+  progressHigh: palette.leaf500,
+  progressComplete: palette.forest700,
   // Decorative only: never normal text or a necessary control boundary.
   accentDecorative: palette.gold400,
   shadow: palette.forest900,
@@ -55,6 +69,7 @@ export const radii = {
   sm: 8,
   md: 12,
   lg: 16,
+  xl: 24,
   pill: 999,
 } as const;
 
@@ -85,6 +100,8 @@ type TextRoleToken = {
 };
 
 export const typography = {
+  // The saved amount on Home. Scales with the largeTitle ramp, so it grows and wraps with the text size.
+  display: { fontSize: 40, lineHeight: 46, fontWeight: '700', ramp: 'largeTitle' },
   largeTitle: { fontSize: 34, lineHeight: 41, fontWeight: '700', ramp: 'largeTitle' },
   title: { fontSize: 22, lineHeight: 28, fontWeight: '600', ramp: 'title2' },
   headline: { fontSize: 17, lineHeight: 22, fontWeight: '600', ramp: 'headline' },

@@ -75,7 +75,7 @@ Module: `src/shared/layout/` (public API in `index.ts`). Evidence and the native
 | --- | --- |
 | `Screen` | Vertical scrolling screen inside native Stack/NativeTabs chrome. Readable column (680 pt max), 16 pt gutters, growing text. |
 | `FormScreen` | Same as Screen plus keyboard-safe scrolling (`automaticallyAdjustKeyboardInsets`, `keyboardShouldPersistTaps="handled"`, interactive dismissal). Form column 560 pt. Used for screens and native sheets with inputs. |
-| `ContentColumn` | Centered column, `readable` or `form` maximum width; fills narrower windows. |
+| `ContentColumn` | Centered column, `readable` or `form` maximum width; fills narrower windows. `Screen centered` (D69) gives it the visible share of the viewport (`centeredContentHeight`) to center an empty state; content taller than that scrolls as usual. |
 | `AdaptiveGoalLayout` | `scene` (primary), `controls` (secondary), `sceneAspectRatio`. iOS 27.1+: system `ArrangementView` through `arrangement-adapter.tsx`. Older iOS, and any window where the system collapses the arrangement to the scene alone: one scrolling column, scene first (column width, aspect ratio, at most 45% of the visible height), controls below. |
 | `useMeasuredSize`, `fitAspect` | Local onLayout size in component state; largest box of a given aspect ratio inside a measured region. |
 | `useFontScale` | Current text-size multiplier (Phase 06), for shared controls that size a non-text element such as an icon to match text. |

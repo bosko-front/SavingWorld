@@ -25,10 +25,11 @@ Phase 09 must have verified production Island assets.
 ## Exact scope
 
 - Connect post-commit old/new stage and mutation revisions to short Reanimated reveals and bounded completion feedback.
-- Provide small numerical/progress feedback for savings changes inside a milestone interval.
+- Provide small numerical/progress feedback for savings changes inside a milestone interval by animating the shared `ProgressBar` (Phase 07.5, range colors per D66: honey < 30%, olive 30-59%, soft green 60-99%, strong green at 100%) and the percent text, blending the fill color across a range boundary; do not add a second progress indicator.
 - Coalesce large deposits crossing several thresholds into a short final-state-correct sequence; quiet regression on withdrawals and target edits.
 - Cancel/supersede stale animations on rapid commits, navigation, background or theme changes; reload directly into the persisted final stage.
 - Respect OS Reduce Motion and avoid any financial writes or eligibility logic inside animation callbacks.
+- Animated empty states (owner request after Phase 07.5, D69): the centered empty states (Home without a goal, Collection, Challenges, empty History) get a gentle looping illustration motion with Reanimated, for example the stage-0 Island floating with a soft sparkle on Home and the pastel icon tile gently floating elsewhere until dedicated art exists. Subtle (no large movement), paused when the screen is not focused or the app is in the background, a still frame under Reduce Motion, decorative and hidden from VoiceOver. Evaluate `@shopify/react-native-skia` only for an effect Reanimated cannot do well (particles, water shimmer, shaders): record the measured need and the decision (D09 excludes Skia until then), install with `npx expo install`, rebuild the development client and check bundle size and frame rate on a device.
 - Call `haptics.milestone()` once per committed unlock sequence (coalesced with the animation, also under Reduce Motion); no haptic for regression after withdrawals or target edits.
 
 ## Expected files and modules

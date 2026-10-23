@@ -10,6 +10,7 @@ import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
 import { Icon } from '@/shared/ui/icon';
 import { Notice } from '@/shared/ui/notice';
+import { haptics } from '@/shared/ui/haptics';
 import { showToast } from '@/shared/ui/toast';
 
 import { setGlobalCurrency } from '../application/currency-commands';
@@ -73,6 +74,7 @@ function CurrencyEditor({ overview, current, goalCount, goalTitle }: CurrencyEdi
     }
     setOperationId(randomUuid());
     showToast({ tone: 'success', title: `Currency changed to ${to.code}` });
+    haptics.success();
   };
 
   const confirm = () => {
@@ -87,10 +89,9 @@ function CurrencyEditor({ overview, current, goalCount, goalTitle }: CurrencyEdi
 
   return (
     <Card testID="currency-settings">
-      <AppText role="headline" accessibilityRole="header">
-        Currency
+      <AppText role="headline" testID="currency-current">
+        {currencyLabel(current.code, current.name)}
       </AppText>
-      <AppText testID="currency-current">{currencyLabel(current.code, current.name)}</AppText>
       {overview.locked ? (
         <View style={styles.lockRow} accessible testID="currency-locked">
           <Icon name="lock" role="footnote" tone="secondary" />
@@ -105,14 +106,10 @@ function CurrencyEditor({ overview, current, goalCount, goalTitle }: CurrencyEdi
           </AppText>
           <CurrencyPicker value={code} onChange={setCode} testID="settings-currency" />
           {error ? <Notice tone="error" title="Currency not changed" message={error} testID="currency-error" /> : null}
-          <Button
-            label={next && next.code !== current.code ? `Change to ${next.code}` : 'Change currency'}
-            variant="secondary"
-            onPress={confirm}
-            disabled={!next || next.code === current.code}
-            loading={saving}
-            testID="currency-change"
-          />
+          {/* Shown once a different currency is picked, so the screen never rests on a disabled button. */}
+          {next && next.code !== current.code ? (
+            <Button label={`Change to ${next.code}`} variant="secondary" onPress={confirm} loading={saving} testID="currency-change" />
+          ) : null}
         </>
       )}
     </Card>

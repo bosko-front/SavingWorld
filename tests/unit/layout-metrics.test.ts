@@ -1,5 +1,6 @@
 import { isArrangementViewSupported } from '@/shared/layout/arrangement-adapter';
 import {
+  centeredContentHeight,
   containedRegionOwnership,
   fitAspect,
   isArrangementCollapsed,
@@ -132,5 +133,13 @@ describe('ArrangementView runtime guard', () => {
   it('is never available off iOS', () => {
     expect(isArrangementViewSupported('android', '36')).toBe(false);
     expect(isArrangementViewSupported('web', '28.0')).toBe(false);
+  });
+});
+
+describe('centered empty states', () => {
+  it('uses the visible share of the viewport minus the screen padding', () => {
+    // 667 pt viewport (iPhone SE): 75% visible = 500.25, minus 2 × 16 pt padding.
+    expect(centeredContentHeight(667, 16)).toBe(468);
+    expect(centeredContentHeight(0, 16)).toBe(0);
   });
 });

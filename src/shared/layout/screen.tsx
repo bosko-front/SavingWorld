@@ -1,11 +1,11 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { ScrollView, StyleSheet, type LayoutChangeEvent } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors, layout, spacing } from '@/shared/theme';
 
 import { ContentColumn, type ColumnWidth } from './content-column';
-import { containedRegionOwnership, safeAreaEdges, scrollingScreenOwnership } from './metrics';
+import { centeredContentHeight, containedRegionOwnership, safeAreaEdges, scrollingScreenOwnership } from './metrics';
 
 const SCROLLING_EDGES = safeAreaEdges(scrollingScreenOwnership);
 const CONTAINED_EDGES = safeAreaEdges(containedRegionOwnership);
@@ -13,6 +13,9 @@ const CONTAINED_EDGES = safeAreaEdges(containedRegionOwnership);
 type ScreenProps = {
   children: ReactNode;
   width?: ColumnWidth;
+  // Centers the content in the visible height when it is shorter than the screen (empty states).
+  // Longer content, e.g. at large text sizes, still starts at the top and scrolls.
+  centered?: boolean;
   testID?: string;
 };
 
@@ -35,6 +38,7 @@ type ScrollingScreenProps = ScreenProps & {
 export function ScrollingScreen({
   children,
   width,
+  centered = false,
   keyboard,
   testID,
   onViewportLayout,
@@ -42,10 +46,19 @@ export function ScrollingScreen({
 }: ScrollingScreenProps) {
   const form = keyboard === 'form';
   const contained = insets === 'container';
+  // Centered content (empty states): React Native does not report the native header and tab-bar
+  // insets, so the column gets the share of the scroll viewport those bars usually leave visible
+  // (centeredContentHeight) and centers its content in it. Taller content simply scrolls.
+  const [viewportHeight, setViewportHeight] = useState(0);
   return (
     <ScrollView
       testID={testID}
-      onLayout={onViewportLayout}
+      onLayout={(event) => {
+        onViewportLayout?.(event);
+        if (centered) {
+          setViewportHeight(event.nativeEvent.layout.height);
+        }
+      }}
       style={styles.scroll}
       contentInsetAdjustmentBehavior={contained ? 'never' : 'automatic'}
       // Forms: iOS grows the bottom inset by the keyboard height, so the focused field, its error
@@ -54,7 +67,9 @@ export function ScrollingScreen({
       keyboardShouldPersistTaps={form ? 'handled' : 'never'}
       keyboardDismissMode={form ? 'interactive' : 'on-drag'}>
       <SafeAreaView edges={contained ? CONTAINED_EDGES : SCROLLING_EDGES} style={styles.content}>
-        <ContentColumn width={width}>{children}</ContentColumn>
+        <ContentColumn width={width} minHeight={centered ? centeredContentHeight(viewportHeight, spacing.lg) : undefined}>
+          {children}
+        </ContentColumn>
       </SafeAreaView>
     </ScrollView>
   );
@@ -63,9 +78,9 @@ export function ScrollingScreen({
 // Standard screen inside native Stack/NativeTabs chrome: vertical scrolling, readable column,
 // growing text. Every later screen uses this (or FormScreen / AdaptiveGoalLayout) instead of its
 // own ScrollView and safe-area code.
-export function Screen({ children, width = 'readable', testID }: ScreenProps) {
+export function Screen({ children, width = 'readable', centered = false, testID }: ScreenProps) {
   return (
-    <ScrollingScreen width={width} keyboard="none" testID={testID}>
+    <ScrollingScreen width={width} centered={centered} keyboard="none" testID={testID}>
       {children}
     </ScrollingScreen>
   );

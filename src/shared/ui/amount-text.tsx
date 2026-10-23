@@ -11,7 +11,8 @@ type AmountTextProps = {
   // currency and an explicit sign or word for withdrawals: color is only a supporting cue.
   formatted: string;
   kind?: AmountKind;
-  size?: 'regular' | 'large';
+  // `display` is the Home saved amount; `large` a prominent amount elsewhere.
+  size?: 'regular' | 'large' | 'display';
   accessibilityLabel?: string;
   testID?: string;
 };
@@ -20,7 +21,7 @@ type AmountTextProps = {
 export function AmountText({ formatted, kind = 'balance', size = 'regular', accessibilityLabel, testID }: AmountTextProps) {
   return (
     <AppText
-      role={size === 'large' ? 'largeTitle' : 'headline'}
+      role={size === 'display' ? 'display' : size === 'large' ? 'largeTitle' : 'headline'}
       accessibilityLabel={accessibilityLabel}
       testID={testID}
       style={[styles.digits, kindStyles[kind]]}>

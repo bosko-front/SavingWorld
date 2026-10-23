@@ -1,6 +1,6 @@
 import { Stack, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Alert, type TextInputInstance } from 'react-native';
+import { Alert, StyleSheet, View, type TextInputInstance } from 'react-native';
 
 import { ledgerCommandDeps, refreshAppData, useAppDataStore, useCommittedRead } from '@/bootstrap/app-data';
 import { systemClock, today, type CivilDate } from '@/core/calendar';
@@ -11,15 +11,16 @@ import type { LedgerEntryRecord } from '@/data/repositories/ledger-repository';
 import { amountMessage } from '@/shared/i18n/amount-messages';
 import { deviceLocale, deviceSeparators, formatCivilDate } from '@/shared/i18n/locale';
 import { FormScreen } from '@/shared/layout';
+import { spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
-import { Card } from '@/shared/ui/card';
 import { haptics } from '@/shared/ui/haptics';
+import { ListCell, ListGroup } from '@/shared/ui/list-row';
 import { Notice } from '@/shared/ui/notice';
 import { TextField } from '@/shared/ui/text-field';
 import { showToast } from '@/shared/ui/toast';
 
-import { correctEntry, createEntry, deleteEntry, NOTE_MAX_LENGTH, type LedgerCommandError } from '../application/ledger-commands';
+import { correctEntry, createEntry, deleteEntry, type LedgerCommandError } from '../application/ledger-commands';
 import { readEntryContext } from '../application/ledger-queries';
 
 import { EntryDateField } from './entry-date-field';
@@ -250,39 +251,47 @@ function EntryForm({ currency, goal, balanceMinor, entry }: FormProps) {
   return (
     <FormScreen testID="entry-form">
       <Stack.Screen options={{ title: editing ? 'Edit entry' : 'Add savings' }} />
-      <Card variant="soft" testID="entry-goal">
+      <View style={styles.context} testID="entry-goal">
         <AppText role="headline">{goal.title}</AppText>
-        <AppText tone="secondary" testID="entry-goal-balance">{`Saved so far: ${formatMoney(balanceMinor, currency, { locale: deviceLocale() })}`}</AppText>
+        <AppText tone="secondary" testID="entry-goal-balance">{`${formatMoney(balanceMinor, currency, { locale: deviceLocale() })} saved`}</AppText>
         {goal.status === 'paused' ? (
           <AppText role="footnote" tone="secondary" testID="entry-goal-paused">
-            This goal is paused. Recording or correcting savings doesn’t resume it.
+            Paused. Recording savings doesn’t resume it.
           </AppText>
         ) : null}
-      </Card>
+      </View>
       {formError ? <Notice tone="error" title={formError.title} message={formError.message} testID="entry-form-error" /> : null}
       <EntryKindPicker value={draft.kind} onChange={(kind) => update({ kind })} />
       <TextField
-        label={`Amount (${currency.code})`}
+        variant="amount"
+        label="Amount"
+        accessibilityLabel={`Amount (${currency.code})`}
+        suffix={currency.code}
+        placeholder="0"
         value={draft.amountText}
         onChangeText={(amountText) => update({ amountText })}
         error={errors.amount}
-        hint={`Enter a positive amount in ${currency.code} – ${currency.name}.`}
         keyboardType={currency.exponent === 0 ? 'number-pad' : 'decimal-pad'}
         inputRef={amountRef}
         testID="entry-amount"
       />
-      <EntryDateField value={draft.entryDate} onChange={(entryDate) => update({ entryDate })} today={todayDate} error={errors.date} />
-      <TextField
-        label="Note (optional)"
-        value={draft.noteText}
-        onChangeText={(noteText) => update({ noteText })}
-        error={errors.note}
-        hint={`Up to ${NOTE_MAX_LENGTH} characters, for example “Birthday money”.`}
-        multiline
-        autoCapitalize="sentences"
-        inputRef={noteRef}
-        testID="entry-note"
-      />
+      <ListGroup>
+        <EntryDateField value={draft.entryDate} onChange={(entryDate) => update({ entryDate })} today={todayDate} error={errors.date} />
+        <ListCell>
+          <TextField
+            variant="inset"
+            label="Note (optional)"
+            placeholder="For example “Birthday money”"
+            value={draft.noteText}
+            onChangeText={(noteText) => update({ noteText })}
+            error={errors.note}
+            multiline
+            autoCapitalize="sentences"
+            inputRef={noteRef}
+            testID="entry-note"
+          />
+        </ListCell>
+      </ListGroup>
       <Button
         label={saveLabel}
         icon={draft.kind}
@@ -291,17 +300,23 @@ function EntryForm({ currency, goal, balanceMinor, entry }: FormProps) {
         disabled={busy && pending !== 'save'}
         testID="entry-save"
       />
+      <Button label="Cancel" variant="plain" centered onPress={() => router.back()} disabled={busy} testID="entry-cancel" />
       {editing ? (
         <Button
           label="Delete entry"
-          variant="secondary"
+          variant="destructive"
           onPress={confirmDelete}
           loading={pending === 'delete'}
           disabled={busy && pending !== 'delete'}
           testID="entry-delete"
         />
       ) : null}
-      <Button label="Cancel" variant="plain" onPress={() => router.back()} disabled={busy} testID="entry-cancel" />
     </FormScreen>
   );
 }
+
+const styles = StyleSheet.create({
+  context: {
+    gap: spacing.xs / 2,
+  },
+});

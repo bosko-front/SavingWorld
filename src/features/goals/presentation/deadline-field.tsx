@@ -1,5 +1,5 @@
 import { DatePicker, Host } from '@expo/ui/swift-ui';
-import { datePickerStyle } from '@expo/ui/swift-ui/modifiers';
+import { datePickerStyle, labelsHidden } from '@expo/ui/swift-ui/modifiers';
 import { StyleSheet, View } from 'react-native';
 
 import { compareCivilDates, type CivilDate } from '@/core/calendar';
@@ -9,6 +9,8 @@ import { colors, spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
 import { Icon } from '@/shared/ui/icon';
+import { IconTile } from '@/shared/ui/icon-tile';
+import { ListCell, ListRow } from '@/shared/ui/list-row';
 
 type DeadlineFieldProps = {
   value: CivilDate | null;
@@ -19,47 +21,49 @@ type DeadlineFieldProps = {
   error?: string;
 };
 
-// Optional goal deadline with the native SwiftUI date picker (@expo/ui, DESIGN_SYSTEM UX library
-// plan). New dates start at today; a saved deadline that has passed stays visible and can be kept
-// or removed, because an existing deadline may expire naturally (v1.2 section 7).
+// Optional goal deadline as one row of the goal form's grouped card (Phase 07.5), with the native
+// SwiftUI date picker (@expo/ui). Without a deadline the row adds one (today); with one, the picker
+// sits at the row's trailing edge with Remove below. New dates start at today; a saved deadline that
+// has passed stays visible and can be kept or removed, because an existing deadline may expire
+// naturally (v1.2 section 7).
 export function DeadlineField({ value, onChange, today, savedDeadline, error }: DeadlineFieldProps) {
+  if (value === null) {
+    return (
+      <ListRow
+        title="Add a deadline"
+        icon="calendar"
+        iconColor="red"
+        detail="Optional. Gives a weekly and monthly estimate."
+        onPress={() => onChange(today)}
+        testID="deadline-add"
+      />
+    );
+  }
   const earliest = savedDeadline !== null && compareCivilDates(savedDeadline, today) < 0 ? savedDeadline : today;
-  const passed = value !== null && compareCivilDates(value, today) < 0;
+  const passed = compareCivilDates(value, today) < 0;
   return (
-    <View style={styles.container}>
-      <View style={styles.labelRow}>
-        <Icon name="calendar" role="label" tone="primary" />
-        <AppText role="label" accessibilityRole="header">
-          Deadline (optional)
-        </AppText>
+    <ListCell>
+      <View style={styles.row}>
+        <IconTile name="calendar" color="red" />
+        <View style={styles.text}>
+          <AppText accessibilityElementsHidden>Deadline</AppText>
+          <AppText role="footnote" tone={passed ? 'primary' : 'secondary'} testID="deadline-summary">
+            {passed ? `Passed on ${formatCivilDate(value)}. Keep it, pick a new date or remove it.` : `Save by ${formatCivilDate(value)}`}
+          </AppText>
+        </View>
+        <Host matchContents colorScheme="light" seedColor={colors.actionPrimary} testID="deadline-picker">
+          <DatePicker
+            title="Deadline"
+            selection={civilDateToLocalDate(value)}
+            range={{ start: civilDateToLocalDate(earliest) }}
+            displayedComponents={['date']}
+            onDateChange={(date) => onChange(localDateToCivilDate(date))}
+            // The row's own "Deadline" text labels the picker; SwiftUI's inline label repeated it
+            // (Phase 07.5, as the entry date in D61). The title stays as the VoiceOver label.
+            modifiers={[datePickerStyle('compact'), labelsHidden()]}
+          />
+        </Host>
       </View>
-      {value === null ? (
-        <>
-          <AppText role="footnote" tone="secondary">
-            Without a deadline there is no weekly or monthly estimate.
-          </AppText>
-          <Button label="Add a deadline" variant="secondary" icon="calendar" onPress={() => onChange(today)} testID="deadline-add" />
-        </>
-      ) : (
-        <>
-          <Host matchContents style={styles.picker} colorScheme="light" seedColor={colors.actionPrimary} testID="deadline-picker">
-            <DatePicker
-              title="Deadline"
-              selection={civilDateToLocalDate(value)}
-              range={{ start: civilDateToLocalDate(earliest) }}
-              displayedComponents={['date']}
-              onDateChange={(date) => onChange(localDateToCivilDate(date))}
-              modifiers={[datePickerStyle('compact')]}
-            />
-          </Host>
-          <AppText role="footnote" tone="secondary" testID="deadline-summary">
-            {passed
-              ? `This deadline passed on ${formatCivilDate(value)}. Keep it, choose today or a later date, or remove it.`
-              : `Save by ${formatCivilDate(value)}.`}
-          </AppText>
-          <Button label="Remove deadline" variant="plain" onPress={() => onChange(null)} testID="deadline-remove" />
-        </>
-      )}
       {error ? (
         <View style={styles.errorRow} accessible accessibilityRole="alert" accessibilityLabel={`Error: ${error}`}>
           <Icon name="error" role="footnote" tone="error" />
@@ -68,21 +72,25 @@ export function DeadlineField({ value, onChange, today, savedDeadline, error }: 
           </AppText>
         </View>
       ) : null}
-    </View>
+      <Button label="Remove deadline" variant="plain" onPress={() => onChange(null)} testID="deadline-remove" />
+    </ListCell>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    gap: spacing.sm,
-  },
-  labelRow: {
+  // Wraps at large text sizes, so the picker moves under the label instead of off the edge.
+  row: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
-    gap: spacing.sm,
+    columnGap: spacing.md,
+    rowGap: spacing.sm,
   },
-  picker: {
-    alignSelf: 'stretch',
+  text: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 120,
+    gap: spacing.xs / 2,
   },
   errorRow: {
     flexDirection: 'row',

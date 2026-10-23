@@ -1,9 +1,9 @@
 import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 
 import { useFontScale } from '@/shared/layout';
-import { colors, typography, type TextRole } from '@/shared/theme';
+import { typography, type TextRole } from '@/shared/theme';
 
-import type { TextTone } from './app-text';
+import { toneColors, type TextTone } from './app-text';
 
 type SFSymbol = Extract<SymbolViewProps['name'], string>;
 
@@ -29,19 +29,40 @@ export const ICON_SYMBOLS = {
   settings: 'gearshape',
   souvenir: 'sparkles',
   pro: 'star.circle',
+  // Phase 07.5: grouped rows, goal options and the next-milestone callout.
+  edit: 'pencil',
+  more: 'ellipsis.circle',
+  chevron: 'chevron.right',
+  milestone: 'leaf.fill',
+  challenges: 'flag',
+  currency: 'banknote',
+  device: 'iphone',
 } as const satisfies Record<string, SFSymbol>;
 
 export type IconName = keyof typeof ICON_SYMBOLS;
 
-const toneColors: Record<TextTone, string> = {
-  primary: colors.textPrimary,
-  secondary: colors.textSecondary,
-  action: colors.actionPrimary,
-  onAction: colors.textOnAction,
-  error: colors.error,
-  success: colors.success,
-  info: colors.info,
-  disabled: colors.disabledText,
+// Solid glyphs for icon tiles (Phase 07.5 icon-style proposal): the filled shape without its own
+// circle, because the tile is the background. Names without an entry use the outline symbol.
+export const FILLED_SYMBOLS: Partial<Record<IconName, SFSymbol>> = {
+  deposit: 'arrow.down',
+  withdrawal: 'arrow.up',
+  history: 'clock.fill',
+  calendar: 'calendar',
+  pause: 'pause.fill',
+  resume: 'play.fill',
+  archive: 'archivebox.fill',
+  reopen: 'arrow.uturn.backward',
+  settings: 'gearshape.fill',
+  souvenir: 'sparkles',
+  edit: 'pencil',
+  more: 'ellipsis',
+  milestone: 'leaf.fill',
+  challenges: 'flag.fill',
+  currency: 'banknote.fill',
+  reminder: 'bell.fill',
+  info: 'info',
+  success: 'checkmark',
+  error: 'exclamationmark',
 };
 
 type IconProps = {
@@ -51,6 +72,8 @@ type IconProps = {
   // Semantic color, the same tones text uses.
   tone?: TextTone;
   weight?: 'regular' | 'semibold';
+  // The solid glyph from FILLED_SYMBOLS (used inside icon tiles).
+  filled?: boolean;
   // Only for an icon that carries meaning on its own. By default icons are decorative and hidden
   // from VoiceOver, because the adjacent text always states the meaning in words.
   accessibilityLabel?: string;
@@ -61,12 +84,12 @@ export function iconSize(role: TextRole, fontScale: number): number {
   return Math.round(typography[role].fontSize * fontScale);
 }
 
-export function Icon({ name, role = 'body', tone = 'secondary', weight = 'regular', accessibilityLabel, testID }: IconProps) {
+export function Icon({ name, role = 'body', tone = 'secondary', weight = 'regular', filled = false, accessibilityLabel, testID }: IconProps) {
   const size = iconSize(role, useFontScale());
   const labelled = accessibilityLabel !== undefined;
   return (
     <SymbolView
-      name={ICON_SYMBOLS[name]}
+      name={(filled ? FILLED_SYMBOLS[name] : undefined) ?? ICON_SYMBOLS[name]}
       size={size}
       weight={weight}
       tintColor={toneColors[tone]}

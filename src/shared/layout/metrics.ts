@@ -117,3 +117,14 @@ const EDGES: readonly Edge[] = ['top', 'right', 'bottom', 'left'];
 function roundSize(size: Size): Size {
   return { width: Math.round(size.width), height: Math.round(size.height) };
 }
+
+// Share of a tab screen's scroll viewport that its native large-title header and tab bar usually
+// leave visible (about a quarter is chrome on both small and large iPhones). Used only to center an
+// empty state; financial content never depends on it.
+export const CENTERED_VISIBLE_SHARE = 0.75;
+
+// Height of the column that centers an empty state: the visible share of the viewport minus the
+// screen's own top and bottom padding. 0 before the first layout.
+export function centeredContentHeight(viewportHeight: number, verticalPadding: number): number {
+  return Math.max(0, Math.round(viewportHeight * CENTERED_VISIBLE_SHARE - 2 * verticalPadding));
+}

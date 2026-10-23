@@ -1,6 +1,6 @@
 import { Stack, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { type TextInputInstance } from 'react-native';
+import { StyleSheet, View, type TextInputInstance } from 'react-native';
 
 import { goalCommandDeps, refreshAppData, useAppDataStore } from '@/bootstrap/app-data';
 import { systemClock, today, type CivilDate } from '@/core/calendar';
@@ -10,15 +10,16 @@ import { randomUuid } from '@/data/ids';
 import { isOpenStatus, type GoalRecord } from '@/data/repositories/goal-repository';
 import { deviceSeparators } from '@/shared/i18n/locale';
 import { FormScreen } from '@/shared/layout';
+import { spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
-import { Card } from '@/shared/ui/card';
 import { haptics } from '@/shared/ui/haptics';
+import { ListGroup, ListRow } from '@/shared/ui/list-row';
 import { Notice } from '@/shared/ui/notice';
 import { TextField } from '@/shared/ui/text-field';
 import { showToast } from '@/shared/ui/toast';
 
-import { createGoal, editGoal, TITLE_MAX_LENGTH } from '../application/goal-commands';
+import { createGoal, editGoal } from '../application/goal-commands';
 import { selectGoal } from '../application/goal-selection';
 
 import { DeadlineField } from './deadline-field';
@@ -124,6 +125,7 @@ function GoalForm({ currency, goal }: { currency: CurrencyMetadata; goal: GoalRe
     await refreshAppData();
     router.back();
     showToast({ tone: 'success', title: editing ? 'Goal saved' : 'Goal created' });
+    haptics.success();
   };
 
   return (
@@ -132,10 +134,10 @@ function GoalForm({ currency, goal }: { currency: CurrencyMetadata; goal: GoalRe
       {formError ? <Notice tone="error" title="Not saved" message={formError} testID="goal-form-error" /> : null}
       <TextField
         label="Goal name"
+        placeholder="For example “Summer trip”"
         value={title}
         onChangeText={setTitle}
         error={errors.title}
-        hint={`Up to ${TITLE_MAX_LENGTH} characters, for example “Summer trip”.`}
         autoCapitalize="sentences"
         returnKeyType="next"
         onSubmitEditing={() => targetRef.current?.focus()}
@@ -143,37 +145,44 @@ function GoalForm({ currency, goal }: { currency: CurrencyMetadata; goal: GoalRe
         testID="goal-title"
       />
       <TextField
-        label={`Target amount (${currency.code})`}
+        variant="amount"
+        label="Target"
+        accessibilityLabel={`Target amount (${currency.code})`}
+        suffix={currency.code}
+        placeholder="0"
         value={targetText}
         onChangeText={setTargetText}
         error={errors.target}
-        hint={`Every goal uses ${currency.code} – ${currency.name}. The currency is set in Settings.`}
+        hint={`Every goal uses ${currency.code} – ${currency.name}, set in Settings.`}
         keyboardType={currency.exponent === 0 ? 'number-pad' : 'decimal-pad'}
         inputRef={targetRef}
         testID="goal-target"
       />
-      <DeadlineField
-        value={deadline}
-        onChange={setDeadline}
-        today={todayDate}
-        savedDeadline={goal?.deadlineDate ?? null}
-        error={errors.deadline}
-      />
-      <Card variant="soft">
-        <AppText role="label">World</AppText>
-        <AppText testID="goal-theme">{THEME_NAMES[themeId]}</AppText>
+      <View style={styles.group}>
+        <ListGroup>
+          <DeadlineField
+            value={deadline}
+            onChange={setDeadline}
+            today={todayDate}
+            savedDeadline={goal?.deadlineDate ?? null}
+            error={errors.deadline}
+          />
+          <ListRow title="World" icon="milestone" iconColor="green" value={THEME_NAMES[themeId]} testID="goal-theme" />
+        </ListGroup>
         {errors.theme ? (
           <AppText role="footnote" tone="error">
             {errors.theme}
           </AppText>
-        ) : (
-          <AppText role="footnote" tone="secondary">
-            {`This goal grows ${themeId === 'island' ? 'an Island' : 'a Garden'} as you save.`}
-          </AppText>
-        )}
-      </Card>
+        ) : null}
+      </View>
       <Button label={editing ? 'Save changes' : 'Create goal'} onPress={() => void save()} loading={saving} testID="goal-save" />
-      <Button label="Cancel" variant="secondary" onPress={() => router.back()} disabled={saving} testID="goal-cancel" />
+      <Button label="Cancel" variant="plain" centered onPress={() => router.back()} disabled={saving} testID="goal-cancel" />
     </FormScreen>
   );
 }
+
+const styles = StyleSheet.create({
+  group: {
+    gap: spacing.sm,
+  },
+});

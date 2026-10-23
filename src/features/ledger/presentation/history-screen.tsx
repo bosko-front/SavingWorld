@@ -8,12 +8,14 @@ import { isOpenStatus } from '@/data/repositories/goal-repository';
 import type { LedgerEntryRecord } from '@/data/repositories/ledger-repository';
 import { deviceLocale, formatCivilDate } from '@/shared/i18n/locale';
 import { Screen } from '@/shared/layout';
-import { borders, colors, layout, radii, spacing } from '@/shared/theme';
+import { colors, layout, spacing } from '@/shared/theme';
 import { AmountText } from '@/shared/ui/amount-text';
 import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
-import { Icon } from '@/shared/ui/icon';
+import { EmptyState } from '@/shared/ui/empty-state';
+import { IconTile } from '@/shared/ui/icon-tile';
+import { ListGroup } from '@/shared/ui/list-row';
 import { Notice } from '@/shared/ui/notice';
 
 import { newestFirst, readGoalLedger } from '../application/ledger-queries';
@@ -84,16 +86,19 @@ export function HistoryScreen({ goalId }: { goalId: string }) {
         </Link>
       ) : null}
       {rows.length === 0 ? (
-        <View style={styles.empty} testID="history-empty">
-          <AppText role="headline">No entries yet</AppText>
-          <AppText tone="secondary">Deposits and withdrawals you record for this goal appear here, newest first.</AppText>
-        </View>
+        <EmptyState
+          icon="history"
+          iconColor="blue"
+          title="No entries yet"
+          message="Deposits and withdrawals you record for this goal are listed here, newest first."
+          testID="history-empty"
+        />
       ) : (
-        <View style={styles.list} testID="history-list">
+        <ListGroup testID="history-list">
           {rows.map((entry) => (
             <HistoryRow key={entry.id} entry={entry} currency={currency} locale={locale} editable={open} />
           ))}
-        </View>
+        </ListGroup>
       )}
     </Screen>
   );
@@ -110,7 +115,8 @@ function HistoryRow({ entry, currency, locale, editable }: HistoryRowProps) {
 
   const content = (
     <>
-      <Icon name={kind} role="headline" tone="secondary" />
+      {/* Deposit green, withdrawal honey: warm, never an alarm color (no punitive feel). */}
+      <IconTile name={kind} color={kind === 'deposit' ? 'green' : 'honey'} />
       <View style={styles.rowText}>
         <View style={styles.rowTop}>
           <AppText role="headline" style={styles.kind}>
@@ -161,21 +167,14 @@ function RowButton({ label, testID, children, onPress }: RowButtonProps) {
 }
 
 const styles = StyleSheet.create({
-  list: {
-    gap: spacing.sm,
-  },
-  empty: {
-    gap: spacing.xs,
-  },
+  // Rows sit inside the shared ListGroup, which draws the rounded surface and the separators.
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing.md,
     minHeight: layout.minTouchTarget,
-    padding: spacing.md,
-    borderRadius: radii.md,
-    borderWidth: borders.hairline,
-    borderColor: colors.borderSubtle,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
     backgroundColor: colors.surface,
   },
   rowPressed: {

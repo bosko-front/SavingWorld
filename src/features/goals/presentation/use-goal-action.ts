@@ -13,19 +13,18 @@ import type { LifecycleAction } from '../domain/goal-lifecycle';
 import { LIFECYCLE_COPY, lifecycleMessage } from './goal-copy';
 
 // Runs one lifecycle command for a button: one write at a time, the screen's data refreshed from
-// SQLite after the commit, a confirmation toast only on success, and an inline message otherwise.
+// SQLite after the commit, a confirmation toast on success and an error toast with the explanation
+// otherwise (a one-tap action has no form input to keep, DECISIONS D66).
 // The goal revision the person saw is the expected revision, so a double tap or an outdated screen
 // is refused instead of applied twice.
 export function useGoalAction() {
   const [pending, setPending] = useState<{ goalId: string; action: LifecycleAction } | null>(null);
-  const [failure, setFailure] = useState<{ goalId: string; message: string } | null>(null);
 
   const run = async (action: LifecycleAction, goal: GoalRecord): Promise<boolean> => {
     if (pending) {
       return false;
     }
     setPending({ goalId: goal.id, action });
-    setFailure(null);
     const deps = goalCommandDeps();
     const result = await changeGoalStatus(deps, action, {
       operationId: randomUuid(),
@@ -40,16 +39,18 @@ export function useGoalAction() {
     setPending(null);
     if (!result.ok) {
       if (result.error.code === 'open_goal_limit') {
-        // Reopen refused by the Free slot rule: one warning with the inline explanation. Pause,
-        // Resume and Archive never get a haptic (DESIGN_SYSTEM "Haptics").
+        // Reopen refused by the Free slot rule: one warning with the explanation (DESIGN_SYSTEM
+        // "Haptics").
         haptics.warning();
       }
-      setFailure({ goalId: goal.id, message: lifecycleMessage(action, result.error) });
+      showToast({ tone: 'error', title: LIFECYCLE_COPY[action].failed, message: lifecycleMessage(action, result.error) });
       return false;
     }
+    // Every committed write confirmed by a success toast also gets one success haptic (D68).
     showToast({ tone: 'success', title: LIFECYCLE_COPY[action].done });
+    haptics.success();
     return true;
   };
 
-  return { pending, failure, run };
+  return { pending, run };
 }

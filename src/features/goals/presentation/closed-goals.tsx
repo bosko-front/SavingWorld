@@ -7,8 +7,9 @@ import { spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
-import { Icon } from '@/shared/ui/icon';
-import { Notice } from '@/shared/ui/notice';
+import { EmptyState } from '@/shared/ui/empty-state';
+import { SectionHeader } from '@/shared/ui/section-header';
+import { StatusBadge } from '@/shared/ui/status-badge';
 
 import { goalAmounts } from './goal-amounts';
 import { LIFECYCLE_COPY } from './goal-copy';
@@ -20,33 +21,38 @@ import { useGoalAction } from './use-goal-action';
 // goal slot first and never finishes a goal again by itself, even at 100% or more.
 export function ClosedGoals() {
   const state = useAppDataStore((store) => store.state);
-  const { pending, failure, run } = useGoalAction();
+  const { pending, run } = useGoalAction();
   if (state.status !== 'ready' || state.data.currency.currency.status !== 'set') {
     return null;
   }
   const currency = state.data.currency.currency.currency;
   const closed = state.data.goals.goals.filter(({ goal }) => goal.status === 'completed' || goal.status === 'archived');
 
+  if (closed.length === 0) {
+    return (
+      <EmptyState
+        icon="souvenir"
+        iconColor="honey"
+        title="Nothing here yet"
+        message="Goals you finish or archive move here with all of their records, and each finished world is kept here as a souvenir."
+        testID="closed-goals"
+      />
+    );
+  }
+
   return (
     <View style={styles.list} testID="closed-goals">
-      <AppText role="headline" accessibilityRole="header">
-        Closed goals
-      </AppText>
-      {closed.length === 0 ? (
-        <AppText tone="secondary">Goals you archive or finish appear here with all of their records.</AppText>
-      ) : (
-        closed.map((summary) => (
+      <SectionHeader title="Closed goals" caption="Read-only. Reopen a goal to edit it or record savings again." />
+      {closed.map((summary) => (
           <ClosedGoalCard
             key={summary.goal.id}
             summary={summary}
             currency={currency}
             busy={pending?.goalId === summary.goal.id}
             disabled={pending !== null}
-            error={failure?.goalId === summary.goal.id ? failure.message : null}
             onReopen={() => void run('reopen', summary.goal)}
           />
-        ))
-      )}
+        ))}
     </View>
   );
 }
@@ -56,28 +62,18 @@ type ClosedGoalCardProps = {
   currency: CurrencyMetadata;
   busy: boolean;
   disabled: boolean;
-  error: string | null;
   onReopen: () => void;
 };
 
-function ClosedGoalCard({ summary, currency, busy, disabled, error, onReopen }: ClosedGoalCardProps) {
+function ClosedGoalCard({ summary, currency, busy, disabled, onReopen }: ClosedGoalCardProps) {
   const { goal } = summary;
   const amounts = goalAmounts(summary, currency);
   const archived = goal.status === 'archived';
   return (
     <Card testID={`closed-goal-${goal.id}`}>
-      <View style={styles.statusRow}>
-        <Icon name={archived ? 'archive' : 'finish'} role="label" tone="secondary" />
-        <AppText role="label" tone="secondary">
-          {archived ? 'Archived' : 'Completed'}
-        </AppText>
-      </View>
+      <StatusBadge label={archived ? 'Archived' : 'Completed'} icon={archived ? 'archive' : 'finish'} tone={archived ? 'neutral' : 'success'} />
       <AppText role="headline">{goal.title}</AppText>
       <AppText>{`${amounts.saved} saved of ${amounts.target} (${amounts.percent}%)`}</AppText>
-      <AppText role="footnote" tone="secondary">
-        Read-only. Reopen it to edit or record savings again.
-      </AppText>
-      {error ? <Notice tone="error" title="Not reopened" message={error} testID="closed-goal-error" /> : null}
       <Button
         label={LIFECYCLE_COPY.reopen.label}
         variant="secondary"
@@ -95,10 +91,5 @@ function ClosedGoalCard({ summary, currency, busy, disabled, error, onReopen }: 
 const styles = StyleSheet.create({
   list: {
     gap: spacing.md,
-  },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
   },
 });

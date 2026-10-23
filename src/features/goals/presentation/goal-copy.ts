@@ -60,12 +60,12 @@ export function amountMessage(error: AmountParseError, currency: CurrencyMetadat
   return sharedAmountMessage(error, currency, separators, 'target');
 }
 
-export const LIFECYCLE_COPY: Record<LifecycleAction, { label: string; done: string }> = {
-  pause: { label: 'Pause goal', done: 'Goal paused' },
-  resume: { label: 'Resume goal', done: 'Goal resumed' },
-  archive: { label: 'Archive goal', done: 'Goal archived' },
-  finish: { label: 'Finish goal', done: 'Goal finished' },
-  reopen: { label: 'Reopen goal', done: 'Goal reopened' },
+export const LIFECYCLE_COPY: Record<LifecycleAction, { label: string; done: string; failed: string }> = {
+  pause: { label: 'Pause goal', done: 'Goal paused', failed: 'Goal not paused' },
+  resume: { label: 'Resume goal', done: 'Goal resumed', failed: 'Goal not resumed' },
+  archive: { label: 'Archive goal', done: 'Goal archived', failed: 'Goal not archived' },
+  finish: { label: 'Finish goal', done: 'Goal finished', failed: 'Goal not finished' },
+  reopen: { label: 'Reopen goal', done: 'Goal reopened', failed: 'Goal not reopened' },
 };
 
 export function lifecycleMessage(action: LifecycleAction, error: LifecycleError): string {

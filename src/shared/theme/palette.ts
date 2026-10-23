@@ -24,4 +24,12 @@ export const palette = {
   blue700: '#245C92',
   blue50: '#E7EEF6',
   gold400: '#D7B66B',
+  // Phase 07.5 warm accent (honey) and sand surfaces.
+  honey600: '#A9651A',
+  honey800: '#8F5A14',
+  sand100: '#F3E7C9',
+  sand200: '#ECE6D3',
+  // Progress stages (owner request after Phase 07.5): olive between honey and the greens.
+  olive600: '#857516',
+  leaf500: '#4F8A4B',
 } as const;

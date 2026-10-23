@@ -155,7 +155,7 @@ describe('Add savings from Home', () => {
 
     await userEvent.press(screen.getByTestId('entry-cancel'));
     expect(screen.getByTestId('home-saved')).toHaveTextContent('€30.00');
-    expect(screen.getByTestId('home-history')).toHaveTextContent('History (2)');
+    expect(screen.getByTestId('home-history')).toHaveAccessibleName('History, 2 entries');
   });
 
   it('explains zero and malformed amounts without a haptic, and defaults to a deposit dated today', async () => {
@@ -443,7 +443,8 @@ describe('Free-limit rejections play one warning haptic', () => {
     await setupGoal('Open goal');
     await renderRouter(APP_DIR, { initialUrl: '/collection' });
     await userEvent.press(screen.getByTestId(`reopen-${closed}`));
-    expect(await screen.findByTestId('closed-goal-error')).toBeOnTheScreen();
+    // A one-tap action has no form, so its refusal is an error toast with the explanation (D66).
+    await waitFor(() => expect(toastsShown()).toEqual([expect.stringMatching(/^Goal not reopened\. .*Archive your open goal first/)]));
     expect(hapticTypes()).toEqual(['warning']);
   });
 });

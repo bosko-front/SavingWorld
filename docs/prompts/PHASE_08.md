@@ -18,12 +18,14 @@ Complete the financial dashboard and understandable weekly/monthly deadline guid
 
 ## Dependencies and decision gates
 
-Phase 07.5 (which depends on Phase 07). Build Home in the visual direction the owner approved in Phase 07.5 (DESIGN_SYSTEM "Visual direction", DECISIONS); if the owner deferred that approval, record it and use the existing tokens.
+Phase 07.5 (which depends on Phase 07). The owner approved Home direction **A "Calm hero"** and the honey accent (DECISIONS D64, DESIGN_SYSTEM "Visual direction"); build Home exactly in that composition.
 
 None beyond verified dependencies.
 
 ## Exact scope
 
+- Compose Home as approved direction A (D64) on `AdaptiveGoalLayout`: scene region (rounded 4:3 box, ready for Phase 09; keep a clearly temporary placeholder until then), then in the controls region the goal title with `StatusBadge`, the saved amount as `AmountText size="display"`, the existing `ProgressBar` with percent (accentText) and remaining, the next-milestone callout on `accentSurface` ("Next: …", amount to the next 10% threshold from `nextThresholdMinor`), the deadline/estimate line, one primary Add savings, and the existing `ListGroup` rows (History, Edit goal; Pause/Resume, Archive). Phase 07.5 already built everything except the scene, callout and estimates; extend `src/features/goals/presentation/home-screen.tsx` instead of starting over. The development mock (`/dev-home?option=a`) shows the target layout.
+- Keep Add savings reachable on short windows: on the iPhone SE the stacked fallback gives the scene up to 45% of the visible height and pushed Add savings below the fold in the Phase 07.5 mock; verify with the real scene region and adjust the shared stacked-scene cap in `src/shared/layout/` (with its test) if needed, never per screen.
 - Show current saved, target, remaining amount and numerical percentage directly from ledger queries.
 - Integrate optional deadline weekly/monthly suggestions using v1.2 inclusive-day D and the exact formulas in DATA_MODEL (remaining 100.00,D=30 => weekly 23.34/monthly 100.00). Display the calculation explanation and no-deadline/overdue/complete states.
 - Recalculate after deposits, withdrawals, corrections, target/deadline edits and foreground civil-date changes.

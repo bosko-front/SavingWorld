@@ -3,7 +3,7 @@ import { StyleSheet, Text, type StyleProp, type TextProps, type TextStyle } from
 
 import { colors, typography, type TextRole } from '@/shared/theme';
 
-export type TextTone = 'primary' | 'secondary' | 'action' | 'onAction' | 'error' | 'success' | 'info' | 'disabled';
+export type TextTone = 'primary' | 'secondary' | 'action' | 'onAction' | 'error' | 'success' | 'info' | 'disabled' | 'accent';
 
 type AppTextProps = Pick<
   TextProps,
@@ -27,13 +27,19 @@ export function AppText({ role = 'body', tone = 'primary', style, children, ...r
   );
 }
 
-const toneStyles = StyleSheet.create({
-  primary: { color: colors.textPrimary },
-  secondary: { color: colors.textSecondary },
-  action: { color: colors.actionPrimary },
-  onAction: { color: colors.textOnAction },
-  error: { color: colors.error },
-  success: { color: colors.success },
-  info: { color: colors.info },
-  disabled: { color: colors.disabledText },
-});
+// Text color per tone; tests/unit/contrast.test.ts uses it to check tone/surface pairs.
+export const toneColors = {
+  primary: colors.textPrimary,
+  secondary: colors.textSecondary,
+  action: colors.actionPrimary,
+  onAction: colors.textOnAction,
+  error: colors.error,
+  success: colors.success,
+  info: colors.info,
+  disabled: colors.disabledText,
+  accent: colors.accentText,
+} as const satisfies Record<TextTone, string>;
+
+const toneStyles = StyleSheet.create(
+  Object.fromEntries(Object.entries(toneColors).map(([tone, color]) => [tone, { color }])) as Record<TextTone, { color: string }>,
+);

@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Animated, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FullWindowOverlay } from 'react-native-screens';
 import { Toaster as SonnerToaster, toast } from 'sonner-native';
 
@@ -11,51 +12,62 @@ import { Icon } from './icon';
 
 // Transient confirmations (docs/DESIGN_SYSTEM.md "Transient feedback (toasts)", DECISIONS D40).
 // Screens call `showToast` only after a write has committed, for an outcome the screen also shows.
-// Errors, validation, destructive confirmation, money amounts and celebrations never use a toast.
+// Form validation, destructive confirmation, money amounts and celebrations never use a toast. The
+// error tone is only for a one-tap action without a form (Pause, Archive, Reopen) that was refused or
+// failed (DECISIONS D66); form errors stay inline with the person's input kept.
 // This module is the only importer of the toast engine (ESLint enforces it), so the engine can be
 // swapped without touching screens.
 
-// No error tone on purpose: errors stay inline (Notice / TextField) with the person's input kept.
-export type ToastTone = 'success' | 'info';
+export type ToastTone = 'success' | 'info' | 'error';
 
-export type ToastOptions = { tone: ToastTone; title: string };
+// `message` is one short sentence under the title, used by error toasts to say what to do next.
+export type ToastOptions = { tone: ToastTone; title: string; message?: string };
 
-const toneStyle = {
+// Tone colors; tests/unit/contrast.test.ts checks the title and message against each surface.
+export const toastColors = {
   success: { surface: colors.successSurface, accent: colors.success, icon: 'success' },
   info: { surface: colors.infoSurface, accent: colors.info, icon: 'info' },
+  error: { surface: colors.errorSurface, accent: colors.error, icon: 'error' },
 } as const;
 
 const BASE_DURATION_MS = 4000;
+// Errors need reading time for their explanation.
+const ERROR_MIN_DURATION_MS = 6000;
 const MAX_DURATION_MS = 8000;
 const CHARACTERS_IN_BASE = 40;
 const MS_PER_EXTRA_CHARACTER = 60;
-// Below a standard navigation bar, so the toast never covers the tab bar, the keyboard or a
-// form's Save action; the engine adds the top safe area itself.
-const TOP_OFFSET = layout.minTouchTarget + spacing.sm;
+// Below a standard navigation bar (top safe area + one bar height), so the toast never covers the
+// back button, the tab bar, the keyboard or a form's Save action. The engine ignores the safe area
+// when an offset is given, so the inset is added here (Phase 07.5: the toast covered Back).
+export function toastTopOffset(safeAreaTop: number): number {
+  return safeAreaTop + layout.minTouchTarget + spacing.sm;
+}
 
 // About four seconds, longer for longer text, capped so a toast never lingers.
-export function toastDuration(title: string): number {
-  const extra = Math.max(0, title.length - CHARACTERS_IN_BASE) * MS_PER_EXTRA_CHARACTER;
-  return Math.min(MAX_DURATION_MS, BASE_DURATION_MS + extra);
+export function toastDuration(title: string, tone: ToastTone = 'success', message = ''): number {
+  const length = title.length + message.length;
+  const extra = Math.max(0, length - CHARACTERS_IN_BASE) * MS_PER_EXTRA_CHARACTER;
+  const base = tone === 'error' ? ERROR_MIN_DURATION_MS : BASE_DURATION_MS;
+  return Math.min(MAX_DURATION_MS, base + extra);
 }
 
 let currentToastId: string | number | null = null;
 
 // Shows one confirmation, replacing any toast still visible, and announces it to VoiceOver once.
 // The announcement is queued so it does not interrupt speech, and focus never moves to the toast.
-export function showToast({ tone, title }: ToastOptions): void {
+export function showToast({ tone, title, message }: ToastOptions): void {
   if (currentToastId !== null) {
     toast.dismiss(currentToastId);
   }
-  const id = toast.custom(<ToastCard tone={tone} title={title} />, {
-    duration: toastDuration(title),
+  const id = toast.custom(<ToastCard tone={tone} title={title} message={message} />, {
+    duration: toastDuration(title, tone, message),
     dismissible: true,
     onPress: () => toast.dismiss(id),
     onDismiss: () => forget(id),
     onAutoClose: () => forget(id),
   });
   currentToastId = id;
-  AccessibilityInfo.announceForAccessibilityWithOptions(title, { queue: true });
+  AccessibilityInfo.announceForAccessibilityWithOptions(message ? `${title}. ${message}` : title, { queue: true });
 }
 
 function forget(id: string | number): void {
@@ -88,7 +100,7 @@ function useTrackReduceMotion(): void {
   }, []);
 }
 
-function ToastCard({ tone, title }: ToastOptions) {
+function ToastCard({ tone, title, message }: ToastOptions) {
   // With Reduce Motion the engine drops its slide; the card fades in briefly instead.
   const [fade] = useState(() => (reduceMotionEnabled ? new Animated.Value(0) : null));
   useEffect(() => {
@@ -96,17 +108,20 @@ function ToastCard({ tone, title }: ToastOptions) {
       Animated.timing(fade, { toValue: 1, duration: motion.standard, useNativeDriver: true }).start();
     }
   }, [fade]);
-  const style = toneStyle[tone];
+  const style = toastColors[tone];
   return (
     <Animated.View
       style={[styles.card, { opacity: fade ?? 1, backgroundColor: style.surface, borderLeftColor: style.accent }]}
       accessible
       accessibilityRole="text"
-      accessibilityLabel={title}>
+      accessibilityLabel={message ? `${title}. ${message}` : title}>
       <Icon name={style.icon} role="headline" tone={tone} />
-      <AppText role="headline" style={styles.title}>
-        {title}
-      </AppText>
+      <View style={styles.text}>
+        <AppText role="headline" tone={tone === 'error' ? 'error' : 'primary'}>
+          {title}
+        </AppText>
+        {message ? <AppText role="footnote">{message}</AppText> : null}
+      </View>
     </Animated.View>
   );
 }
@@ -128,10 +143,11 @@ function OverlayWrapper({ children }: { children: ReactNode }) {
 // dismiss, text that grows with Dynamic Type.
 export function Toaster() {
   useTrackReduceMotion();
+  const insets = useSafeAreaInsets();
   return (
     <SonnerToaster
       position="top-center"
-      offset={TOP_OFFSET}
+      offset={toastTopOffset(insets.top)}
       visibleToasts={1}
       swipeToDismissDirection="up"
       theme="light"
@@ -154,7 +170,8 @@ const styles = StyleSheet.create({
     borderLeftWidth: borders.emphasis * 2,
     ...elevation.card,
   },
-  title: {
+  text: {
     flexShrink: 1,
+    gap: spacing.xs / 2,
   },
 });

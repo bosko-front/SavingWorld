@@ -6,7 +6,8 @@ import { borders, colors, layout, radii, spacing } from '@/shared/theme';
 import { AppText, type TextTone } from './app-text';
 import { Icon, type IconName } from './icon';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'plain';
+// `destructive` is for an action that removes something after a confirmation (Delete entry).
+export type ButtonVariant = 'primary' | 'secondary' | 'plain' | 'destructive';
 
 type ButtonColors = {
   background: string;
@@ -42,6 +43,13 @@ export const buttonColors = {
     label: colors.actionPrimary,
     labelTone: 'action',
   },
+  destructive: {
+    background: colors.surface,
+    pressedBackground: colors.errorSurface,
+    border: colors.error,
+    label: colors.error,
+    labelTone: 'error',
+  },
 } as const satisfies Record<ButtonVariant, ButtonColors>;
 
 export const disabledButtonColors = {
@@ -58,6 +66,9 @@ type ButtonProps = {
   loading?: boolean;
   // Optional SF Symbol before the label, in the label's color; the label still states the action.
   icon?: IconName;
+  // Plain buttons hug their label at the leading edge; `centered` puts one under a full-width primary
+  // button (Cancel in forms).
+  centered?: boolean;
   accessibilityHint?: string;
   testID?: string;
 };
@@ -71,6 +82,7 @@ export function Button({
   disabled = false,
   loading = false,
   icon,
+  centered = false,
   accessibilityHint,
   testID,
 }: ButtonProps) {
@@ -96,6 +108,7 @@ export function Button({
       style={({ pressed }) => [
         styles.base,
         variant === 'plain' ? styles.plain : styles.filled,
+        centered && styles.centered,
         {
           backgroundColor: pressed ? variantColors.pressedBackground : variantColors.background,
           borderColor: variantColors.border,
@@ -105,7 +118,7 @@ export function Button({
       ]}>
       <View style={styles.content}>
         {loading ? <ActivityIndicator color={spinnerColor} accessibilityElementsHidden /> : null}
-        {icon && !loading ? <Icon name={icon} role="headline" tone={labelTone} weight="semibold" /> : null}
+        {icon && !loading ? <Icon name={icon} role="headline" tone={labelTone} weight="semibold" filled /> : null}
         <AppText role="headline" tone={labelTone} style={styles.label} accessible={false}>
           {label}
         </AppText>
@@ -129,6 +142,9 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.sm,
+  },
+  centered: {
+    alignSelf: 'center',
   },
   disabledFilled: {
     backgroundColor: disabledButtonColors.filled.background,

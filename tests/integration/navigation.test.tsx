@@ -36,31 +36,31 @@ describe('app navigation shell', () => {
     expect(screen.getByText('Start your first goal')).toBeOnTheScreen();
   });
 
+  // Since Phase 07.5 the development links live in Settings' "Development only" group, not on Home.
   it('pushes a detail screen on the Home stack and returns with back', async () => {
-    await renderRouter(appDir, { initialUrl: '/' });
-    await userEvent.press(screen.getByText('Open details'));
+    await renderRouter(appDir, { initialUrl: '/settings' });
+    await userEvent.press(screen.getByRole('button', { name: 'Detail screen (development only)' }));
     expect(screen).toHavePathname('/details');
     expect(screen.getByText('Detail screen')).toBeOnTheScreen();
-    expect(screen.queryByText('Open details')).not.toBeOnTheScreen();
 
     await goBack();
-    expect(screen).toHavePathname('/');
-    expect(screen.getByText('Open details')).toBeOnTheScreen();
+    expect(screen).toHavePathname('/settings');
   });
 
   it('presents the sample form from the root stack and dismisses it', async () => {
-    await renderRouter(appDir, { initialUrl: '/' });
-    await userEvent.press(screen.getByText('Open sample form (development only)'));
+    await renderRouter(appDir, { initialUrl: '/settings' });
+    await userEvent.press(screen.getByRole('button', { name: 'Sample form (development only)' }));
     expect(screen).toHavePathname('/sample-form');
     expect(screen.getByText('Native form sheet')).toBeOnTheScreen();
 
     await userEvent.press(screen.getByText('Done'));
-    expect(screen).toHavePathname('/');
+    expect(screen).toHavePathname('/settings');
   });
 
-  it('reaches Settings from Home and shows delivery diagnostics', async () => {
+  it('reaches Settings from the Home navigation bar and shows delivery diagnostics', async () => {
     await renderRouter(appDir, { initialUrl: '/' });
-    await userEvent.press(screen.getByText('Settings'));
+    expect(screen.queryByText('Open details')).not.toBeOnTheScreen();
+    await userEvent.press(screen.getByRole('button', { name: 'Settings' }));
     expect(screen).toHavePathname('/settings');
     expect(screen.getByText('Runtime')).toBeOnTheScreen();
     expect(screen.getByText('Channel')).toBeOnTheScreen();

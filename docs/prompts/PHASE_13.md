@@ -24,7 +24,7 @@ No unresolved product gate. Free and Pro use the identical catalog.
 
 ## Exact scope
 
-- Build First step, Next milestone and Weekly step cards with availability explanations, frozen target/period and one unfinished-attempt limit.
+- Build First step, Next milestone and Weekly step cards with availability explanations, frozen target/period and one unfinished-attempt limit. Replace the Phase 07.5 Challenges `EmptyState` and follow the shared look (DESIGN_SYSTEM "Visual direction"): one primary action per screen, `ListGroup` rows for past attempts, `StatusBadge` for Completed/Not completed/Skipped, the shared `ProgressBar` for money-target progress.
 - Show current progress plus historical Completed/Not completed/Skipped attempts. Corrections may adjust a historical result without reactivating it or displacing the current attempt.
 - Add savings opens the same Home transaction form and command with the same operation ID/retry behavior. Saving one eligible Home or Challenges entry updates money exactly once and recalculates progress automatically; no separate confirmation/evidence-link screen.
 - Offer Skip without penalty/history loss; a new attempt selects an available fixed type. Do not offer pause/resume, amount/frequency editing, custom creation, challenge reminders or a custom-feature paywall.

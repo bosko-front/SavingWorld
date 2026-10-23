@@ -2,7 +2,11 @@ import buildAppConfig from '../../app.config';
 import { palette } from '../../src/shared/theme/palette';
 import { colors } from '../../src/shared/theme/tokens';
 import { buttonColors, disabledButtonColors } from '../../src/shared/ui/button';
+import { toneColors as textToneColors } from '../../src/shared/ui/app-text';
 import { noticeColors } from '../../src/shared/ui/notice';
+import { badgeColors } from '../../src/shared/ui/status-badge';
+import { toastColors } from '../../src/shared/ui/toast';
+import { tileColors } from '../../src/shared/ui/icon-tile';
 import { fieldColors } from '../../src/shared/ui/text-field';
 
 // WCAG 2.x relative luminance and contrast ratio for opaque sRGB hex colors.
@@ -65,6 +69,47 @@ const pairs: Pair[] = [
   { usage: 'focus outline on canvas', foreground: colors.focus, background: colors.canvas, minimum: NON_TEXT },
   { usage: 'field error outline', foreground: fieldColors.errorBorder, background: fieldColors.background, minimum: NON_TEXT },
   { usage: 'header back/tint on canvas', foreground: colors.actionPrimary, background: colors.canvas, minimum: TEXT },
+  // Phase 07.5 visual direction: warm accent, progress, destructive button, status badges.
+  ...Object.entries({ ...containers, accentSurface: colors.accentSurface }).flatMap(([name, background]) => [
+    { usage: `accent label on ${name}`, foreground: colors.accentText, background, minimum: TEXT },
+    { usage: `progress fill on ${name}`, foreground: colors.accent, background, minimum: NON_TEXT },
+  ]),
+  { usage: 'progress fill on progress track', foreground: colors.accent, background: colors.progressTrack, minimum: NON_TEXT },
+  { usage: 'text.primary on accentSurface', foreground: colors.textPrimary, background: colors.accentSurface, minimum: TEXT },
+  { usage: 'text.secondary on accentSurface', foreground: colors.textSecondary, background: colors.accentSurface, minimum: TEXT },
+  { usage: 'destructive button label', foreground: buttonColors.destructive.label, background: buttonColors.destructive.background, minimum: TEXT },
+  { usage: 'destructive button label pressed', foreground: buttonColors.destructive.label, background: buttonColors.destructive.pressedBackground, minimum: TEXT },
+  { usage: 'destructive button outline on canvas', foreground: buttonColors.destructive.border, background: colors.canvas, minimum: NON_TEXT },
+  { usage: 'destructive button outline on surface', foreground: buttonColors.destructive.border, background: colors.surface, minimum: NON_TEXT },
+  // Progress fill by range (D66): each step on the track and on every surface a bar may sit on.
+  ...(['progressLow', 'progressMid', 'progressHigh', 'progressComplete'] as const).flatMap((token) =>
+    Object.entries({ ...containers, progressTrack: colors.progressTrack }).map(([name, background]) => ({
+      usage: `${token} fill on ${name}`,
+      foreground: colors[token],
+      background,
+      minimum: NON_TEXT,
+    })),
+  ),
+  { usage: 'progress percent (green range) on canvas', foreground: textToneColors.success, background: colors.canvas, minimum: TEXT },
+  // Toasts, including the error tone (D66): title, message and accent bar on each toast surface.
+  ...Object.entries(toastColors).flatMap(([tone, toast]) => [
+    { usage: `${tone} toast title`, foreground: tone === 'error' ? colors.error : colors.textPrimary, background: toast.surface, minimum: TEXT },
+    { usage: `${tone} toast message`, foreground: colors.textPrimary, background: toast.surface, minimum: TEXT },
+    { usage: `${tone} toast accent bar`, foreground: toast.accent, background: toast.surface, minimum: NON_TEXT },
+  ]),
+  // Icon tiles (D68): the filled glyph against its pastel tile.
+  ...Object.entries(tileColors).map(([name, tile]) => ({
+    usage: `${name} icon tile glyph`,
+    foreground: textToneColors[tile.tone],
+    background: tile.background,
+    minimum: NON_TEXT,
+  })),
+  ...Object.entries(badgeColors).map(([tone, badge]) => ({
+    usage: `${tone} status badge label`,
+    foreground: textToneColors[badge.tone],
+    background: badge.surface,
+    minimum: TEXT,
+  })),
   { usage: 'selected tab tint on light bar', foreground: colors.actionPrimary, background: colors.surface, minimum: NON_TEXT },
 ];
 

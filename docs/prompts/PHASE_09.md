@@ -28,6 +28,7 @@ Approved Island artwork and ownership/license provenance are required for visual
 - Integrate approved Island base and all ten milestone outcomes: tree, path, flowers/bushes, house, bridge, pond, trees, larger house/details, final decorations, completed island.
 - Render the exact current stage computed by the shared financial engine, including empty base and 100% cap.
 - Implement accessible scene/next-stage descriptions and a scene-only error fallback that keeps financial tracking usable.
+- Render the scene in Home's scene region as approved in Phase 07.5 (DECISIONS D64, DESIGN_SYSTEM "Visual direction"): a rounded (`radii.xl`) 4:3 box measured with `useMeasuredSize`/`fitAspect`, replacing the development placeholder; supply the stage name used by Home's next-milestone callout from the manifest. Also render the stage-0 Island as the illustration of Home's empty state (no goal yet), so Phase 10 can animate it (D69).
 - Validate asset alignment and decoded memory on an iPhone; keep development scene inspection controls out of release flows.
 
 ## Expected files and modules

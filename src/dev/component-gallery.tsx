@@ -7,8 +7,13 @@ import { AmountText } from '@/shared/ui/amount-text';
 import { AppText } from '@/shared/ui/app-text';
 import { Button, type ButtonVariant } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
+import { EmptyState } from '@/shared/ui/empty-state';
 import { Icon, ICON_SYMBOLS, type IconName } from '@/shared/ui/icon';
+import { ListGroup, ListRow } from '@/shared/ui/list-row';
 import { Notice } from '@/shared/ui/notice';
+import { ProgressBar } from '@/shared/ui/progress-bar';
+import { SectionHeader } from '@/shared/ui/section-header';
+import { StatusBadge } from '@/shared/ui/status-badge';
 import { TextField } from '@/shared/ui/text-field';
 import { showToast } from '@/shared/ui/toast';
 
@@ -19,7 +24,7 @@ import { showToast } from '@/shared/ui/toast';
 const LONG_LABEL = 'Save this deposit to your goal and update the world with today’s amount';
 const LONG_TEXT =
   'Saving Worlds tracks money you set aside yourself. Long copy wraps onto as many lines as it needs at every text size instead of being cut off.';
-const VARIANTS: ButtonVariant[] = ['primary', 'secondary', 'plain'];
+const VARIANTS: ButtonVariant[] = ['primary', 'secondary', 'plain', 'destructive'];
 const SWATCHES: ColorToken[] = [
   'canvas',
   'surface',
@@ -34,6 +39,10 @@ const SWATCHES: ColorToken[] = [
   'moneyWithdrawal',
   'error',
   'disabledText',
+  'accent',
+  'accentText',
+  'accentSurface',
+  'progressTrack',
   'accentDecorative',
 ];
 
@@ -92,6 +101,32 @@ export function ComponentGallery() {
         </Card>
       </Section>
 
+      <Section title="Visual direction primitives">
+        <AmountText formatted="€330.00" size="display" />
+        {[22, 45, 80, 105].map((percent) => (
+          <View key={percent} style={styles.group}>
+            <AppText role="footnote" tone="secondary">{`${percent}%`}</AppText>
+            <ProgressBar fraction={Math.min(1, percent / 100)} percent={percent} />
+          </View>
+        ))}
+        <View style={styles.group}>
+          <StatusBadge label="Paused" tone="info" icon="pause" />
+          <StatusBadge label="Completed" tone="success" icon="finish" />
+          <StatusBadge label="Archived" icon="archive" />
+        </View>
+        <SectionHeader title="Section header" caption="One short caption line for context." />
+        <ListGroup>
+          <ListRow title="History" icon="history" iconColor="blue" value="2 entries" chevron onPress={noop} />
+          <ListRow title="Pause goal" icon="pause" loading onPress={noop} />
+          <ListRow title="Archive goal…" icon="archive" detail={LONG_TEXT} onPress={noop} />
+          <ListRow title="Delete something" icon="error" tone="destructive" onPress={noop} />
+          <ListRow title="Static row" detail="Not pressable" />
+        </ListGroup>
+        <EmptyState icon="souvenir" title="Nothing here yet" message={LONG_TEXT}>
+          <Button label="Primary action" onPress={noop} />
+        </EmptyState>
+      </Section>
+
       <Section title="Feedback">
         <Notice tone="error" title="Couldn’t save" message="This withdrawal is larger than the goal’s current balance." />
         <Notice tone="success" title="Saved" message="Your world now reflects your current savings." />
@@ -106,6 +141,18 @@ export function ComponentGallery() {
         <Button label="Show success toast" variant="secondary" icon="success" onPress={() => showToast({ tone: 'success', title: 'Goal created' })} />
         <Button label="Show info toast" variant="secondary" icon="info" onPress={() => showToast({ tone: 'info', title: 'Currency changed to JPY' })} />
         <Button label="Show long toast" variant="secondary" onPress={() => showToast({ tone: 'success', title: LONG_LABEL })} />
+        <Button
+          label="Show error toast"
+          variant="secondary"
+          icon="error"
+          onPress={() =>
+            showToast({
+              tone: 'error',
+              title: 'Goal not reopened',
+              message: 'Free includes one open goal (active or paused). Archive your open goal first, then reopen this one.',
+            })
+          }
+        />
       </Section>
 
       <Section title="Icons">

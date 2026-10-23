@@ -39,6 +39,11 @@ Raw values live only in `src/shared/theme/palette.ts`. Semantic names in `src/sh
 | error / errorSurface | #B3261E / #FBEAE8 | Error text, outline, notice |
 | success / successSurface | #256447 / #E5EEDF | Success notice |
 | info / infoSurface | #245C92 / #E7EEF6 | Information notice |
+| accent | #A9651A | Progress fill and milestone markers (Phase 07.5); graphics only, ≥ 3:1 on every surface and on progressTrack |
+| accentText | #8F5A14 | Short accent labels such as the Home percent; ≥ 4.5:1 on canvas, surface, surfaceSoft and accentSurface |
+| accentSurface | #F3E7C9 | Next-milestone callout and other warm highlights (Phase 08) |
+| progressTrack | #ECE6D3 | Unfilled part of a progress bar (decorative; the fill carries the value, the percent is always in text) |
+| progressLow / progressMid / progressHigh / progressComplete | #A9651A / #857516 / #4F8A4B / #256447 | Progress fill by floored percent (D66): honey below 30%, olive 30-59%, soft green 60-99%, strong green at 100% or more. No red or orange: low progress is never a warning. The percent text is `accentText` below 60% and `success` from 60% |
 | accentDecorative | #D7B66B | Decorative accents only; 1.95:1 on white, never text or a necessary boundary |
 | shadow | #20352D | Card shadow color (8% opacity) |
 
@@ -46,7 +51,7 @@ All semantic colors are opaque. No token uses transparency, so every rendered pa
 
 ## Contrast results
 
-Mathematical WCAG 2.x relative-luminance ratios, recalculated by `tests/unit/contrast.test.ts` on every test run from the actual token and control state tables (`buttonColors`, `disabledButtonColors`, `fieldColors`, `noticeColors`). Targets: 4.5:1 for text, 3:1 for large text and necessary graphical boundaries. Disabled controls are exempt under WCAG, but we still hold their labels to 4.5:1. All 51 pairs pass. These are not device or visual approval; see the evidence for simulator checks.
+Mathematical WCAG 2.x relative-luminance ratios, recalculated by `tests/unit/contrast.test.ts` on every test run from the actual token and control state tables (`buttonColors`, `disabledButtonColors`, `fieldColors`, `noticeColors`). Targets: 4.5:1 for text, 3:1 for large text and necessary graphical boundaries. Disabled controls are exempt under WCAG, but we still hold their labels to 4.5:1. All 100 pairs pass (51 from Phase 02, 18 added in Phase 07.5, 26 for the progress ranges and toast tones in D66, 5 icon tiles in D68). These are not device or visual approval; see the evidence for simulator checks.
 
 | Foreground on background | Ratio | Target |
 | --- | --- | --- |
@@ -66,12 +71,22 @@ Mathematical WCAG 2.x relative-luminance ratios, recalculated by `tests/unit/con
 | error outline on surface | 6.54 | 3 |
 | actionPrimary button shape on canvas; selected tab tint on light bar | 6.36; 7.02 | 3 |
 | Notice accent bars (error / success / info) | 5.61 / 5.89 / 5.94 | 3 |
+| accentText on canvas / surface / surfaceSoft / accentSurface (Phase 07.5) | 5.23 / 5.77 / 4.84 / 4.69 | 4.5 |
+| accent (progress fill) on canvas / surface / surfaceSoft / accentSurface / progressTrack | 4.17 / 4.60 / 3.86 / 3.74 / 3.69 | 3 |
+| textPrimary / textSecondary on accentSurface | 10.62 / 5.00 | 4.5 |
+| destructive button label on surface / pressed errorSurface | 6.54 / 5.61 | 4.5 |
+| destructive button outline on canvas / surface | 5.93 / 6.54 | 3 |
+| Status badge labels: info on infoSurface / success on successSurface / textSecondary on surfaceSoft | 5.94 / 5.89 / 5.16 | 4.5 |
+| Progress fill low / mid / high / complete on progressTrack (D66) | 3.69 / 3.70 / 3.32 / 5.62 | 3 |
+| Same fills on canvas / surface / surfaceSoft | 4.17-6.36 / 4.14-7.02 / 3.48-5.89 (lowest: progressHigh) | 3 |
+| Error toast: title error on errorSurface / message textPrimary / accent bar | 5.61 / 11.21 / 5.61 | 4.5 / 4.5 / 3 |
+| Icon tile glyphs (D68): green / honey / blue / red / neutral | 5.89 / 4.69 / 5.94 / 5.61 / 5.16 | 3 |
 
 ## Token contract
 
-`src/shared/theme/index.ts` exports `colors`, `spacing` (4, 8, 12, 16, 24, 32), `radii` (8, 12, 16, pill), `borders` (hairline, control 1, emphasis 2), `elevation.card`, `typography`, `motion` and `layout`, plus `stackScreenOptions` and `nativeTabsAppearance`. The raw palette is not exported.
+`src/shared/theme/index.ts` exports `colors`, `spacing` (4, 8, 12, 16, 24, 32), `radii` (8, 12, 16, 24, pill), `borders` (hairline, control 1, emphasis 2), `elevation.card`, `typography`, `motion` and `layout`, plus `stackScreenOptions` and `nativeTabsAppearance`. The raw palette is not exported.
 
-Typography uses the system font. Each role (`largeTitle`, `title`, `headline`, `body`, `callout`, `label`, `footnote`, `caption`) has the iOS default size/line height at the standard content size and a `ramp` naming the UIFont text style that Dynamic Type scales it with (React Native `dynamicTypeRamp`). Text wraps and controls grow; nothing caps or disables font scaling. Amounts use `tabular-nums` digits.
+Typography uses the system font. Each role (`display` 40/46 bold for the Home saved amount, added in Phase 07.5, `largeTitle`, `title`, `headline`, `body`, `callout`, `label`, `footnote`, `caption`) has the iOS default size/line height at the standard content size and a `ramp` naming the UIFont text style that Dynamic Type scales it with (React Native `dynamicTypeRamp`). Text wraps and controls grow; nothing caps or disables font scaling. Amounts use `tabular-nums` digits.
 
 `motion` holds brief durations (120/220/360 ms) and `reduced: 0` for Reduce Motion. `layout` holds content constraints only (44 pt minimum touch target, readable/form maximum widths, screen gutter). It contains no device widths, breakpoints or fold positions; Phase 03 owns window and safe-area adaptation.
 
@@ -80,12 +95,19 @@ Typography uses the system font. Each role (`largeTitle`, `title`, `headline`, `
 | Module | Contract |
 | --- | --- |
 | `src/shared/ui/app-text.tsx` `AppText` | All app text. `role` picks typography and Dynamic Type ramp; `tone` picks a semantic text color. `style` is for layout or a token-derived color only. |
-| `src/shared/ui/button.tsx` `Button` | Variants `primary`, `secondary`, `plain`, optional leading `icon` (Phase 06). 44 pt minimum, wrapping label, pressed fill, `disabled` (disabled look, `accessibilityState.disabled`) and `loading` (spinner, label kept, `busy`, presses ignored). Keyboard-focus outline where focus events arrive. Works inside `Link asChild`. |
-| `src/shared/ui/text-field.tsx` `TextField` | Visible label that is also the input's accessibility label; hint; `error` replaces the hint with the `error` SF Symbol (Phase 06) and message, a 2 pt error outline and an "Error: …" accessibility hint; 2 pt focus outline; `disabled`; optional `inputRef` so a form can move focus. Raw text only, no parsing. |
+| `src/shared/ui/button.tsx` `Button` | Variants `primary`, `secondary`, `plain`, `destructive` (Phase 07.5: error label and outline, for Delete entry after a confirmation), optional leading `icon` (Phase 06), `centered` for a plain button under a full-width one (D66). 44 pt minimum, wrapping label, pressed fill, `disabled` (disabled look, `accessibilityState.disabled`) and `loading` (spinner, label kept, `busy`, presses ignored). Keyboard-focus outline where focus events arrive. Works inside `Link asChild`. |
+| `src/shared/ui/text-field.tsx` `TextField` | Variants (D67): `default` outlined; `amount` (the money field of a form: display-size number with the currency code as `suffix` inside the outline; at text scales above 1.35 the number uses the still-scaling title size so the whole amount stays visible, and the code wraps under it); `inset` (borderless with a small caption label, for a `ListCell` row). Optional `accessibilityLabel` when the spoken name is fuller than the visible label ("Amount (EUR)"). Visible label that is also the input's accessibility label; hint; `error` replaces the hint with the `error` SF Symbol (Phase 06) and message, a 2 pt error outline and an "Error: …" accessibility hint; 2 pt focus outline; `disabled`; optional `inputRef` so a form can move focus. Raw text only, no parsing. |
 | `src/shared/ui/card.tsx` `Card` | `surface` (white, hairline, soft shadow) or `soft` (surfaceSoft). |
-| `src/shared/ui/amount-text.tsx` `AmountText` | Display styling for an already formatted amount (`balance`, `deposit`, `withdrawal`; `regular` or `large`). Phase 04 money helpers produce the string, including the explicit sign or word; this component never parses or calculates. |
+| `src/shared/ui/amount-text.tsx` `AmountText` | Display styling for an already formatted amount (`balance`, `deposit`, `withdrawal`; `regular`, `large` or `display`). Phase 04 money helpers produce the string, including the explicit sign or word; this component never parses or calculates. |
 | `src/shared/ui/notice.tsx` `Notice` | Inline `error` / `success` / `info` feedback with the tone's icon and a title that states the outcome in words; error notices use the `alert` role. |
 | `src/shared/ui/icon.tsx` `Icon`, `src/shared/ui/toast.tsx` `showToast` / `Toaster` | SF Symbols by semantic name; transient confirmations (Phase 06, see below). |
+| `src/shared/ui/progress-bar.tsx` `ProgressBar` (Phase 07.5) | Range-colored fill (`progressFillColor`, D66) on a progressTrack with nine marks at the 10% milestones. Takes the visual `fraction` from `sceneFeedback().overall` and the floored `percent`; `progressbar` role with the percent as its value. The percent is always also written next to it. |
+| `src/shared/ui/list-row.tsx` `ListGroup`, `ListRow`, `ListCell` (Phase 07.5; `ListCell` for custom row content such as a date picker or an inset field, D67) | Inset-grouped rows on one rounded surface with hairline separators. Row: optional icon, title, `detail`, trailing `value`, `chevron` for navigation, `tone="destructive"`, `loading`, `disabled`; pressable when it gets `onPress` (also inside `Link asChild`), otherwise a static readable row. Use for secondary actions and settings instead of stacked buttons. |
+| `src/shared/ui/section-header.tsx` `SectionHeader` (Phase 07.5) | The one in-content heading (headline + optional caption). Screens never repeat their native title in the content. |
+| `src/shared/ui/status-badge.tsx` `StatusBadge` (Phase 07.5) | Soft pill with a status word (`info`, `success`, `neutral`), e.g. Paused, Completed, Archived. |
+| `src/shared/ui/empty-state.tsx` `EmptyState` (Phase 07.5) | Icon in a soft circle, a title that says what belongs here, one sentence on how it fills, optional single action. Replaces "will appear here" copy. |
+| `src/shared/ui/icon-tile.tsx` `IconTile` (D68) | Filled SF Symbol on a pastel rounded-square tile in `green`, `honey`, `blue`, `red` or `neutral` (`tileColors`), scaled with the text role; decorative. |
+| `src/shared/ui/header-button.tsx` `HeaderIconButton` (Phase 07.5) | Icon-only 44 pt button for a navigation-bar slot, with a required accessibility label (Settings on Home). |
 
 Screens are composed with the Phase 03 layout primitives (`Screen`, `FormScreen`, `ContentColumn`, `AdaptiveGoalLayout` in `src/shared/layout/`); see [ADAPTIVE_LAYOUT](ADAPTIVE_LAYOUT.md#implementation-phase-03). The temporary `PlaceholderScreen` was removed in Phase 03.
 
@@ -104,7 +126,7 @@ The owner approved toasts for feedback where they follow UX best practice (23 Oc
 
 Use a toast for a low-priority confirmation of something the user just did and can already see reflected on screen: "Deposit saved", "Withdrawal saved", "Entry updated", "Entry deleted", "Goal archived", "Reminder turned on". Do not use one for:
 
-- Errors, validation or anything that needs action. Keep those inline (`Notice` / TextField `error`) or in a native alert, and preserve the user's input.
+- Form errors and validation. Keep those inline (`Notice` / TextField `error`) and preserve the user's input. Since D66 an **error toast** (title + one sentence on what to do) is used only for a refused or failed one-tap action that has no form: Pause, Resume, Archive, Reopen (later Finish, Skip).
 - Destructive confirmation. Deleting an entry still needs a native confirmation first; there is no Undo, because v1.2 keeps no entry history.
 - Essential information, money amounts or anything the screen does not also show. Updated balances appear on screen; the toast only confirms the action.
 - Milestone, souvenir or completion celebrations. Those are the world's job (Phases 10/11) and stay dismissible and accessible on their own.
@@ -113,11 +135,11 @@ Use a toast for a low-priority confirmation of something the user just did and c
 Behavior rules:
 
 1. One toast at a time; a new one replaces the current one. No stacking of financial messages.
-2. Short text that states the outcome in words, with a semantic icon. Success tone uses `success`/`successSurface`; an informational toast uses `info`/`infoSurface`. No error-toned toasts.
-3. Visible for about 4 seconds, longer for longer text; swipe or tap to dismiss. With VoiceOver running, do not rely on the timer: the announcement carries the message.
+2. Short text that states the outcome in words, with a semantic icon. Success tone uses `success`/`successSurface`; an informational toast uses `info`/`infoSurface`; the error tone (D66) uses `error`/`errorSurface` with the title in `error` and an optional message line in `textPrimary`.
+3. Visible for about 4 seconds (error toasts at least 6), longer for longer text, at most 8; swipe or tap to dismiss. With VoiceOver running, do not rely on the timer: the announcement carries the message.
 4. Every toast is announced once to VoiceOver (`AccessibilityInfo.announceForAccessibility`, queued so it does not interrupt), and never steals focus.
 5. Reduce Motion: no slide or spring; appear and disappear with a short fade or instantly (`motion.reduced`).
-6. Placement: near the top, below the navigation bar, so it never covers the tab bar, the keyboard, Add savings or a form's Save button. Text uses AppText roles and grows with Dynamic Type; the toast wraps instead of truncating.
+6. Placement: near the top, below the navigation bar (offset = top safe area + 44 + 8 pt; the engine ignores the safe area when given an offset, which made the toast cover Back until Phase 07.5), so it never covers Back, the tab bar, the keyboard, Add savings or a form's Save button. Text uses AppText roles and grows with Dynamic Type; the toast wraps instead of truncating.
 7. Pair a toast with `haptics.success()` only where the Haptics table says so (committed financial writes, Finish), never for every tap.
 8. Shown only after the write has committed, never optimistically. A form that stays open after saving shows its result inline instead.
 
@@ -129,12 +151,12 @@ Haptics confirm a meaningful moment the user caused; they are never the only fee
 
 | Helper | iOS feedback | Use | Phase |
 | --- | --- | --- | --- |
-| `haptics.success()` | Notification success | After a committed deposit, withdrawal, entry edit or entry delete; after Finish; when a challenge attempt becomes Completed while its screen is visible | 07, 11, 13 |
+| `haptics.success()` | Notification success | Rule since D68: once after every committed write confirmed by a success toast: deposit, withdrawal, entry edit, entry delete, goal created, goal saved, Pause, Resume, Archive, Reopen, currency changed; after Finish; when a challenge attempt becomes Completed while its screen is visible | 07, 11, 13 |
 | `haptics.warning()` | Notification warning | Once per submit when a save is rejected by a rule (negative running balance, future date, Free open-goal limit on Create/Reopen), together with the inline explanation | 07, 11 (06 adds the call once the helper exists) |
 | `haptics.milestone()` | Impact, medium | Once per committed stage unlock, coalesced when several thresholds are crossed; the first 100% uses `success` instead because the souvenir moment is the same event | 10, 11 |
-| `haptics.selection()` | Selection changed | Custom selection controls only: Home goal switcher, theme picker, challenge type choice. Native `@expo/ui` pickers and switches already give system feedback, so do not add more | 08, 13, 17 |
+| `haptics.selection()` | Selection changed | Custom selection controls only: Home goal switcher, theme picker, challenge type choice; and each press on a bottom tab (owner request, D66, `screenListeners.tabPress` in `src/app/(tabs)/_layout.tsx`). Native `@expo/ui` pickers and switches already give system feedback, so do not add more | 08, 13, 17 |
 
-Never: on navigation, scrolling, every button tap, press-in, Pause/Resume/Archive/Skip, toast display on its own, withdrawal or target-edit scene regression (no punitive feel), purchase or restore results (StoreKit has its own), animation frames or loops, or while the app is in the background. Fire after the commit, in the same place the confirmation toast is shown. One user action produces at most one haptic.
+Never: on other navigation (push, back, sheets), scrolling, every button tap, press-in, Skip, refused or failed actions (those get `warning` only for rule refusals), info toasts on their own, withdrawal or target-edit scene regression (no punitive feel), purchase or restore results (StoreKit has its own), animation frames or loops, or while the app is in the background. Fire after the commit, in the same place the confirmation toast is shown. One user action produces at most one haptic.
 
 Implemented in Phase 07 (DECISIONS D62): `src/shared/ui/haptics.ts` exports `haptics.success/warning/milestone/selection` over `expo-haptics` ~58.0.7; ESLint allows `expo-haptics` only in that file, and Jest maps it to a recording fake. `success()` follows each committed deposit, withdrawal, entry edit and entry delete together with its toast ("Deposit saved", "Withdrawal saved", "Entry updated", "Entry deleted"). `warning()` plays once per submit refused by `negative_balance`, `negative_running_balance`, `balance_limit`, `future_date`, or the Free open-goal limit on Create Goal and Reopen. Amount format errors, stale or closed-goal refusals and storage failures play nothing. The simulator has no Taptic Engine; the felt result is a physical-device check.
 
@@ -155,6 +177,7 @@ Rules:
 3. Color comes from semantic tokens (`textSecondary` for neutral, `actionPrimary` for actions, `success`/`error`/`info` for status, money colors only next to an amount with its sign).
 4. Size follows the adjacent text role and grows with the user's text size (the base size multiplied by the current font scale); weight matches the text (regular or semibold).
 5. Filled variants for status, outlined variants for actions. Every name must exist in SF Symbols 4 (iOS 16.4, the SDK 58 minimum).
+6. **Icon tiles (owner choice D68).** Leading icons of list rows, form rows, History entries and empty states are `IconTile`s: the filled glyph (`FILLED_SYMBOLS`) in semibold on a small pastel rounded square, sized from the text role. Colors by meaning: blue History; honey Pause/Resume and withdrawals (warm, never an alarm color); green deposits, World, New goal and the default; red dates; neutral Edit and Archive; honey souvenirs. `ListRow` draws its `icon` as a tile (`iconColor`; destructive rows red, disabled neutral). Buttons, the header button and status badges use the same filled glyphs (D69); notices and toasts keep their status symbols, the tab bar its system symbols. A fully custom icon set remains possible later (with the Island artist, Phase 09) but needs a new decision.
 
 Initial semantic map (extend only for a real repeated need):
 
@@ -172,6 +195,12 @@ Initial semantic map (extend only for a real repeated need):
 | settings | `gearshape` | Settings entry |
 | souvenir | `sparkles` | Collection souvenirs |
 | pro | `star.circle` | Paywall and Pro-only entry points |
+| edit | `pencil` | Edit goal row (Phase 07.5) |
+| more | `ellipsis.circle` | Grouped goal options |
+| chevron | `chevron.right` | Disclosure in navigating rows |
+| milestone | `leaf.fill` | Next-milestone callout, New goal, empty Home |
+| challenges | `flag` | Challenges empty state (matches the tab) |
+| currency / device | `banknote` / `iphone` | Reserved for Settings rows (Phases 14/19) |
 
 ## UX library plan
 
@@ -193,11 +222,40 @@ Not planned: `burnt` (last release March 2025, wraps old native toast pods; too 
 
 ## Development component gallery
 
-`src/dev/component-gallery.tsx` (on `FormScreen`) shows every text role, all button variants in normal/disabled/loading states (press and hold for pressed), a live loading demo, long labels, fields (hint, error, disabled, long label/error, multiline, focus by tapping), cards, amount samples, notices, toast demos (success, info, long text) and every semantic icon (Phase 06), and the semantic swatches with the current font scale. It is reached from Settings → "Component gallery (development only)" at `/dev-gallery`, a route in the Home stack wrapped in `Stack.Protected guard={__DEV__}`. The route file requires the gallery module only inside `if (__DEV__)`, so release bundles do not contain the gallery code; the release export check is in the Phase 02 evidence. Review large text by changing the simulator or device text size.
+`src/dev/component-gallery.tsx` (on `FormScreen`) shows every text role, all button variants in normal/disabled/loading states (press and hold for pressed), a live loading demo, long labels, fields (hint, error, disabled, long label/error, multiline, focus by tapping), cards, amount samples, notices, toast demos (success, info, long text) and every semantic icon (Phase 06), the visual-direction primitives (display amount, progress bars, badges, grouped rows, empty state; Phase 07.5), and the semantic swatches with the current font scale. It is reached from Settings → "Component gallery (development only)" at `/dev-gallery`, a route in the Home stack wrapped in `Stack.Protected guard={__DEV__}`. The route file requires the gallery module only inside `if (__DEV__)`, so release bundles do not contain the gallery code; the release export check is in the Phase 02 evidence. Review large text by changing the simulator or device text size.
 
 ## Visual direction (Phase 07.5)
 
-The Phase 02 palette and controls are a foundation, not a finished look. Checkpoint [Phase 07.5](prompts/PHASE_07_5.md) (DECISIONS D49) reviews the real screens after Phase 07, lets the owner choose a Home composition and refines tokens and shared primitives before Phase 08. Known starting points: native large titles duplicated by an in-content heading, the Phase 06 deadline picker's SwiftUI inline label beside our own field header (the Phase 07 entry date hides it with `labelsHidden`, D61), Home's stack of Add savings/History/Edit/Pause/Archive buttons, screens that are only a stack of full-width buttons, no single primary action per screen, placeholder copy, and a calm palette without an accent that carries meaning. The approved direction will be written into this section.
+Approved by the owner on 23 October 2026 (DECISIONS D64): Home direction **A "Calm hero"** and the warm **honey accent**. Review, options and before/after screenshots: [PHASE_07_5 evidence](evidence/PHASE_07_5.md). The development mocks stay available at Settings → Development only → Home directions (`/dev-home?option=a|b|c`, `src/dev/home-directions.tsx`).
+
+### Home composition (Phase 08 builds this on AdaptiveGoalLayout)
+
+1. **Scene region** (primary): the world, framed as a rounded (`radii.xl`) 4:3 box that measures itself; Phase 09 replaces the development placeholder with licensed Island art.
+2. **Controls region** (secondary), top to bottom, gap `spacing.md`–`lg`:
+   - Goal title (`title`) with a `StatusBadge` when paused (and later "Target reached"); the Pro goal switcher as grouped rows under a `SectionHeader`.
+   - Saved amount as the largest text: `AmountText size="display"`, then "saved of {target}" in `textSecondary`.
+   - `ProgressBar` (ten milestone segments, fill colored by range: honey, olive, soft green, strong green at 100%; D66), with the floored percent (`progressTextTone`) on the left and "{remaining} to go" (or "Target reached", overfunding as a number) on the right.
+   - Next-milestone callout on `accentSurface` with the `milestone` icon: "Next: {stage name}" and "{amount} more to reach {n}%" (Phase 08; stage names from the theme manifest in Phase 09).
+   - Deadline line in `footnote`: deadline and the weekly/monthly estimate (Phase 08), Overdue/no-deadline states.
+   - One primary action: **Add savings** (full width).
+   - Secondary actions as `ListGroup` rows, never as more full-width buttons: History (entry count, chevron), Edit goal (chevron); a second group with Pause/Resume and Archive… (Finish joins this group at ≥ 100% in Phase 11).
+   - Free-limit explanation as one footnote line, not a notice.
+3. **Settings** is a gear `HeaderIconButton` in Home's navigation bar.
+
+Phase 07.5 already applies everything above except the scene, the next-milestone callout and the estimates, which need Phase 08/09 data.
+
+### Shared look for later screens
+
+- **One title.** The native navigation title names the screen; content never repeats it. Tab roots keep large titles; pushed screens use standard titles.
+- **One primary action per screen** (filled button). Other actions are grouped rows (`ListGroup`/`ListRow`); destructive actions use the `destructive` button or row tone after a confirmation; Cancel in forms is a `plain` button with `centered`, directly under the primary button (D66).
+- **Forms** (D67): a one-line context (goal name and saved amount) instead of a summary card; the money value as `TextField variant="amount"`; secondary inputs (date, note, deadline, world) as rows of one `ListGroup` card with the native pickers at the trailing edge; hints only where they add information (placeholders carry examples); the primary button, then a centered plain Cancel, then any destructive action. Save is visible without scrolling on the iPhone SE at default text with the keyboard down.
+- **Sections** use `SectionHeader`; **lists** (History, Settings, Collection, Challenges history) use `ListGroup` with separators rather than separate bordered cards; read-only values are static rows, not soft cards that look tappable.
+- **Empty states** use `EmptyState` on `Screen centered` (middle of the visible area, D69): what belongs here and how it fills, no "will appear here" copy. Phase 10 adds gentle motion.
+- **Status** words use `StatusBadge`; color never carries meaning alone.
+- **Accent role.** `accent`/`accentText`/`accentSurface`/`progressTrack` and the four progress-range fills mark progress and milestones only. Money keeps `moneyDeposit`/`moneyWithdrawal`, actions keep `actionPrimary`, errors keep `error`. `accentDecorative` stays decorative.
+- **Large text.** Every composition is checked at the largest accessibility size; anything with a fixed size next to text (rings, badges, icons) must scale with `useFontScale` or wrap. Option B's fixed ring failed this check, one reason it was not chosen.
+
+Not changed: one forced light appearance (D37), system font, SF Symbols only, the Phase 02 palette for everything except the new accent roles.
 
 ## Change policy
 

@@ -14,6 +14,7 @@ import { createEntry } from '@/features/ledger/application/ledger-commands';
 import { readCurrencyOverview } from '@/features/settings/application/settings-queries';
 
 import { APP_DIR, chooseCurrency, freshAppDatabase, resetApp } from '../support/app-fixture';
+import { playedHaptics } from '../support/expo-haptics-fake';
 import { liveToasts } from '../support/sonner-native-fake';
 
 // Phase 06 screens on the real routes (Jest, host SQLite): onboarding, Create/Edit Goal, Home
@@ -48,6 +49,11 @@ function nativeView(props: Record<string, unknown>) {
     throw new Error(`no native view with ${JSON.stringify(props)}`);
   }
   return first;
+}
+
+// One entry per haptic played: 'success' / 'warning' notifications, or 'selection'.
+function hapticTypes(): string[] {
+  return playedHaptics().map((haptic) => (haptic.kind === 'notification' ? haptic.type : haptic.kind));
 }
 
 function toastTitles(): string[] {
@@ -142,7 +148,7 @@ describe('Create and Edit Goal', () => {
     await waitFor(() => expect(screen).toHavePathname('/'));
     expect(screen.getByTestId('home-goal-title')).toHaveTextContent('Summer trip');
     expect(screen.getByTestId('home-saved')).toHaveTextContent('€0.00');
-    expect(screen.getByTestId('home-progress')).toHaveTextContent('0% · €1,250.50 to go');
+    expect(screen.getByTestId('home-progress')).toHaveTextContent(/^0%€1,250\.50 to go$/);
     expect(toastTitles()).toEqual(['Goal created']);
     expect(announce).toHaveBeenCalledTimes(1);
     expect(announce).toHaveBeenCalledWith('Goal created', { queue: true });
@@ -196,7 +202,7 @@ describe('Create and Edit Goal', () => {
       throw new Error('setup');
     }
     await renderRouter(APP_DIR, { initialUrl: `/goal-form?goalId=${created.value.goalId}` });
-    expect(screen.getByTestId('deadline-summary')).toHaveTextContent(/This deadline passed on Oct 10, 2026/);
+    expect(screen.getByTestId('deadline-summary')).toHaveTextContent(/^Passed on Oct 10, 2026\. Keep it, pick a new date or remove it\.$/);
 
     // Moving it to another past date is refused inline, with the input kept.
     const picker = nativeView({ title: 'Deadline' });
@@ -239,6 +245,8 @@ describe('Home lifecycle, Free slot and Collection Reopen', () => {
     await userEvent.press(screen.getByTestId('home-pause-resume'));
     await waitFor(() => expect(screen.getByTestId('home-paused')).toBeOnTheScreen());
     expect(toastTitles()).toEqual(['Goal paused']);
+    // Goal created, then Goal paused: one success haptic per committed write with a success toast (D68).
+    expect(hapticTypes()).toEqual(['success', 'success']);
     expect(screen.getByTestId('home-slot-notice')).toBeOnTheScreen();
     expect(screen.getByRole('button', { name: 'Resume goal' })).toBeOnTheScreen();
     // A paused goal stays editable.
@@ -251,6 +259,7 @@ describe('Home lifecycle, Free slot and Collection Reopen', () => {
     await userEvent.press(screen.getByTestId('home-archive'));
     await waitFor(() => expect(screen.getByText('Start a new goal')).toBeOnTheScreen());
     expect(toastTitles()).toEqual(['Goal archived']);
+    expect(hapticTypes()).toEqual(['success', 'success', 'success']);
     expect(screen.getByTestId('home-closed-hint')).toBeOnTheScreen();
 
     // The freed slot takes a new goal; the archived one can no longer be reopened under Free.
@@ -260,9 +269,12 @@ describe('Home lifecycle, Free slot and Collection Reopen', () => {
     });
     const laptop = (await goals()).find((goal) => goal.title === 'Laptop');
     await userEvent.press(screen.getByTestId(`reopen-${laptop?.id}`));
-    expect(await screen.findByTestId('closed-goal-error')).toHaveTextContent(/Archive your open goal first, then reopen this one./);
+    // The refusal is an error toast (D66) that replaced the "Goal created" confirmation.
+    await waitFor(() => expect(toastTitles()).toEqual(['Goal not reopened']));
+    expect(String((liveToasts()[0]?.jsx.props as { message?: string }).message)).toMatch(/Archive your open goal first, then reopen this one./);
     expect((await goals()).find((goal) => goal.title === 'Laptop')?.status).toBe('archived');
-    expect(toastTitles()).toEqual(['Goal created']);
+    // The refusal plays a warning, never a success.
+    expect(hapticTypes().slice(-1)).toEqual(['warning']);
   });
 
   it('reopen sets active and selects the goal on Home', async () => {
@@ -279,6 +291,8 @@ describe('Home lifecycle, Free slot and Collection Reopen', () => {
     expect(screen.getByText('Archived')).toBeOnTheScreen();
     await userEvent.press(screen.getByTestId(`reopen-${camera?.id}`));
     await waitFor(() => expect(toastTitles()).toEqual(['Goal reopened']));
+    // Goal created, Goal archived, Goal reopened.
+    expect(hapticTypes()).toEqual(['success', 'success', 'success']);
     expect((await goals())[0]?.status).toBe('active');
     await act(async () => {
       router.navigate('/');
@@ -301,7 +315,8 @@ describe('Settings currency', () => {
     expect(created.ok).toBe(true);
     await renderRouter(APP_DIR, { initialUrl: '/settings' });
     expect(screen.getByTestId('currency-current')).toHaveTextContent('EUR – Euro');
-    expect(screen.getByTestId('currency-change')).toBeDisabled();
+    // No disabled button at rest: Change appears once a different currency is picked.
+    expect(screen.queryByTestId('currency-change')).not.toBeOnTheScreen();
     await fireEvent(nativeView({ label: 'Currency' }), 'selectionChange', { nativeEvent: { selection: 'JPY' } });
 
     const alert = jest.spyOn(Alert, 'alert').mockImplementationOnce((_title, _message, buttons?: AlertButton[]) => {
@@ -312,6 +327,7 @@ describe('Settings currency', () => {
     expect(alert.mock.lastCall?.[1]).toMatch(/Amounts are not converted.*Your goal keeps its target number and uses JPY instead of EUR./);
     await waitFor(() => expect(screen.getByTestId('currency-current')).toHaveTextContent('JPY – Yen'));
     expect(toastTitles()).toEqual(['Currency changed to JPY']);
+    expect(hapticTypes()).toEqual(['success']);
     expect((await goals()).map((goal) => goal.targetMinor)).toEqual([1_500]);
   });
 

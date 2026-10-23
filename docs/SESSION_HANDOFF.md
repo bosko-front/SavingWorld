@@ -1,36 +1,37 @@
 # Latest session handoff
 
-Session date: 23 October 2026. Session kind: Phase 07 implementation (deposits, withdrawals, history and corrections). Result: **Phase 07 VERIFIED COMPLETE** after the owner moved the VoiceOver walkthrough and the native rotation/fold draft check to the physical-device/Duo gate (D63). Next prompt: [PHASE_07_5](prompts/PHASE_07_5.md).
+Session date: 23 October 2026. Session kind: Phase 07.5 (visual direction and design review checkpoint). Result: **Phase 07.5 VERIFIED COMPLETE**. The owner chose Home direction A "Calm hero" and the honey accent (D64). Next prompt: [PHASE_08](prompts/PHASE_08.md).
 
-The previous handoff (Phase 06) is superseded; its record remains in [PHASE_06 evidence](evidence/PHASE_06.md).
+The previous handoff (Phase 07) is superseded; its record remains in [PHASE_07 evidence](evidence/PHASE_07.md).
 
 ## Completed
 
-- Read the full v1.2 DOCX and the required docs; verified the Phase 05 ledger commands and Phase 06 screens/helpers in code; baseline checks green (532 tests).
-- Shared Add/Edit Entry form at `/entry-form` (root form sheet; `?goalId=` adds, `?entryId=` corrects) in `src/features/ledger/presentation/`: native segmented deposit/withdrawal, positive amount parsed by `draftValues` (global currency exponent, device separators), native `@expo/ui` DatePicker defaulting to today with no later date, optional 500-character note. Draft, entry revision seen at open and the save/delete operation IDs live above `FormScreen`; a second press while a write runs is ignored; success only after commit (sheet closes, data re-read, one toast, one success haptic); rule rejections and failures stay inline with the draft kept.
-- History at `/history?goalId=` (Home stack): current entries newest first (exact reverse of date/createdAt/id), signed amounts with words and icons, empty state, closed goals read-only. Confirmed deletion from the edit form (native destructive alert, no Undo). Home has Add savings and History (count).
-- Phase 05 `createEntry`/`correctEntry`/`deleteEntry` reused unchanged; new `readEntryContext`, `newestFirst`, `useCommittedRead` (re-reads after every `refreshAppData()` through a store `version`), `ledgerCommandDeps()`; amount-error copy shared in `src/shared/i18n/amount-messages.ts`.
-- Haptics: `expo-haptics` ~58.0.7 (`npx expo install`) behind `src/shared/ui/haptics.ts` (four helpers, ESLint single owner, Jest recording fake). `success()` after each committed create/edit/delete; `warning()` on balance/date rule rejections and on `open_goal_limit` in Create Goal and Reopen.
-- EAS development simulator build a8045c3a-2238-4043-9983-f522e1f2fd0b (contains `HapticsModule`), installed on SE iOS 18.5, 17 Pro Max iOS 26.1 and Duo iOS 27.1.
-- Tests: native `tests/native/ledger-scenarios.ts` L01-L08 in the runner and Jest; restart pair now kills the app after a committed but unacknowledged withdrawal and replays it; `tests/integration/ledger-ui.test.tsx` (14), `tests/unit/ledger-feedback.test.ts` (11).
-- Simulator walkthrough on the 17 Pro Max (RWF, paused goal) with 16 screenshots; found and fixed two defects: History rows lost their style inside `Link asChild`, and SwiftUI's inline date label pushed the date off-screen at the largest text size.
-- Docs: [PHASE_07 evidence](evidence/PHASE_07.md), DECISIONS D61-D63, RELEASE_CHECKLIST and the Phase 19/21 prompts and roadmap entries (D63 carried checks), PROJECT_STATUS, this file, ARCHITECTURE, DATA_MODEL, DESIGN_SYSTEM (haptics implemented, 07.5 starting points), TEST_PLAN, CLAUDE.md, README and a "Carried from Phase 07" note in the Phase 07.5 prompt.
+- Read the full v1.2 DOCX and the required docs; verified the Phase 06/07 screens run on the development build a8045c3a; baseline lint/typecheck/565 tests green.
+- Review: before screenshots of every current screen on iPhone SE iOS 18.5, iPhone 17 Pro Max iOS 26.1 and iPhone Duo iOS 27.1 open and closed, at default and largest text (70 files), and a list of 15 weaknesses ([evidence](evidence/PHASE_07_5.md)). Sample goals were entered through the real forms on each simulator.
+- Three development-only Home mocks on `AdaptiveGoalLayout` with fixed sample values and a labelled placeholder scene (`/dev-home?option=a|b|c`, `src/dev/home-directions.tsx`, `src/dev/placeholder-scene.tsx`), captured on the same matrix (21 files). Owner chose **A "Calm hero"** and approved the honey accent.
+- Tokens: `accent` #A9651A, `accentText` #8F5A14, `accentSurface` #F3E7C9, `progressTrack` #ECE6D3, `typography.display`, `radii.xl`; 18 new contrast pairs pass.
+- Shared primitives: `ProgressBar`, `ListGroup`/`ListRow`, `SectionHeader`, `StatusBadge`, `EmptyState`, `HeaderIconButton`, Button `destructive`, AmountText `display`, AppText `accent` (shared `toneColors`), seven icon names; gallery section "Visual direction primitives".
+- Polish (no behavior change): Home in direction A without the scene (display amount, progress bar, one Add savings, grouped History/Edit and Pause-Resume/Archive rows, Free line as a footnote, Settings gear in the navigation bar); no repeated titles on Settings/Challenges/Collection; empty states instead of placeholder copy; Settings sections as grouped rows and a Change button only after a different currency is picked; deadline picker label shown once; World as a static row; Cancel plain; Delete entry destructive; History rows grouped; development links moved to Settings → Development only.
+- Fix: toasts covered the back button because sonner-native ignores the safe area when given an offset; the offset now adds the top inset (`toastTopOffset`).
+- After screenshots on the full matrix (75 files), native keyboard check on the Edit goal form and toast placement check on the SE.
+- Docs: evidence, DESIGN_SYSTEM (palette, contrast, primitives, icons, toast placement, "Visual direction"), DECISIONS D64-D65, ARCHITECTURE, CLAUDE.md, PROJECT_STATUS, this file, the Phase 08/09/10/11/13 prompts and their roadmap entries.
 
 ## Decisions
 
-D61 (ledger UI structure: one entry-form route, History in the Home stack, form state and retry rules, delete only after confirmation, committed reads, `labelsHidden` on the entry date), D62 (haptics layer and which refusals warn), D63 (owner: Phase 07 VoiceOver walkthrough and native rotation/fold draft check move to the physical-device/Duo gate in Phases 19/21). No product decision changed.
+D64 (owner: Home direction A and the honey accent, with the tokens and display role), D65 (engineering: primitives, polish list, toast offset, dev mocks), D69 (owner: filled symbols in buttons/badges, centered empty states, animated empty states planned for Phase 10 with Skia only on measured need), D68 (owner: success haptic after every committed write with a success toast; icon style soft tiles), D67 (owner: forms redesigned in the same direction, no behavior change), D66 (owner follow-ups: progress fill colored by range honey/olive/soft green/strong green, Cancel at the top left of form sheets, selection haptic on tab presses, error toast for one-tap action failures). No product rule changed.
 
 ## Checks
 
-lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (22 suites, 565 tests), `npm run deps:check` PASS, expo-doctor 20/20 PASS, `npm run test:db` PASS 35/35 + restart 1/1 on three simulators (final run after all code edits), release export clean. Manual simulator walkthrough PASS. VoiceOver NOT RUN and native rotation/fold with a draft NOT RUN, both carried to the physical-device/Duo gate (D63); felt haptics not possible in the simulator (Phase 19). Details: [PHASE_07 evidence](evidence/PHASE_07.md).
+lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (23 suites, 612 tests), release export PASS (no mock/placeholder/gallery content; only guarded route titles as before), device-matrix screenshots before/mocks/after PASS, SE keyboard and toast checks PASS. `deps:check`/`doctor` not run (no dependency or native change). VoiceOver of the new primitives NOT RUN, carried by the existing physical-device gate (D60/D63).
 
 ## Incomplete work and blockers
 
-1. Carried by owner decision D63 (not Phase 07 blockers): VoiceOver walkthrough of the entry form and History and felt haptics (Phase 19 on a physical iPhone), native rotation of an ordinary iPhone and Duo fold/unfold/rotate with a typed draft in `/entry-form` (Phase 21), both in RELEASE_CHECKLIST.
-2. Phase 07 is committed on `main` (e189f25). Nothing pushed.
-3. An `expo start` on port 8081 for this project was already running when the session began (pid 46517); it was used and left running. The Duo and SE app databases are not onboarded.
+1. Not blockers: closed-Duo shots exist only in landscape; VoiceOver of the new rows/badges/progress bar/header button is a physical-device check (Phases 19/21).
+2. For Phase 08: on the SE the stacked scene (≤ 45% of the visible height) pushed Add savings below the fold in the mocks; check with the real scene and adjust the shared cap in `src/shared/layout/` if needed (named in the Phase 08 prompt).
+3. Phase 07.5 is **not committed**; the working tree holds all changes and `docs/evidence/phase-07-5/` (about 11 MB of JPEG screenshots). Nothing pushed.
+4. Simulator data: SE has RSD "Summer trip" (450.00 deposit, 120.00 withdrawal); Duo has RSD "New bike" (250.00 deposit); 17 Pro Max keeps the paused RWF goal. Metro (pid 46517) was left running. The Expo dev-menu onboarding sheet was disabled per simulator with `defaults write com.bosko123.savingworlds EXDevMenuIsOnboardingFinished -bool YES`.
 
 ## Exact next session
 
-1. In ~/Desktop/SavingWorld start Claude Code with the full `docs/prompts/PHASE_07_5.md` (visual direction and design review checkpoint; owner approval of a Home composition before Phase 08).
-2. Read v1.2 and the required docs, rerun lint/typecheck/tests, then review every real screen including `/entry-form` and `/history` on the device matrix (Metro + development build a8045c3a), as its "Carried from Phase 07" note describes.
+1. Commit Phase 07.5 if the owner approves.
+2. In ~/Desktop/SavingWorld start Claude Code with the full `docs/prompts/PHASE_08.md` (Free dashboard and deadline estimates). Build Home as direction A by extending `src/features/goals/presentation/home-screen.tsx`; `/dev-home?option=a` shows the target layout.
