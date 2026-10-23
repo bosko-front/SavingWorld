@@ -969,6 +969,7 @@ Q07 product ID/store setup and Q09 bundle identifier are required; a configured 
 - Implement event-driven purchase states, verified/unverified/pending distinction and product metadata. Do not grant rights from callback success or JWS decoding alone.
 - Persist idempotent transaction processing and entitlement snapshots before finishing/acknowledging store transactions; handle replay after interruption.
 - Implement current-entitlement queries, transaction update listeners, explicit restore and foreground reconciliation. Treat network failure as unknown rather than revocation.
+- A verified revocation or refund only changes the stored entitlement; it never deletes or changes goals, entries, souvenirs or theme choices (D74, D75).
 - Map Pro to unlimited goals, Garden/open-goal theme switching and the four precise statistics; fixed challenges are identical for Free/Pro, with theme rights addressable independently. Pro price remains storefront-sourced and commercially undecided.
 
 ## Expected files and modules
