@@ -1,7 +1,7 @@
 # Phase 08 evidence: Free dashboard and deadline estimates
 
 - Session date: 23 October 2026. Phase state: **VERIFIED COMPLETE**. Every acceptance criterion has automated and simulator evidence. VoiceOver for the new Home elements joins the existing physical-device gate (D60/D63).
-- Source: `main` at 2ae1372 plus this session's uncommitted working tree. No commit was made in this session.
+- Source: `main` at 2ae1372; this session's work is committed as 4cf1a59 (Phase 08, including D74).
 - Build: EAS development simulator build a8045c3a-2238-4043-9983-f522e1f2fd0b (Phase 07), with JS served by the Metro that was already running (pid 46517, port 8081). There was no native, dependency or config change (the `plus`/`trash` SF Symbols and the SwiftUI `Menu` go through the existing `expo-symbols` and `@expo/ui`), so no new build, no update publication and no store action. Runtime 1.0.0 is not shared yet. **Schema 2** (`0002-goal-deletion`, D74) was added this session.
 - Devices: iPhone SE (3rd gen) iOS 18.5, iPhone 17 Pro Max iOS 26.1, iPhone Duo iOS 27.1 (open, inner display). Text sizes: default (`large`) and largest (`accessibility-extra-extra-extra-large`).
 - Owner decisions this session: D74 (no Archive; any goal can be deleted; Free keeps one goal in total; loss-of-Pro and Garden rules), see the section below; D70 (keep Add savings visible on short windows); D72, after the owner saw the first result (a deadline card instead of loose text, a floating button on Home and History, replacing D70's full-width bar); D73, after the second review (world first: goal administration into a ⋯ menu, the button labelled "+ Add savings", and the Island-as-star and milestone-unlock direction recorded for Phases 09/10). Engineering record: D71.

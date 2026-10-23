@@ -31,7 +31,7 @@ lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (25 suites, 654 tests)
 ## Incomplete work and blockers
 
 1. Not blockers: Duo closed/landscape and rotation were not re-shot; split view and VoiceOver stay physical-device gates. The world region and the stage names wait for Phase 09.
-2. Phase 08 is uncommitted on `main` (base 2ae1372). Nothing pushed.
+2. Phase 08 is committed on `main` (4cf1a59), with its code, docs and `docs/evidence/phase-08/` screenshots. Nothing pushed.
 3. Simulator state: the SE "Summer trip" RSD goal has a deadline of today (23 Oct 2026), so it shows Overdue from tomorrow. The 17 Pro Max's locale was switched to de-DE for the check and then restored (`en_US@rg=rszzzz`; languages en-US, sr-RS, sr-Latn-RS). Text sizes are back to default. Metro (pid 46517) is still running.
 
 ## Exact next session
