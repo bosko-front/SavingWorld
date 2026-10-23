@@ -1,23 +1,24 @@
 # Project status
 
-Updated 23 October 2026 after the Phase 02 implementation session. Functional scope is fixed by the local [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx).
+Updated 23 October 2026 after the Phase 03 implementation session. Functional scope is fixed by the local [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx).
 
 ## Current state
 
-- Current stage: Phase 02 VERIFIED COMPLETE ([evidence](evidence/PHASE_02.md)). Next implementation prompt: [PHASE_03](prompts/PHASE_03.md).
-- Completed implementation phases: 01, 02. The repository has an Expo SDK 58 project (expo 58.0.17, React Native 0.88.0, React 19.3.0, Expo Router 58.0.25) with one npm lockfile, app.config.ts, eas.json, a native NativeTabs/Stack shell and real lint/typecheck/test scripts. Phase 02 added the final light palette and typed tokens (`src/shared/theme/`), shared AppText/Button/TextField/Card/AmountText/Notice primitives (`src/shared/ui/`), token-driven shell screens and native tint, a forced light launch appearance, ESLint styling guardrails and a development-only component gallery.
-- EAS: project `@bosko123/saving-worlds` (ID 25d3089f-a32e-461f-baf2-7c95a396984e), bundle ID `com.bosko123.savingworlds`, runtime policy appVersion (runtime 1.0.0, not yet shared). Current development simulator build: ab77dda9-8c1c-4a2e-92be-db22cbef9960 (Phase 02, light appearance), installed on iPhone SE (iOS 18.5), iPhone 17 (26.0), iPhone 17 Pro Max (26.1) and Duo (27.1) simulators. Earlier build bdbf2303 is superseded. No preview/production build, no update publication, no store action.
-- Checks at close: lint, typecheck, 84 Jest tests (5 suites, including 51 contrast pairs), `expo install --check` and expo-doctor 20/20 PASS; release export contains no gallery code. No database, financial logic, billing or reminders exist yet.
-- UX follow-up (same session, docs only): owner-approved toast rules, haptics and SF Symbols icon conventions and a per-phase UX library plan (DESIGN_SYSTEM, DECISIONS D40-D43); prompts 06, 07, 08, 10, 11, 13, 17 and 19 name their tasks.
-- Git: `main` has the Phase 01 commits and one Phase 02 commit (palette, tokens, shared controls, gallery, evidence and UX follow-up docs), made at the owner's request. EAS builds can now use normal VCS mode instead of `EAS_NO_VCS=1`.
+- Current stage: **Phase 03 VERIFIED COMPLETE** ([evidence](evidence/PHASE_03.md)). Inner split view on iPhone Duo moved to the physical-device release gate by owner decision (DECISIONS D48). Next implementation prompt: [PHASE_04](prompts/PHASE_04.md).
+- Completed implementation phases: 01, 02, 03. The repository has an Expo SDK 58 project (expo 58.0.17, React Native 0.88.0, React 19.3.0, Expo Router 58.0.25) with one npm lockfile, app.config.ts, eas.json, a native NativeTabs/Stack shell, the Phase 02 palette/tokens/shared controls, and now the Phase 03 layout layer `src/shared/layout/` (Screen, FormScreen, ContentColumn, AdaptiveGoalLayout with a guarded @expo/ui ArrangementView adapter and older-iOS fallback, inset policy, measured regions). Shell screens use it; PlaceholderScreen is gone. Development-only layout lab (`/dev-layout`) and sample form sheet (`/sample-form`).
+- EAS: project `@bosko123/saving-worlds` (ID 25d3089f-a32e-461f-baf2-7c95a396984e), bundle ID `com.bosko123.savingworlds`, runtime policy appVersion (runtime 1.0.0, not yet shared). Current development simulator build: ab77dda9-8c1c-4a2e-92be-db22cbef9960 (Phase 02; built with Xcode 27.1, so ArrangementView is compiled in). Phase 03 changed no native code or config, so no rebuild. No preview/production build, no update publication, no store action.
+- Checks at close: lint, typecheck, 119 Jest tests (7 suites), `expo install --check` and expo-doctor 20/20 PASS; release export contains no lab/sample code. Native: Duo closed/partially open/open in portrait and landscape, shell screen on the closed display, native sheet through rotate/fold/unfold and repeated changes while typing PASS (screenshots + `[layout-lab]` logs); SE iOS 18.5 and 17 Pro Max iOS 26.1 fallback, keyboard, largest text and 17 Pro Max landscape side insets PASS. Fixed: double side-column inset inside the native arrangement, and controls unreachable when the system collapses the arrangement on the closed display in landscape (DECISIONS D47).
+- No database, financial logic, billing or reminders exist yet.
+- Git: `main` has the Phase 01, Phase 02 and Phase 03 commits (Phase 03 committed at the owner's request; nothing pushed).
 - Both DOCX sources and historical source/evidence content are retained unchanged.
+
 ## Phase register
 
 | Phase | Deliverable | State | Verification evidence |
 | --- | --- | --- | --- |
 | 01 | Latest Expo EAS setup packages and native navigation | VERIFIED COMPLETE | [PHASE_01](evidence/PHASE_01.md) |
 | 02 | Palette design tokens and global native styling | VERIFIED COMPLETE | [PHASE_02](evidence/PHASE_02.md) |
-| 03 | Global adaptive layout and iPhone Duo foundation | NOT STARTED | No implementation evidence |
+| 03 | Global adaptive layout and iPhone Duo foundation | VERIFIED COMPLETE | [PHASE_03](evidence/PHASE_03.md); physical-Duo split view is a release gate (D48) |
 | 04 | Exact money calendar and progression rules | NOT STARTED | No implementation evidence |
 | 05 | SQLite migrations and ledger repositories | NOT STARTED | No implementation evidence |
 | 06 | Goal forms global currency and lifecycle | NOT STARTED | No implementation evidence |
@@ -42,7 +43,7 @@ States: NOT STARTED, IN PROGRESS, BLOCKED, VERIFIED COMPLETE. Missing mandatory 
 
 ## Current verification
 
-[PHASE_01 evidence](evidence/PHASE_01.md) and [PHASE_02 evidence](evidence/PHASE_02.md) record the exact commands, EAS build IDs, artifact inspection, contrast results and simulator results. The documentation-only [planning checks](evidence/PLANNING_CHECKS.md) remain the record for planning. Jest mocks do not prove native SQLite, StoreKit, notifications or device behavior.
+[PHASE_01 evidence](evidence/PHASE_01.md), [PHASE_02 evidence](evidence/PHASE_02.md) and [PHASE_03 evidence](evidence/PHASE_03.md) record the exact commands, EAS build IDs, artifact inspection, contrast results and simulator results. The documentation-only [planning checks](evidence/PLANNING_CHECKS.md) remain the record for planning. Jest mocks do not prove native SQLite, StoreKit, notifications or device behavior.
 
 ## Resolved product decisions
 
@@ -50,15 +51,17 @@ Q01-Q06 are RESOLVED in [SOURCE_RECONCILIATION](SOURCE_RECONCILIATION.md). One g
 
 ## Known limitations and external dependencies
 
-- iPhone Duo simulator is now available: iOS 27.1 runtime installed and `SW iPhone Duo iOS 27.1` (E273F5F5-A352-4903-8891-1457DE5E96DC) created. The dev build runs there with native side-column tabs/back. Phase 03 must fix content running under the right side-controls column (missing horizontal safe-area inset) and cover fully-open, partial-fold and split-view states. The automation tool's taps on the Duo were intermittent; deep links were used as a fallback.
+- Phase 03 release gates (not simulator passes): inner split view with the app on both sides and the full pose matrix on a physical iPhone Duo (D48; RELEASE_CHECKLIST, Phase 21). Device Hub can be automated through the macOS Accessibility API once Accessibility is granted to the Claude Code helper process (see ADAPTIVE_LAYOUT); the hinge slider does not respond to AX value changes, the pose buttons do.
+- Known limitation: when the closed Duo in landscape collapses the native arrangement, AdaptiveGoalLayout switches to the stacked composition, which rebuilds both regions and drops keyboard focus (drafts and selection are kept).
+- The iOS 27.1 simulator runtime supports only iPhone Duo; ordinary iPhones in this toolchain (iOS ≤ 27.0) always use the stacked fallback. Simulator tap automation is intermittent on the Duo; the lab's `?focus=draft` link avoids depending on taps.
 - No physical-device development build yet; it needs the owner's Apple Developer credentials and device registration.
 - App icon/splash image are Expo template placeholders until branding (Q09). Dev-client local-network and default ATS Info.plist entries need release privacy review (Phase 20/22).
-- Phase 02 limitations (noncritical): pressed state and button keyboard-focus outline not observed on a simulator; VoiceOver not run; iOS 26 draws the back-button glass in its own color; iOS 26 transparent headers let scrolled content pass under the title (Phase 03 inset/header policy). Shell screens still use temporary placeholder text.
+- Phase 02 limitations (noncritical): pressed state and button keyboard-focus outline not observed on a simulator; VoiceOver not run; iOS 26 draws the back-button glass in its own color. iOS 26 transparent headers let scrolled content pass under the title by design; the native scroll inset keeps it reachable (Phase 03 inset policy). Shell screens still use temporary text.
 - Q07 price/sale copy/product setup and Q09 identity/privacy/support/device resources remain commercial/operational dependencies. Approved licensed Island/Garden art and Apple sandbox/signing/devices are verified at their phase gates. Q08 is future-only.
 
 ## Next action and continuation
 
-Start a new Claude Code session in ~/Desktop/SavingWorld with the full [PHASE_03](prompts/PHASE_03.md) prompt (global adaptive layout and iPhone Duo foundation). Money is 04, OTA drill 20 and final QA/release preparation 21/22. Keep implementation, native verification, production publication, store upload/submission and live status distinct.
+Start a new Claude Code session in ~/Desktop/SavingWorld with the full [PHASE_04](prompts/PHASE_04.md) prompt (exact money, calendar and progression rules). Phase 04 screens are not in scope; later UI phases follow the ADAPTIVE_LAYOUT adoption contract. Keep implementation, native verification, production publication, store upload/submission and live status distinct.
 
 ## Ongoing updates
 

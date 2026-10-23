@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
+import { FormScreen } from '@/shared/layout';
 import { colors, radii, spacing, typography, type ColorToken, type TextRole } from '@/shared/theme';
 import { AmountText } from '@/shared/ui/amount-text';
 import { AppText } from '@/shared/ui/app-text';
 import { Button, type ButtonVariant } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
 import { Notice } from '@/shared/ui/notice';
-import { PlaceholderScreen } from '@/shared/ui/placeholder-screen';
 import { TextField } from '@/shared/ui/text-field';
 
 // Development/test-only catalog of shared controls and their states. Reached from Settings in
@@ -38,9 +38,14 @@ const SWATCHES: ColorToken[] = [
 export function ComponentGallery() {
   const { fontScale } = useWindowDimensions();
   return (
-    <PlaceholderScreen
-      title="Component gallery"
-      description={`Development only. Current text scale ×${fontScale.toFixed(2)}; change Larger Text in iOS Settings to review large text.`}>
+    // FormScreen because the gallery contains text fields; keyboard-safe scrolling applies.
+    <FormScreen width="readable">
+      <AppText role="title" accessibilityRole="header">
+        Component gallery
+      </AppText>
+      <AppText tone="secondary">
+        {`Development only. Current text scale ×${fontScale.toFixed(2)}; change Larger Text in iOS Settings to review large text.`}
+      </AppText>
       <Section title="Text roles">
         {(Object.keys(typography) as TextRole[]).map((role) => (
           <AppText key={role} role={role}>
@@ -99,7 +104,7 @@ export function ComponentGallery() {
           </View>
         ))}
       </Section>
-    </PlaceholderScreen>
+    </FormScreen>
   );
 }
 

@@ -81,11 +81,12 @@ Typography uses the system font. Each role (`largeTitle`, `title`, `headline`, `
 | --- | --- |
 | `src/shared/ui/app-text.tsx` `AppText` | All app text. `role` picks typography and Dynamic Type ramp; `tone` picks a semantic text color. `style` is for layout or a token-derived color only. |
 | `src/shared/ui/button.tsx` `Button` | Variants `primary`, `secondary`, `plain`. 44 pt minimum, wrapping label, pressed fill, `disabled` (disabled look, `accessibilityState.disabled`) and `loading` (spinner, label kept, `busy`, presses ignored). Keyboard-focus outline where focus events arrive. Works inside `Link asChild`. |
-| `src/shared/ui/text-field.tsx` `TextField` | Visible label that is also the input's accessibility label; hint; `error` replaces the hint with a warning glyph and message, a 2 pt error outline and an "Error: …" accessibility hint; 2 pt focus outline; `disabled`. Raw text only, no parsing. |
+| `src/shared/ui/text-field.tsx` `TextField` | Visible label that is also the input's accessibility label; hint; `error` replaces the hint with a warning glyph and message, a 2 pt error outline and an "Error: …" accessibility hint; 2 pt focus outline; `disabled`; optional `inputRef` so a form can move focus. Raw text only, no parsing. |
 | `src/shared/ui/card.tsx` `Card` | `surface` (white, hairline, soft shadow) or `soft` (surfaceSoft). |
 | `src/shared/ui/amount-text.tsx` `AmountText` | Display styling for an already formatted amount (`balance`, `deposit`, `withdrawal`; `regular` or `large`). Phase 04 money helpers produce the string, including the explicit sign or word; this component never parses or calculates. |
 | `src/shared/ui/notice.tsx` `Notice` | Inline `error` / `success` / `info` feedback with a title that states the outcome in words; error notices use the `alert` role. |
-| `src/shared/ui/placeholder-screen.tsx` | Temporary shell screen using the tokens; Phase 03 replaces its inset/layout policy. |
+
+Screens are composed with the Phase 03 layout primitives (`Screen`, `FormScreen`, `ContentColumn`, `AdaptiveGoalLayout` in `src/shared/layout/`); see [ADAPTIVE_LAYOUT](ADAPTIVE_LAYOUT.md#implementation-phase-03). The temporary `PlaceholderScreen` was removed in Phase 03.
 
 ## Conventions
 
@@ -175,7 +176,7 @@ Researched 23 October 2026 against the locked SDK 58 (`expo/bundledNativeModules
 | Package | SDK 58 version | Use in Saving Worlds | Phase |
 | --- | --- | --- | --- |
 | `@expo/ui` (installed) | ~58.0.22 | Native SwiftUI DatePicker for transaction and deadline dates, Picker for the global currency, Switch for the weekly reminder, ArrangementView for adaptive layout. Prefer it over `@react-native-community/datetimepicker`. | 03, 06, 07, 14 |
-| `react-native-keyboard-controller` | 1.22.7 | Keyboard-aware scrolling for FormScreen so Save and errors stay visible above the keyboard; evaluate against React Native's built-in behavior first. | 03 |
+| `react-native-keyboard-controller` | 1.22.7 | Not installed: Phase 03 found React Native's built-in `automaticallyAdjustKeyboardInsets` sufficient for FormScreen (DECISIONS D46). Reconsider only for a sticky footer above the keyboard. | (03, not needed) |
 | `expo-symbols` | ~58.0.4 | SF Symbols in buttons, notices, toasts and rows; replaces the text warning glyph with a real symbol that follows Dynamic Type. | 06 |
 | `expo-haptics` | ~58.0.7 | Light success haptic after a committed deposit/withdrawal and at milestone unlocks; selection feedback in pickers. Never the only feedback. | 07, 10 |
 | `sonner-native` + `react-native-svg` | 0.27.0 (npm, MIT, updated Aug 2026) + 15.16.0 | Toast engine behind `src/shared/ui/toast.tsx`. Peers already installed except `react-native-svg`, which Phase 18 needs anyway. Honors Reduce Motion; does not announce to VoiceOver itself, so the wrapper does. | 06 |
@@ -188,7 +189,7 @@ Not planned: `burnt` (last release March 2025, wraps old native toast pods; too 
 
 ## Development component gallery
 
-`src/dev/component-gallery.tsx` shows every text role, all button variants in normal/disabled/loading states (press and hold for pressed), a live loading demo, long labels, fields (hint, error, disabled, long label/error, multiline, focus by tapping), cards, amount samples, notices and the semantic swatches with the current font scale. It is reached from Settings → "Component gallery (development only)" at `/dev-gallery`, a route in the Home stack wrapped in `Stack.Protected guard={__DEV__}`. The route file requires the gallery module only inside `if (__DEV__)`, so release bundles do not contain the gallery code; the release export check is in the Phase 02 evidence. Review large text by changing the simulator or device text size.
+`src/dev/component-gallery.tsx` (on `FormScreen`) shows every text role, all button variants in normal/disabled/loading states (press and hold for pressed), a live loading demo, long labels, fields (hint, error, disabled, long label/error, multiline, focus by tapping), cards, amount samples, notices and the semantic swatches with the current font scale. It is reached from Settings → "Component gallery (development only)" at `/dev-gallery`, a route in the Home stack wrapped in `Stack.Protected guard={__DEV__}`. The route file requires the gallery module only inside `if (__DEV__)`, so release bundles do not contain the gallery code; the release export check is in the Phase 02 evidence. Review large text by changing the simulator or device text size.
 
 ## Change policy
 

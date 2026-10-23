@@ -29,7 +29,7 @@ flowchart TD
 
 All paths below are future implementation targets unless noted. Actual documentation links resolve now; future code paths are not broken documentation links.
 
-Phase 01 created the shell that exists today: `src/app/_layout.tsx` (root Stack and root-level native form sheets), `src/app/(tabs)/_layout.tsx` (NativeTabs), one native Stack per tab in `src/app/(tabs)/(home)/`, `(challenges)/` and `(collection)/` with Settings and a temporary detail route in the Home stack, `src/bootstrap/` (redacted build/update diagnostics). Phase 02 added `src/shared/theme/` (private palette, semantic tokens, native navigation appearance), `src/shared/ui/` (AppText, Button, TextField, Card, AmountText, Notice and the temporary PlaceholderScreen) and the development-only gallery (`src/dev/` behind the guarded Home-stack route `dev-gallery`); see [DESIGN_SYSTEM](DESIGN_SYSTEM.md). Tests live in `tests/unit/` and `tests/integration/`.
+Phase 01 created the shell that exists today: `src/app/_layout.tsx` (root Stack and root-level native form sheets), `src/app/(tabs)/_layout.tsx` (NativeTabs), one native Stack per tab in `src/app/(tabs)/(home)/`, `(challenges)/` and `(collection)/` with Settings and a temporary detail route in the Home stack, `src/bootstrap/` (redacted build/update diagnostics). Phase 02 added `src/shared/theme/` (private palette, semantic tokens, native navigation appearance), `src/shared/ui/` (AppText, Button, TextField, Card, AmountText, Notice and the temporary PlaceholderScreen) and the development-only gallery (`src/dev/` behind the guarded Home-stack route `dev-gallery`); see [DESIGN_SYSTEM](DESIGN_SYSTEM.md). Phase 03 added `src/shared/layout/` (Screen, FormScreen, ContentColumn, AdaptiveGoalLayout, the ArrangementView adapter and inset policy) and replaced PlaceholderScreen with it; the development-only layout lab (`/dev-layout`) and sample form sheet (`/sample-form`) live in `src/dev/`; see [ADAPTIVE_LAYOUT](ADAPTIVE_LAYOUT.md#implementation-phase-03). Tests live in `tests/unit/` and `tests/integration/`.
 
 ```text
 src/app/                         route adapters and navigation layouts
@@ -52,7 +52,7 @@ src/features/settings/           local preferences and privacy/data screens
 src/shared/theme/                palette, typed semantic tokens and native appearance (exists)
 src/shared/ui/                   accessible native controls (exists)
 src/dev/                         development-only tools such as the component gallery (exists)
-src/shared/layout/               screen/inset policy, measured regions and adaptive adapter
+src/shared/layout/               screen/inset policy, measured regions and adaptive adapter (exists)
 src/shared/i18n/                 English strings and formatting helpers
 assets/themes/island/            approved local layered exports
 assets/themes/garden/            approved local layered exports

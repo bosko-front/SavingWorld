@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
+import { useState, type Ref } from 'react';
+import { StyleSheet, TextInput, View, type TextInputInstance, type TextInputProps } from 'react-native';
 
 import { borders, colors, layout, radii, spacing, typography } from '@/shared/theme';
 
@@ -41,11 +41,22 @@ type TextFieldProps = Pick<
   // Shown below the input in place of the hint, with a thicker error outline.
   error?: string;
   disabled?: boolean;
+  // Lets a form move focus to this input, for example back to a field after an error.
+  inputRef?: Ref<TextInputInstance>;
 };
 
 // Generic labelled text input. It holds raw text only; parsing and validating amounts or dates
 // belongs to the domain helpers (Phase 04) and the owning form.
-export function TextField({ label, value, onChangeText, hint, error, disabled = false, ...inputProps }: TextFieldProps) {
+export function TextField({
+  label,
+  value,
+  onChangeText,
+  hint,
+  error,
+  disabled = false,
+  inputRef,
+  ...inputProps
+}: TextFieldProps) {
   const [focused, setFocused] = useState(false);
   const errorLabel = error ? `Error: ${error}` : undefined;
 
@@ -57,6 +68,7 @@ export function TextField({ label, value, onChangeText, hint, error, disabled = 
       </AppText>
       <TextInput
         {...inputProps}
+        ref={inputRef}
         accessibilityLabel={label}
         accessibilityHint={errorLabel ?? hint}
         accessibilityState={{ disabled }}

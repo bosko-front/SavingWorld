@@ -18,7 +18,7 @@ Product authority is [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx). Q01-Q06 
 - [ ] Initial setup used the latest stable Expo SDK with compatible locked packages and a recorded toolchain/install matrix; no forced peer mismatch or silent downgrade.
 - [ ] App palette and typed tokens are centralized; shared native controls have verified contrast, dynamic text, loading/disabled/error behavior and coherent supported appearance.
 - [ ] All feature screens use shared layout/inset policy rather than model-specific widths or a global scale function.
-- [ ] Duo outer/open, supported orientations and inner split view on either side have native evidence; native bars/side insets do not cover financial controls or sheet actions.
+- [ ] Duo outer/open, supported orientations and inner split view on either side have native evidence; native bars/side insets do not cover financial controls or sheet actions. Inner split view (app left and right, divider drag) must be checked on a **physical iPhone Duo**: the Xcode 27.1 Device Hub simulator offers no split-view control (DECISIONS D48).
 - [ ] Required partial-fold/tabletop behavior and physical-only gaps are tested before claiming complete Duo support; no guessed fold coordinate or required hinge effect.
 - [ ] ArrangementView/RNHostView integration and older-iOS fallback are verified; no experimental split-view/navigation dependency entered scope accidentally.
 - [ ] Repeated resizing while editing preserves draft, route, selection and operation ID and creates no additional financial mutation.

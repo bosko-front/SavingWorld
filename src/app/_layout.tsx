@@ -18,15 +18,18 @@ export default function RootLayout() {
       <StatusBar style="dark" />
       <Stack screenOptions={stackScreenOptions}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="sample-form"
-          options={{
-            title: 'Sample form',
-            presentation: 'formSheet',
-            sheetGrabberVisible: true,
-            sheetAllowedDetents: [0.5, 1.0],
-          }}
-        />
+        {/* Development/test-only controlled form sample; unreachable in release builds. */}
+        <Stack.Protected guard={__DEV__}>
+          <Stack.Screen
+            name="sample-form"
+            options={{
+              title: 'Sample form',
+              presentation: 'formSheet',
+              sheetGrabberVisible: true,
+              sheetAllowedDetents: [0.5, 1.0],
+            }}
+          />
+        </Stack.Protected>
       </Stack>
     </>
   );

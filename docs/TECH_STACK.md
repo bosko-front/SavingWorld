@@ -59,8 +59,8 @@ Phase 01 records every selected version, why it is needed, whether the template 
 | Phase 01 EAS configuration | eas.json profiles, project/update URL and runtime configuration | Link the intended owner/project, configure explicit channels/environments and produce a real EAS dev build. No production OTA publish. |
 | Phase 20 OTA verification | Existing expo-updates/EAS tooling and release-mode preview artifact | Actual compatible update, offline activation and recovery proof; a dev-client bundle load is insufficient. |
 | Phase 02 styling | No extra styling package | Shared StyleSheet tokens/primitives and native appearance integration. The UX library plan (versions, uses, rejected options) is in DESIGN_SYSTEM and DECISIONS D41. |
-| Phase 03 adaptation | Use the foundation safe-area and @expo/ui packages | Verify ArrangementView/RNHostView and the older-iOS fallback in a native build. No expo-hinge requirement. |
-| Phase 03 forms (conditional) | react-native-keyboard-controller | Only if FormScreen cannot keep Save/errors visible above the keyboard with built-in behavior; native rebuild. |
+| Phase 03 adaptation | Use the foundation safe-area and @expo/ui packages | No new package. ArrangementView/RNHostView adapter and older-iOS fallback in `src/shared/layout/` (D44); ArrangementView needs an Xcode 27.1 SDK build. No expo-hinge requirement. |
+| Phase 03 forms (conditional) | react-native-keyboard-controller | Not installed: built-in `automaticallyAdjustKeyboardInsets` kept Save/errors reachable in native checks (D46). |
 | Phase 06 feedback | sonner-native, react-native-svg, expo-symbols | Shared `src/shared/ui/toast.tsx` wrapper per DESIGN_SYSTEM toast rules, first SF Symbols; native rebuild. |
 | Phase 07 feedback | expo-haptics | Success haptic after committed financial writes; reuses the Phase 06 toast; native rebuild. |
 | Phase 06/07/14 native inputs | Existing @expo/ui (DatePicker, Picker, Switch) | No extra date-picker package. |

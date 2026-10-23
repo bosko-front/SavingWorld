@@ -35,7 +35,7 @@ describe('app navigation shell', () => {
 
   it('presents the sample form from the root stack and dismisses it', async () => {
     await renderRouter(appDir, { initialUrl: '/' });
-    await userEvent.press(screen.getByText('Open sample form'));
+    await userEvent.press(screen.getByText('Open sample form (development only)'));
     expect(screen).toHavePathname('/sample-form');
     expect(screen.getByText('Native form sheet')).toBeOnTheScreen();
 
@@ -75,6 +75,40 @@ describe('app navigation shell', () => {
     expect(screen.getByText('Text roles')).toBeOnTheScreen();
     expect(screen.getAllByRole('button', { name: 'Saving' }).length).toBeGreaterThan(0);
   });
+
+  it('opens the development layout lab from Settings', async () => {
+    await renderRouter(appDir, { initialUrl: '/settings' });
+    await userEvent.press(screen.getByRole('button', { name: 'Layout lab (development only)' }));
+    expect(screen).toHavePathname('/dev-layout');
+    expect(screen.getByText('Fallback composition')).toBeOnTheScreen();
+  });
+
+  it('keeps the layout lab draft and selection across a pushed screen, a tab switch and a sheet', async () => {
+    await renderRouter(appDir, { initialUrl: '/dev-layout' });
+    await userEvent.type(screen.getByTestId('layout-lab-draft'), 'keep me');
+    await userEvent.press(screen.getByRole('button', { name: 'Lighthouse' }));
+
+    await userEvent.press(screen.getByRole('button', { name: 'Push a detail screen' }));
+    expect(screen).toHavePathname('/details');
+    await goBack();
+    expect(screen).toHavePathname('/dev-layout');
+
+    for (const pathname of ['/challenges', '/dev-layout'] as const) {
+      await act(async () => {
+        router.navigate(pathname);
+      });
+    }
+    expect(screen).toHavePathname('/dev-layout');
+
+    await userEvent.press(screen.getByRole('button', { name: 'Open sample form sheet' }));
+    expect(screen).toHavePathname('/sample-form');
+    await goBack();
+
+    expect(screen).toHavePathname('/dev-layout');
+    expect(screen.getByTestId('layout-lab-draft')).toHaveDisplayValue('keep me');
+    expect(screen.getByRole('button', { name: 'Lighthouse (selected)' })).toBeOnTheScreen();
+    expect(screen.getByTestId('layout-lab-saves')).toHaveTextContent('Pretend saves: 0. Nothing is stored.');
+  });
 });
 
 describe('release routes', () => {
@@ -98,5 +132,23 @@ describe('release routes', () => {
     });
     expect(screen).not.toHavePathname('/dev-gallery');
     expect(screen.queryByText('Text roles')).not.toBeOnTheScreen();
+  });
+
+  it('hides the development layout lab and sample form sheet when __DEV__ is false', async () => {
+    await renderRouter(appDir, { initialUrl: '/' });
+    expect(screen.queryByText('Open sample form (development only)')).not.toBeOnTheScreen();
+    await act(async () => {
+      router.navigate('/settings');
+    });
+    expect(screen.queryByText('Layout lab (development only)')).not.toBeOnTheScreen();
+
+    for (const pathname of ['/dev-layout', '/sample-form'] as const) {
+      await act(async () => {
+        router.navigate(pathname);
+      });
+      expect(screen).not.toHavePathname(pathname);
+    }
+    expect(screen.queryByText('Layout lab')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Native form sheet')).not.toBeOnTheScreen();
   });
 });

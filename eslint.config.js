@@ -27,6 +27,40 @@ const styleGuardrails = [
   },
 ];
 
+// Imports restricted across src/**. Window geometry and the native adaptive container belong to the
+// shared layout layer (docs/ADAPTIVE_LAYOUT.md); `layoutOwner` relaxes only those two entries.
+function restrictedImports({ layoutOwner }) {
+  return [
+    'error',
+    {
+      paths: [
+        {
+          name: 'react-native',
+          importNames: ['PlatformColor', 'DynamicColorIOS', ...(layoutOwner ? [] : ['useWindowDimensions'])],
+          message: layoutOwner
+            ? 'Use semantic colors from @/shared/theme; the app ships one light palette.'
+            : 'Use semantic colors from @/shared/theme, and size content with @/shared/layout (Screen, AdaptiveGoalLayout, useMeasuredSize) instead of reading the window.',
+        },
+        ...(layoutOwner
+          ? []
+          : [
+              {
+                name: '@expo/ui/swift-ui',
+                importNames: ['ArrangementView', 'RNHostView'],
+                message: 'Use AdaptiveGoalLayout from @/shared/layout; the native arrangement adapter has one owner.',
+              },
+            ]),
+      ],
+      patterns: [
+        {
+          group: ['**/theme/palette', '@/shared/theme/palette'],
+          message: 'The raw palette is private to src/shared/theme; use semantic colors.',
+        },
+      ],
+    },
+  ];
+}
+
 module.exports = defineConfig([
   expoConfig,
   {
@@ -37,25 +71,14 @@ module.exports = defineConfig([
     ignores: ['src/shared/theme/palette.ts'],
     rules: {
       'no-restricted-syntax': ['error', ...styleGuardrails],
-      'no-restricted-imports': [
-        'error',
-        {
-          paths: [
-            {
-              name: 'react-native',
-              importNames: ['PlatformColor', 'DynamicColorIOS'],
-              message: 'Use semantic colors from @/shared/theme; the app ships one light palette.',
-            },
-          ],
-          patterns: [
-            {
-              group: ['**/theme/palette', '@/shared/theme/palette'],
-              message: 'The raw palette is private to src/shared/theme; use semantic colors.',
-            },
-          ],
-        },
-      ],
+      'no-restricted-imports': restrictedImports({ layoutOwner: false }),
     },
+  },
+  {
+    // The layout layer reads live window metrics and owns the native arrangement adapter; the
+    // development lab and gallery display those measurements.
+    files: ['src/shared/layout/**/*.{ts,tsx}', 'src/dev/**/*.{ts,tsx}'],
+    rules: { 'no-restricted-imports': restrictedImports({ layoutOwner: true }) },
   },
   {
     // The theme module itself composes semantic tokens from the raw palette.

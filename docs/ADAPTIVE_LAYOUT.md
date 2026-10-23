@@ -2,7 +2,7 @@
 
 Product scope follows [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx); this document adds compatible engineering detail only.
 
-Establish the shared layout foundation in Phase 03, after setup and design tokens. Every later screen uses it. Layout changes must preserve the selected goal, transaction draft, navigation and committed savings. This is a plan; no device support is claimed as tested yet.
+Establish the shared layout foundation in Phase 03, after setup and design tokens. Every later screen uses it. Layout changes must preserve the selected goal, transaction draft, navigation and committed savings. Phase 03 implemented the foundation (see [Implementation](#implementation-phase-03) and [PHASE_03 evidence](evidence/PHASE_03.md)); the Duo pose checks it still lacks are listed there, and no physical-device support is claimed.
 
 ## Verified platform direction
 
@@ -66,3 +66,37 @@ Handle a focused input across a resize and return focus meaningfully if native p
 Use actual Xcode/Device Hub simulator capabilities and record supported states; do not invent a simulator API. Phase 03 requires the available Duo native simulator checks and ordinary iPhone fallback checks. If a physical Duo or a pose unavailable in the simulator cannot be checked yet, record it explicitly for the final device/release gate. Generic resized screenshots alone do not establish full Duo support. No separate iPad launch is added by this requirement.
 
 Before release, repeat the matrix using real feature forms, both worlds, challenges, charts and paywall. Record toolchain, OS/device, window/pose, text size and result. Missing mandatory device coverage remains a release blocker, not a green check.
+
+## Implementation (Phase 03)
+
+Module: `src/shared/layout/` (public API in `index.ts`). Evidence and the native matrix status: [PHASE_03](evidence/PHASE_03.md). Decisions: D44-D46.
+
+| Primitive | Contract |
+| --- | --- |
+| `Screen` | Vertical scrolling screen inside native Stack/NativeTabs chrome. Readable column (680 pt max), 16 pt gutters, growing text. |
+| `FormScreen` | Same as Screen plus keyboard-safe scrolling (`automaticallyAdjustKeyboardInsets`, `keyboardShouldPersistTaps="handled"`, interactive dismissal). Form column 560 pt. Used for screens and native sheets with inputs. |
+| `ContentColumn` | Centered column, `readable` or `form` maximum width; fills narrower windows. |
+| `AdaptiveGoalLayout` | `scene` (primary), `controls` (secondary), `sceneAspectRatio`. iOS 27.1+: system `ArrangementView` through `arrangement-adapter.tsx`. Older iOS, and any window where the system collapses the arrangement to the scene alone: one scrolling column, scene first (column width, aspect ratio, at most 45% of the visible height), controls below. |
+| `useMeasuredSize`, `fitAspect` | Local onLayout size in component state; largest box of a given aspect ratio inside a measured region. |
+
+Inset ownership (`metrics.ts`): in scrolling screens the native scroll view owns top/bottom insets (header, tab bar, home indicator, keyboard) and a native `SafeAreaView` inside the scroll content owns left/right with `maximum` mode, so each side gets max(its own measured overlap, gutter). The native view measures its own frame, which covers the Duo side-controls column, landscape sensor housing and split view without reading window values or adding a hook inset twice. Static regions own all four edges. Inside the native arrangement the SwiftUI host keeps both regions inside the container safe area (bars, side-controls column), so hosted content is `container`-owned: no SafeAreaView edges and `contentInsetAdjustmentBehavior="never"`, only the gutter. Adding the inset there doubled the 84 pt Duo side column (fixed in Phase 03). The host ignores only the keyboard safe area, because the controls region's scroll view adjusts for the keyboard itself.
+
+ArrangementView adapter: `arrangementViewAvailable()` is true only on iOS 27.1+ (checked once per process from `Platform.Version`, so geometry never switches the branch). The binary must be built with the iOS 27.1 SDK; the project's EAS image is Xcode 27.1. Each slot hosts one `RNHostView` (`matchContents` false, so the hosted view takes the size SwiftUI gives it) with exactly one React Native `View`. Observed on the Duo simulator: open or closed portrait → vertical split (scene above, controls below); open landscape → side by side; partially open → the same arrangements with a gap at the fold. On the closed display in landscape (678×466) the system collapses the arrangement to the scene alone, whatever the style or split limits, so the controls are unreachable. `AdaptiveGoalLayout` detects this (`isArrangementCollapsed`: the scene region covers the whole `Host onLayoutContent` size), renders the stacked composition for that window size, and retries the native arrangement on the next window change. The switch rebuilds both regions, so keyboard focus is lost, but drafts and selection live above the layout. The iOS 27.1 simulator runtime supports only iPhone Duo, so ordinary iPhones in this toolchain run the fallback.
+
+Device Hub automation (for later verification): with macOS Accessibility granted to the Claude Code helper process, Device Hub's Rotate button, the Closed / Partially Open / Open pose buttons (visible after "Enter resize mode") and the app's own controls can be pressed through the Accessibility API. Device Hub offers no split-view control for iPhone Duo, so inner split view is a physical-Duo release check (DECISIONS D48).
+
+Guardrails (ESLint, `src/**`): `useWindowDimensions` only in `src/shared/layout/**` and `src/dev/**`; `ArrangementView`/`RNHostView` only in the layout layer; no `Dimensions.get`, no disabled or capped font scaling.
+
+Development samples: Settings → "Layout lab (development only)" (`/dev-layout`, `?focus=draft` focuses the draft field) and the sample form sheet (`/sample-form`). The lab shows arrangement mode, window, safe area, column size and mount counts, and logs one `[layout-lab]` line per layout change to the Metro console. Both routes are development-only and absent from release bundles.
+
+## Adoption contract for later screens
+
+| Screen (phase) | Use | Rules |
+| --- | --- | --- |
+| Home dashboard (08), scene (09/10) | `AdaptiveGoalLayout` | Saved amount, remaining, percentage and every action live in `controls`; the scene component fills `scene`, measures itself with `useMeasuredSize` and draws art with `fitAspect`; decorative background may fill the region, text and actions may not leave it. Goal selection lives in the route/store, never in a region. |
+| Create/Edit Goal (06), Add/Edit Transaction (07), Settings (06/14/19), Paywall (16) | `FormScreen` (inside the existing native `formSheet` where presented modally) | Draft and operation ID owned by the route component or its store above FormScreen. No fixed-height dialog; Save and errors scroll-reachable with the keyboard up. |
+| History (07), Challenges (13), Collection (11), Statistics (18), Onboarding (06) | `Screen` (or a list with the same inset policy) | Rows grow with text. A list (FlatList) uses `contentInsetAdjustmentBehavior="automatic"` and puts its left/right inset in a `SafeAreaView` with `safeAreaEdges(scrollingScreenOwnership)`, not hook values. Charts and cards size from `useMeasuredSize`. |
+| Native sheets and popovers | Native presentation | Sheet content uses FormScreen; a later popover is anchored natively and checked on regular width. |
+
+No screen reads window geometry directly, branches on a device model or fold position, scales by screen ratio, or lets size/pose change any financial value, command or navigation. A new layout need is added to `src/shared/layout/` with a test, not to a feature screen.
+

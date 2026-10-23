@@ -1,10 +1,15 @@
-import { PlaceholderScreen } from '@/shared/ui/placeholder-screen';
+import { Screen } from '@/shared/layout';
+import { AppText } from '@/shared/ui/app-text';
 
 export default function DetailsScreen() {
   return (
-    <PlaceholderScreen
-      title="Detail screen"
-      description="Detail screens are pushed onto the tab's native stack. Use Back to return."
-    />
+    <Screen>
+      <AppText role="title" accessibilityRole="header">
+        Detail screen
+      </AppText>
+      <AppText tone="secondary">
+        Detail screens are pushed onto the tab&apos;s native stack. Use Back to return.
+      </AppText>
+    </Screen>
   );
 }
