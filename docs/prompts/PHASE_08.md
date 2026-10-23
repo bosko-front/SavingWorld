@@ -10,7 +10,7 @@ You are implementing one phase of Saving Worlds in a fresh Claude Code session. 
 4. Verify actual dependency code and evidence against acceptance criteria. A checked box, previous handoff or earlier chat is insufficient. Resume missing work if this phase is partially complete. If already complete, verify that fact and report it without reimplementation or silently starting the next phase.
 5. Product authority is `docs/Saving_Worlds_MVP_Plan_v1_2.docx` (23 October 2026). It supersedes conflicting v1.1 and 22 October feature text, even when historical files say confirmed. Q01-Q06 are resolved; do not request reapproval or restore custom challenges, per-goal currencies, entry audit history or goal deletion. Read the compatible setup/layout and EAS/OTA source records for engineering only. Ask only for a genuinely missing operational dependency, continue independent authorized work and leave its evidence pending.
 
-Phase-specific reading: `docs/ARCHITECTURE.md`, `docs/DATA_MODEL.md`, `docs/TECH_STACK.md`, `docs/TEST_PLAN.md` and the Phase 08 entry in `docs/DEVELOPMENT_ROADMAP.md`.
+Phase-specific reading: `docs/ARCHITECTURE.md`, `docs/DATA_MODEL.md`, `docs/TECH_STACK.md`, `docs/TEST_PLAN.md`, `docs/DESIGN_SYSTEM.md` ("Visual direction" from Phase 07.5), `docs/evidence/PHASE_07_5.md` and the Phase 08 entry in `docs/DEVELOPMENT_ROADMAP.md`.
 
 ## Objective
 
@@ -18,7 +18,7 @@ Complete the financial dashboard and understandable weekly/monthly deadline guid
 
 ## Dependencies and decision gates
 
-Phase 07
+Phase 07.5 (which depends on Phase 07). Build Home in the visual direction the owner approved in Phase 07.5 (DESIGN_SYSTEM "Visual direction", DECISIONS); if the owner deferred that approval, record it and use the existing tokens.
 
 None beyond verified dependencies.
 

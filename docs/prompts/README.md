@@ -1,6 +1,6 @@
 # Phase prompt index
 
-All 22 independent prompts use [MVP plan v1.2](../Saving_Worlds_MVP_Plan_v1_2.docx) as supreme product authority and [current status](../PROJECT_STATUS.md). Q01-Q06 are resolved; historical v1.1/feature decisions cannot reintroduce old scope. Keep the 22-phase sequence and continue an incomplete phase using the same prompt.
+All 22 independent prompts use [MVP plan v1.2](../Saving_Worlds_MVP_Plan_v1_2.docx) as supreme product authority and [current status](../PROJECT_STATUS.md). Q01-Q06 are resolved; historical v1.1/feature decisions cannot reintroduce old scope. Keep the 22-phase sequence plus the owner-added checkpoint 07.5 between 07 and 08 (DECISIONS D49), and continue an incomplete phase using the same prompt.
 
 | Phase | Objective | Prompt |
 | --- | --- | --- |
@@ -11,6 +11,7 @@ All 22 independent prompts use [MVP plan v1.2](../Saving_Worlds_MVP_Plan_v1_2.do
 | 05 | SQLite migrations and ledger repositories | [PHASE_05](PHASE_05.md) |
 | 06 | Goal forms global currency and lifecycle | [PHASE_06](PHASE_06.md) |
 | 07 | Deposits withdrawals history and corrections | [PHASE_07](PHASE_07.md) |
+| 07.5 | Visual direction and design review checkpoint | [PHASE_07_5](PHASE_07_5.md) |
 | 08 | Free dashboard and deadline estimates | [PHASE_08](PHASE_08.md) |
 | 09 | Island theme assets and static world renderer | [PHASE_09](PHASE_09.md) |
 | 10 | World transitions and progress feedback | [PHASE_10](PHASE_10.md) |

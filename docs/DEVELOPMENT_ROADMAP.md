@@ -6,7 +6,7 @@ The current 22 focused phases implement [MVP plan v1.2](Saving_Worlds_MVP_Plan_v
 
 ## Planning revisions and continuation
 
-The original 19-phase plan expanded to 21 for early style/adaptive layout, then 22 for EAS preview/OTA recovery. On 23 October 2026 the owner authorized documentation alignment to v1.2 only. This revision replaces per-goal currency, custom challenges, audit versions, contribution-calendar estimates and unresolved lifecycle/statistics policies. No app files, packages, database, builds or cloud actions were created. Use current prompt names rather than saved older copies; a partial phase repeats its own prompt.
+The original 19-phase plan expanded to 21 for early style/adaptive layout, then 22 for EAS preview/OTA recovery. On 23 October 2026 the owner authorized documentation alignment to v1.2 only. This revision replaces per-goal currency, custom challenges, audit versions, contribution-calendar estimates and unresolved lifecycle/statistics policies. No app files, packages, database, builds or cloud actions were created. Use current prompt names rather than saved older copies; a partial phase repeats its own prompt. On 23 October 2026, after Phase 03, the owner added checkpoint Phase 07.5 (visual direction and design review, DECISIONS D49) between 07 and 08; the 22 numbered phases keep their numbers.
 
 ## Ordered phases
 
@@ -19,6 +19,7 @@ The original 19-phase plan expanded to 21 for early style/adaptive layout, then 
 | 05 | SQLite migrations and ledger repositories | [PHASE_05](prompts/PHASE_05.md) |
 | 06 | Goal forms global currency and lifecycle | [PHASE_06](prompts/PHASE_06.md) |
 | 07 | Deposits withdrawals history and corrections | [PHASE_07](prompts/PHASE_07.md) |
+| 07.5 | Visual direction and design review checkpoint | [PHASE_07_5](prompts/PHASE_07_5.md) |
 | 08 | Free dashboard and deadline estimates | [PHASE_08](prompts/PHASE_08.md) |
 | 09 | Island theme assets and static world renderer | [PHASE_09](prompts/PHASE_09.md) |
 | 10 | World transitions and progress feedback | [PHASE_10](prompts/PHASE_10.md) |
@@ -470,6 +471,60 @@ Every acceptance criterion above has evidence; required dependencies are verifie
 
 [Full implementation prompt](prompts/PHASE_07.md).
 
+## Phase 07.5 Visual direction and design review checkpoint
+
+## Objective
+
+Before the Home dashboard is built, review the real screens that exist after Phase 07 and agree a visual direction with the owner, so Phase 08 onward builds on an approved design rather than the plain Phase 02-03 shell (owner request, DECISIONS D49).
+
+## Dependencies and decision gates
+
+Phase 07. Owner approval (or explicit deferral) of the visual direction gates Phase 08. Final licensed art is not required (Phase 09).
+
+## Exact scope
+
+- Review every current screen, sheet, toast, error and empty state on iPhone SE, a large iPhone and Duo open/closed at default and largest text; list concrete weaknesses (hierarchy, spacing, button stacks, duplicated native and in-content titles, placeholder copy, headers, rows, color and icon use).
+- Present two or three Home composition options on `AdaptiveGoalLayout` (prominent saved amount, progress indicator, scene region, next milestone, one primary action, grouped secondary actions) as development-only mocks with fixed sample values and a temporary placeholder scene; record the owner's choice.
+- Refine palette/typography only as far as the chosen direction needs (accent role, display amount role, card softness, elevation, spacing), through the tokens and contrast tests; one light appearance stays.
+- Apply behavior-free polish to existing screens through new or refined shared primitives (section header, list row, progress indicator, button group); write the outcome into DESIGN_SYSTEM "Visual direction" and update affected Phase 08-11/13 prompts.
+
+## Expected files and modules
+
+These are planned code paths, not claims that the files exist. Reuse equivalent existing modules after inspection; document mappings and do not create duplicates.
+
+- `src/shared/theme/ palette and token refinements`
+- `src/shared/ui/ new or refined shared primitives`
+- `src/dev/ development-only Home direction mocks`
+- `existing screens: polish only`
+- `docs/DESIGN_SYSTEM.md visual direction and docs/evidence/PHASE_07_5.md screenshots`
+
+## Technical requirements
+
+- No product behavior, financial, persistence, navigation or capability change; ideas needing new behavior become owner questions.
+- Semantic tokens and contrast targets for every new pair; layout through `src/shared/layout/`; Dynamic Type uncapped; Reduce Motion respected; icons through the shared `Icon`.
+- Mocks and placeholder art are development-only and absent from release exports; no licensed art without rights confirmation.
+
+## Acceptance criteria
+
+- Written review with before screenshots on the device matrix.
+- Owner's chosen Home direction and any palette/typography change recorded in DECISIONS and DESIGN_SYSTEM.
+- Agreed polish visible on existing screens with after screenshots, no regression in keyboard, inset or state preservation.
+- Contrast tests cover new pairs and pass; release export has no mock code; Phase 08 names the approved composition.
+
+## Tests and verification
+
+- Lint, typecheck, Jest (contrast, layout, navigation); native before/after screenshots at default and largest text; release export check.
+
+## Definition of Done
+
+Every acceptance criterion above has evidence, including the owner's approval; relevant checks pass; documentation and handoff reflect actual state. Use the detailed common Definition of Done in DEVELOPMENT_RULES.
+
+## Out of scope
+
+- Real dashboard data (08), final art/renderer (09/17), animations (10), dark mode, user color customization, new features or navigation destinations.
+
+[Full implementation prompt](prompts/PHASE_07_5.md).
+
 ## Phase 08 Free dashboard and deadline estimates
 
 ## Objective
@@ -478,9 +533,7 @@ Complete the financial dashboard and understandable weekly/monthly deadline guid
 
 ## Dependencies and decision gates
 
-Phase 07
-
-None beyond verified dependencies.
+Phase 07.5 (which depends on Phase 07). Build Home in the visual direction approved in Phase 07.5; if approval was deferred, record it and use the existing tokens.
 
 ## Exact scope
 

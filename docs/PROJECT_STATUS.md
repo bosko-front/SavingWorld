@@ -10,6 +10,7 @@ Updated 23 October 2026 after the Phase 03 implementation session. Functional sc
 - Checks at close: lint, typecheck, 119 Jest tests (7 suites), `expo install --check` and expo-doctor 20/20 PASS; release export contains no lab/sample code. Native: Duo closed/partially open/open in portrait and landscape, shell screen on the closed display, native sheet through rotate/fold/unfold and repeated changes while typing PASS (screenshots + `[layout-lab]` logs); SE iOS 18.5 and 17 Pro Max iOS 26.1 fallback, keyboard, largest text and 17 Pro Max landscape side insets PASS. Fixed: double side-column inset inside the native arrangement, and controls unreachable when the system collapses the arrangement on the closed display in landscape (DECISIONS D47).
 - No database, financial logic, billing or reminders exist yet.
 - Git: `main` has the Phase 01, Phase 02 and Phase 03 commits (Phase 03 committed at the owner's request; nothing pushed).
+- Planning change (owner request, docs only): checkpoint Phase 07.5 "Visual direction and design review" sits between 07 and 08, so the Home dashboard is built on an owner-approved design (DECISIONS D49, [PHASE_07_5](prompts/PHASE_07_5.md)).
 - Both DOCX sources and historical source/evidence content are retained unchanged.
 
 ## Phase register
@@ -23,6 +24,7 @@ Updated 23 October 2026 after the Phase 03 implementation session. Functional sc
 | 05 | SQLite migrations and ledger repositories | NOT STARTED | No implementation evidence |
 | 06 | Goal forms global currency and lifecycle | NOT STARTED | No implementation evidence |
 | 07 | Deposits withdrawals history and corrections | NOT STARTED | No implementation evidence |
+| 07.5 | Visual direction and design review checkpoint (owner-added) | NOT STARTED | No implementation evidence |
 | 08 | Free dashboard and deadline estimates | NOT STARTED | No implementation evidence |
 | 09 | Island theme assets and static world renderer | NOT STARTED | No implementation evidence |
 | 10 | World transitions and progress feedback | NOT STARTED | No implementation evidence |

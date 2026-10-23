@@ -25,7 +25,7 @@ These are requirements, not recommendations awaiting owner approval. [DATA_MODEL
 
 ## Compatible engineering details
 
-The 22-phase decomposition, strict TypeScript, native Router navigation, shared StyleSheet palette, adaptive iPhone/Duo foundation, exact integer arithmetic, transactional SQLite commands, idempotency, Reanimated/local assets, EAS delivery and real native verification remain. No app backend or mandatory network tracking flow is added. SDK/API availability is verified at implementation time, not asserted by documentation checks.
+The 22-phase decomposition (plus the owner-added design checkpoint 07.5, DECISIONS D49), strict TypeScript, native Router navigation, shared StyleSheet palette, adaptive iPhone/Duo foundation, exact integer arithmetic, transactional SQLite commands, idempotency, Reanimated/local assets, EAS delivery and real native verification remain. No app backend or mandatory network tracking flow is added. SDK/API availability is verified at implementation time, not asserted by documentation checks.
 
 ## Remaining release decisions and dependencies
 

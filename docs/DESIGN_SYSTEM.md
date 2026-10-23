@@ -191,6 +191,10 @@ Not planned: `burnt` (last release March 2025, wraps old native toast pods; too 
 
 `src/dev/component-gallery.tsx` (on `FormScreen`) shows every text role, all button variants in normal/disabled/loading states (press and hold for pressed), a live loading demo, long labels, fields (hint, error, disabled, long label/error, multiline, focus by tapping), cards, amount samples, notices and the semantic swatches with the current font scale. It is reached from Settings → "Component gallery (development only)" at `/dev-gallery`, a route in the Home stack wrapped in `Stack.Protected guard={__DEV__}`. The route file requires the gallery module only inside `if (__DEV__)`, so release bundles do not contain the gallery code; the release export check is in the Phase 02 evidence. Review large text by changing the simulator or device text size.
 
+## Visual direction (Phase 07.5)
+
+The Phase 02 palette and controls are a foundation, not a finished look. Checkpoint [Phase 07.5](prompts/PHASE_07_5.md) (DECISIONS D49) reviews the real screens after Phase 07, lets the owner choose a Home composition and refines tokens and shared primitives before Phase 08. Known starting points: native large titles duplicated by an in-content heading, screens that are only a stack of full-width buttons, no single primary action per screen, placeholder copy, and a calm palette without an accent that carries meaning. The approved direction will be written into this section.
+
 ## Change policy
 
 Later feature phases reuse this system. Update this document when values or conventions change. Recheck contrast and affected screens after palette edits; preserve independent adaptive-layout and world-asset contracts.

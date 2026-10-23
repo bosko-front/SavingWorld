@@ -24,9 +24,13 @@ The previous handoff (Phase 02) is superseded; its record remains in [PHASE_02 e
 - Ordinary-iPhone landscape: iPhone 17 Pro Max iOS 26.1 selected in Device Hub and rotated through AX; Settings and the lab stay clear of the 62 pt side insets, the fallback scene is capped at 45% of the height. PASS.
 - Owner decision D48: inner split view (no Device Hub control for iPhone Duo) moves to the physical-Duo check before release; RELEASE_CHECKLIST and the Phase 21 prompt/roadmap name it.
 
+## Planning addition (after Phase 03, docs only)
+
+At the owner's request, checkpoint [Phase 07.5](prompts/PHASE_07_5.md) "Visual direction and design review" now sits between Phase 07 and 08 (DECISIONS D49): review the real screens, choose a Home direction with the owner from development-only mocks, refine tokens/primitives with contrast tests, and polish existing screens without behavior changes. Updated: roadmap, prompt index, PHASE_07 next-prompt pointer, PHASE_08 dependency, PROJECT_STATUS register, DESIGN_SYSTEM, README, SOURCE_RECONCILIATION, TEST_PLAN. The next prompt is still PHASE_04.
+
 ## Decisions
 
-D44 (inset ownership and ArrangementView adapter), D45 (dev-only samples, lint guardrails, PlaceholderScreen removed), D46 (no react-native-keyboard-controller; built-in keyboard insets), D47 (container-owned hosted regions and the collapse fallback), D48 (owner: inner split view verified on a physical Duo before release). No product decision changed.
+D44 (inset ownership and ArrangementView adapter), D45 (dev-only samples, lint guardrails, PlaceholderScreen removed), D46 (no react-native-keyboard-controller; built-in keyboard insets), D47 (container-owned hosted regions and the collapse fallback), D48 (owner: inner split view verified on a physical Duo before release), D49 (owner: Phase 07.5 design checkpoint). No product decision changed.
 
 ## Checks
 

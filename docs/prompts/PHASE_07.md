@@ -84,4 +84,4 @@ Finish by reporting: concrete behavior implemented, changed modules, checks and 
 
 Evidence path: `docs/evidence/PHASE_07.md` (create it during implementation; the planning baseline intentionally has no test evidence for this phase).
 
-If this phase is incomplete, the next prompt is `docs/prompts/PHASE_07.md`. If verified complete, the next prompt is `docs/prompts/PHASE_08.md`.
+If this phase is incomplete, the next prompt is `docs/prompts/PHASE_07.md`. If verified complete, the next prompt is `docs/prompts/PHASE_07_5.md` (visual direction checkpoint before the Home dashboard).

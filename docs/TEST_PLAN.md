@@ -40,7 +40,7 @@ Use deterministic fixtures and isolated test databases. Native test entry points
 | T18 | VoiceOver, supported Dynamic Type, Reduce Motion, contrast and chart text work on all critical journeys; locale formatting never changes underlying amount | R22 | every UI phase, 19 |
 | T19 | Airplane-mode create/save/correct/delete/withdraw/fixed challenge/Finish/Reopen/theme with known rights/restart keeps exact ledger/global currency without app account | R01-R03,R06,R13-R16,R20 | 07,11,13,17,21 |
 | T20 | Device build/permissions/privacy manifest/IAP products/store copy/URLs and both final themes agree with release requirements | R18, R21-R23 | 22 |
-| T21 | Latest stable Expo/compatible peers are locked; shared palette/control states meet documented contrast and remain legible at large text | R01, R22, R24 | 01, 02, 19 |
+| T21 | Latest stable Expo/compatible peers are locked; shared palette/control states meet documented contrast and remain legible at large text | R01, R22, R24 | 01, 02, 07.5, 19 |
 | T22 | Ordinary iPhone/Duo outer/open/split/available partial-fold states use native layout/insets; older supported OS fallback is usable | R01, R22, R25 | 03, 08, 09, 19, 21 |
 | T23 | Repeated resize/fold/rotation/keyboard changes preserve route, selected goal, focused draft and operation ID with zero extra ledger writes | R03, R06, R25 | 03, 07, 08, 21 |
 | T24 | A real EAS release-mode preview receives the intended compatible update with correct profile/channel/environment/platform/runtime, then works offline with complete assets | R02, R23, R26 | 01, 20, 21 |
