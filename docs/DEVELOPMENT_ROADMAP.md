@@ -398,6 +398,7 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 - Currency fixtures: empty goals change globally, transaction blocks, deleting last transaction without collectible permits change, collectible alone blocks; use a boundary fixture before Phase 11 introduces real collectible storage.
 - UI cancel/invalid target/deadline/write-error tests; native cold restart/selection and VoiceOver/keyboard walkthrough; standard checks.
 - Carried from Phase 04 (evidence/PHASE_04.md): on a simulator dev build, observe the Hermes `Intl` output of `formatMoney` (EUR, JPY, KWD, IQD, including 9,999,999,999.99), `separatorsForLocale` for the device locale and `today(systemClock)` after changing the simulator time zone; Jest runs on Node ICU only.
+- Carried from Phase 05 (evidence/PHASE_05.md, DECISIONS D52-D54): build on the existing data layer instead of parallel paths. `createGoal` (currency gate, Free slot, theme capability) already exists in `src/features/goals/application/goal-commands.ts`; add edit/lifecycle commands there on `updateGoalStatus`, and the Settings currency change on `writeCurrency`, each inside `executeCommand` with a stable operation ID and a receipt. Map every command error code to inline copy (title 1..100 characters). Re-run `npm run test:db` after adding commands that write.
 - Toast wrapper tests (announcement called once, a new toast replaces the current one, no toast on failed write) and a simulator check with VoiceOver, Reduce Motion and the largest text size.
 
 ## Definition of Done

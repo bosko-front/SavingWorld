@@ -12,6 +12,7 @@
     "lint": "expo lint --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "test": "jest --ci",
+    "test:db": "node scripts/test-db.mjs",
     "doctor": "npx --yes expo-doctor@latest",
     "deps:check": "expo install --check",
     "eas": "npx --yes eas-cli@25.3.0"
@@ -57,6 +58,9 @@
     ],
     "testPathIgnorePatterns": [
       "/node_modules/"
+    ],
+    "setupFiles": [
+      "<rootDir>/tests/support/jest-setup.ts"
     ]
   }
 }

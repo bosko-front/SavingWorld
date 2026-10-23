@@ -1,6 +1,6 @@
 # Data model and invariants
 
-Planned contract aligned 23 October 2026 to [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx), especially sections 3/4/7. No schema or migration has been implemented. Apply tables only in their owning phases. Q01-Q06 are resolved; [reconciliation](SOURCE_RECONCILIATION.md) records authority.
+Contract aligned 23 October 2026 to [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx), especially sections 3/4/7. Phase 05 implemented schema 1 (`src/data/db/migrations/0001-initial-ledger.ts`): migrations, settings, goals, ledger_entries and operation_receipts as STRICT tables with the constraints and triggers in DECISIONS D53; the other tables below are still planned. Apply tables only in their owning phases. Q01-Q06 are resolved; [reconciliation](SOURCE_RECONCILIATION.md) records authority.
 
 ## Money and date types
 
@@ -32,7 +32,7 @@ version INTEGER PRIMARY KEY, name, checksum, applied_at_utc. Ordered immutable m
 
 ### settings (Phase 05; global currency UI in 06)
 
-key TEXT PRIMARY KEY, value_json TEXT NOT NULL, updated_at_utc. Typed keys: currencyCode with versioned global exponent metadata, onboardingCompleted, selectedGoalId, weeklyReminderEnabled and optional additional reduce-motion preference. UI is English with locale-aware numeric/date formatting. No preferred-new-goal currency or purchase override. Missing/invalid currency gates goal creation; no silent default reinterpretation of financial data.
+key TEXT PRIMARY KEY, value_json TEXT NOT NULL, updated_at_utc. Typed keys: `currency` = {code, exponent, registryVersion} (implemented Phase 05; the global currencyCode with versioned exponent metadata), onboardingCompleted, selectedGoalId, weeklyReminderEnabled and optional additional reduce-motion preference. UI is English with locale-aware numeric/date formatting. No preferred-new-goal currency or purchase override. Missing/invalid currency gates goal creation; no silent default reinterpretation of financial data.
 
 ### goals (Phase 05; lifecycle in 06, Finish integration in 11)
 

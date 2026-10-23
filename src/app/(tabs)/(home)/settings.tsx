@@ -35,6 +35,9 @@ export default function SettingsScreen() {
           <Link href="/dev-layout" asChild>
             <Button label="Layout lab (development only)" variant="plain" />
           </Link>
+          <Link href="/dev-db" asChild>
+            <Button label="Database tests (development only)" variant="plain" />
+          </Link>
         </>
       ) : null}
     </Screen>

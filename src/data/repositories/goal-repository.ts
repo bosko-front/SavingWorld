@@ -1,0 +1,118 @@
+import type { CivilDate } from '@/core/calendar';
+import { THEME_IDS, type ThemeId } from '@/core/progression';
+
+import type { SqlExecutor, SqlRow } from '../db/sql';
+
+import { CorruptRowError, rowReader } from './row-codec';
+
+// SQLite goal adapter (docs/DATA_MODEL.md "goals"). Goals start at zero and have no balance,
+// currency or exponent column: the balance is always recomputed from ledger_entries. There is no
+// delete function; archived goals keep every record (the schema also rejects DELETE).
+
+export const GOAL_STATUSES = ['active', 'paused', 'completed', 'archived'] as const;
+export type GoalStatus = (typeof GOAL_STATUSES)[number];
+
+// active and paused are open: they take a slot and accept entries. completed and archived are
+// closed and read-only until Reopen (Phase 06).
+export const OPEN_GOAL_STATUSES: readonly GoalStatus[] = ['active', 'paused'];
+
+export function isOpenStatus(status: GoalStatus): boolean {
+  return OPEN_GOAL_STATUSES.includes(status);
+}
+
+export type GoalRecord = {
+  id: string;
+  title: string;
+  targetMinor: number;
+  deadlineDate: CivilDate | null;
+  themeId: ThemeId;
+  status: GoalStatus;
+  createdAtUtc: string;
+  updatedAtUtc: string;
+  revision: number;
+};
+
+export type GoalSummary = { goal: GoalRecord; balanceMinor: number; entryCount: number };
+
+const GOAL_COLUMNS = 'id, title, target_minor, deadline_date, theme_id, status, created_at_utc, updated_at_utc, revision';
+
+function decodeGoal(row: SqlRow): GoalRecord {
+  const r = rowReader('goals', row);
+  const targetMinor = r.minor('target_minor');
+  if (targetMinor <= 0) {
+    throw new CorruptRowError('goals', 'target_minor');
+  }
+  return {
+    id: r.text('id'),
+    title: r.text('title'),
+    targetMinor,
+    deadlineDate: r.optionalCivilDate('deadline_date'),
+    themeId: r.oneOf('theme_id', THEME_IDS),
+    status: r.oneOf('status', GOAL_STATUSES),
+    createdAtUtc: r.text('created_at_utc'),
+    updatedAtUtc: r.text('updated_at_utc'),
+    revision: r.integer('revision'),
+  };
+}
+
+export async function insertGoal(tx: SqlExecutor, goal: GoalRecord): Promise<void> {
+  await tx.run(
+    `INSERT INTO goals (${GOAL_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      goal.id,
+      goal.title,
+      goal.targetMinor,
+      goal.deadlineDate,
+      goal.themeId,
+      goal.status,
+      goal.createdAtUtc,
+      goal.updatedAtUtc,
+      goal.revision,
+    ],
+  );
+}
+
+export async function getGoal(executor: SqlExecutor, id: string): Promise<GoalRecord | null> {
+  const row = await executor.get(`SELECT ${GOAL_COLUMNS} FROM goals WHERE id = ?`, [id]);
+  return row ? decodeGoal(row) : null;
+}
+
+export async function countOpenGoals(executor: SqlExecutor): Promise<number> {
+  const row = await executor.get<{ count: unknown }>(
+    "SELECT count(*) AS count FROM goals WHERE status IN ('active', 'paused')",
+  );
+  return rowReader('goals', row ?? {}).integer('count');
+}
+
+// Every goal with its balance recomputed from the ledger, oldest first.
+export async function listGoalSummaries(executor: SqlExecutor): Promise<GoalSummary[]> {
+  const rows = await executor.all(
+    `SELECT g.id, g.title, g.target_minor, g.deadline_date, g.theme_id, g.status, g.created_at_utc,
+            g.updated_at_utc, g.revision,
+            coalesce(sum(e.signed_amount_minor), 0) AS balance_minor, count(e.id) AS entry_count
+       FROM goals g LEFT JOIN ledger_entries e ON e.goal_id = g.id
+      GROUP BY g.id
+      ORDER BY g.created_at_utc, g.id`,
+  );
+  return rows.map((row) => {
+    const r = rowReader('goals', row);
+    return { goal: decodeGoal(row), balanceMinor: r.minor('balance_minor'), entryCount: r.integer('entry_count') };
+  });
+}
+
+// Revision-checked status change inside the caller's transaction. Returns false when the row is
+// missing or was changed since `expectedRevision` was read. Lifecycle rules (Pause/Resume, Archive,
+// Finish, Reopen with the Free slot check) are Phase 06 commands built on this.
+export async function updateGoalStatus(
+  tx: SqlExecutor,
+  id: string,
+  status: GoalStatus,
+  expectedRevision: number,
+  nowUtc: string,
+): Promise<boolean> {
+  const result = await tx.run(
+    'UPDATE goals SET status = ?, updated_at_utc = ?, revision = revision + 1 WHERE id = ? AND revision = ?',
+    [status, nowUtc, id, expectedRevision],
+  );
+  return result.changes === 1;
+}

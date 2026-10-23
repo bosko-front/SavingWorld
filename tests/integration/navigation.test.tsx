@@ -3,10 +3,24 @@ import { router } from 'expo-router';
 import { renderRouter } from 'expo-router/testing-library';
 import path from 'path';
 
+import { resetAppDatabaseForTests, useDatabaseStore } from '@/bootstrap/database-readiness';
+
 // Renders the real route files under src/app. This proves route structure and navigation intent
 // in Jest only; native tab/stack chrome is verified in the EAS development build. The Jest mock of
 // NativeTabs mounts every tab, so tab switches are asserted by pathname, not by visible text.
 const appDir = path.resolve(__dirname, '../../src/app');
+
+// The root layout renders the navigator only after the app database is open (DatabaseGate). Open it
+// once up front, through the same readiness store, on the Jest host-SQLite driver
+// (tests/support/jest-setup.ts). tests/integration/database-gate.test.tsx covers the gate itself.
+beforeAll(async () => {
+  await useDatabaseStore.getState().open();
+  expect(useDatabaseStore.getState().state.status).toBe('ready');
+});
+
+afterAll(async () => {
+  await resetAppDatabaseForTests();
+});
 
 async function goBack() {
   await act(async () => {

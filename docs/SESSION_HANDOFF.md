@@ -1,40 +1,37 @@
 # Latest session handoff
 
-Session date: 23 October 2026. Session kind: Phase 04 implementation (exact money, calendar and progression rules). Result: **Phase 04 VERIFIED COMPLETE**. Next prompt: [PHASE_05](prompts/PHASE_05.md).
+Session date: 23 October 2026. Session kind: Phase 05 implementation (SQLite migrations and ledger repositories). Result: **Phase 05 VERIFIED COMPLETE**. Next prompt: [PHASE_06](prompts/PHASE_06.md).
 
-The previous handoff (Phase 03) is superseded; its record remains in [PHASE_03 evidence](evidence/PHASE_03.md).
+The previous handoff (Phase 04) is superseded; its record remains in [PHASE_04 evidence](evidence/PHASE_04.md).
 
 ## Completed
 
-- Read the full v1.2 DOCX and the required docs (README, requirements, reconciliation, decisions, rules, status, handoff, architecture, data model, tech stack, test plan, Phase 04 roadmap entry). Re-ran the Phase 03 checks before any change: lint, typecheck, 119 tests PASS.
-- Fetched ISO 4217 List One from SIX (published 2026-09-17) and generated `src/core/money/iso-4217.ts`: 155 savings currencies with exponents 0/2/3 (funds, metals, bond/SDR units and XTS/XXX excluded). Registry version 1.
-- Built `src/core/` (pure TypeScript, no React/native/database imports):
-  - `money/`: minor-unit guards and ceiling (10^12), `signedAmount`, BigInt `sumMinor`, checked `toMinorAmount`/`addMinor`; strict `parseAmount` with typed errors; `separatorsForLocale`; exact `toDecimalString`, `formatMoney` (registry exponent, Latin digits, exact up to 10^15) and `formatAmountInput` (round-trips through the parser).
-  - `calendar/`: validated `CivilDate`, day-number arithmetic, inclusive day count, entry-date and new-deadline rules, `Clock`/`systemClock`/`fixedClock`/`today`/`utcTimestamp`, and `deadlineEstimate` (none/funded/overdue/pace, v1.2 formulas on BigInt).
-  - `progression/`: `stageFor`, `stageThresholdMinor`, `nextThresholdMinor`, `remainingMinor`, `isFunded`, floored `progressPercent`, visual-only `sceneFeedback`; `THEME_IDS` (island, garden).
-  - `access/`: frozen Free/Pro `Capabilities`, `DEFAULT_ACCESS_LEVEL = 'free'`, `hasOpenGoalSlot`, `canUseTheme`.
-  - `result.ts`: shared `Result` type.
-- ESLint: `src/core/**` cannot import React/React Native/Expo/zustand or app-layer `@/` modules, and cannot call `Date.now()`, `new Date()` or `parseFloat` (only `calendar/clock.ts` may read the real time).
-- Tests: six new unit suites (302 tests) covering every requirement example and the phase's table tests.
-- Docs: [PHASE_04 evidence](evidence/PHASE_04.md), DECISIONS D50-D51, PROJECT_STATUS, this file, ARCHITECTURE (Phase 04 paths), TECH_STACK (registry source), README, CLAUDE.md (Phase 04 facts), and a carried Hermes Intl check in the Phase 06 prompt and roadmap entry.
+- Read the full v1.2 DOCX and the required docs (README, requirements, reconciliation, decisions, rules, status, handoff, architecture, data model, tech stack, test plan, EAS/OTA, Phase 05 roadmap entry). Inspected the pinned expo-sqlite 58.0.13 sources before writing the adapter.
+- Data layer `src/data/`: SqlDriver boundary and expo-sqlite adapter; `AppDatabase` (serialized `BEGIN EXCLUSIVE` write connection, query-only read connection, WAL, foreign keys on both, synchronous FULL, busy timeout); transactional migration runner (all pending migrations + `foreign_key_check` in one transaction; newer, edited or foreign schemas refused unchanged); schema 1 with STRICT tables, CHECKs and invariant triggers; goal, ledger, receipt and settings repositories with row validation; `executeCommand`/`reject` plumbing; UUID ids.
+- Commands: `createEntry`, `correctEntry`, `deleteEntry` (`src/features/ledger/application/`) and `createGoal` (`src/features/goals/application/`), plus `readGoalLedger` and `readGoalSummaries`. Chronological rule in `src/features/ledger/domain/candidate-history.ts`. Text normalization in `src/core/text/`.
+- Startup: `DatabaseGate` in the root layout keeps the splash until the database is open and migrated, then renders the navigator, or the retryable `StorageFailureScreen` (redacted `SW-DB-<CODE>`, no reset action).
+- Native runner: development-only `/dev-db` route running `tests/native` scenarios on expo-sqlite, report stored in the app container, `npm run test:db` (`scripts/test-db.mjs`) reads it and verifies a process restart. Jest runs the same scenarios on host `node:sqlite` (additional only) via `tests/support/`.
+- ESLint: only `src/data/db/` may import `expo-sqlite`.
+- Docs: [PHASE_05 evidence](evidence/PHASE_05.md) with three JSON reports and three screenshots in `evidence/phase-05/`, DECISIONS D52-D55, PROJECT_STATUS, this file, DATA_MODEL (schema 1 implemented, `currency` key), ARCHITECTURE (Phase 05 paths), TEST_PLAN (test:db), README, CLAUDE.md (Phase 05 facts), and a "Carried from Phase 05" note in the Phase 06 prompt and roadmap entry.
 
 ## Decisions
 
-D50 (currency registry source/selection and strict parsing/formatting rules), D51 (calendar/progression/access contracts, `src/core` purity lint, scope boundaries with Phases 05/12/18). No product decision changed.
+D52 (connections, serialized exclusive writes, migration runner, why not `withExclusiveTransactionAsync`), D53 (schema 1 constraints/triggers, `currency` setting shape, text limits), D54 (typed command errors, receipt contents, ids, `createGoal` now), D55 (native runner and Jest host driver, startup gate). No product decision changed.
 
 ## Checks
 
-lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (13 suites, 421 tests), `npm run deps:check` PASS, expo-doctor 20/20 PASS. The first run of the new suites had 10 failures caused by a wrong test expectation (one-unit-above for target 10, stepping past the ceiling); the expectation was fixed, the implementation was not changed. No package, native config or EAS change; no build, update or store action. Details: [PHASE_04 evidence](evidence/PHASE_04.md).
+lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (16 suites, 467 tests), `npm run deps:check` PASS, expo-doctor 20/20 PASS, `npm run test:db` PASS (20/20 + restart 1/1) on iPhone SE iOS 18.5 with `--fresh-install`, iPhone Duo iOS 27.1 and iPhone 17 Pro Max iOS 26.1; app database migrated `[1]` on first launch and `[]` on relaunch. Release export: no runner/scenario strings. Manual: newer-schema recovery screen and Try again on the SE, data kept. No package/native/EAS change, build, update or store action. Details: [PHASE_05 evidence](evidence/PHASE_05.md).
 
 ## Incomplete work and blockers
 
-None for Phase 04. Carried items:
+None for Phase 05. Carried items:
 
-1. Phase 06 (first on-device use): observe Hermes `Intl` output of `formatMoney`, `separatorsForLocale` and `today(systemClock)` after a simulator time-zone change. Jest ran them on Node ICU only.
-2. Phase 03 gates unchanged: physical iPhone Duo split view (D48), VoiceOver (Phase 19), closed-Duo landscape focus limitation.
-3. Phase 04 is committed on `main` at the owner's request. Nothing pushed.
+1. Phase 06: Hermes `Intl` observation from Phase 04; build lifecycle/currency-change commands on the Phase 05 data layer (see the Phase 06 prompt note).
+2. Phase 21: physical-device SQLite behavior (file protection, low storage); physical Duo split view (D48).
+3. Phase 05 is not committed. Nothing pushed.
+4. Metro was started for the native runs (`npx expo start --dev-client --clear`) and stopped at session end.
 
 ## Exact next session
 
-1. In ~/Desktop/SavingWorld start Claude Code with the full `docs/prompts/PHASE_05.md` (SQLite migrations and ledger repositories; real iOS SQLite runner required).
-2. Read v1.2 and the required docs, rerun lint/typecheck/tests, then build on `@/core/money` (`signedAmount`, `sumMinor`, `toMinorAmount`, `MAX_MINOR`) and `@/core/calendar` (`CivilDate`, `parseCivilDate`, `validateEntryDate`, `Clock`, `utcTimestamp`). Chronological running-balance enforcement (date, createdAt, id order) is Phase 05's own rule; do not duplicate the domain helpers.
+1. In ~/Desktop/SavingWorld start Claude Code with the full `docs/prompts/PHASE_06.md` (goal forms, global currency and lifecycle).
+2. Read v1.2 and the required docs, rerun lint/typecheck/tests and `npm run test:db` (Metro + booted simulator with the dev build), then add goal edit/lifecycle and currency-change commands through `executeCommand` with stable operation IDs; Phase 06 also installs its toast/icon packages and rebuilds the development client.

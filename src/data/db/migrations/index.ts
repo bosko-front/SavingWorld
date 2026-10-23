@@ -1,0 +1,9 @@
+import type { Migration } from '../migration-runner';
+
+import { migration0001 } from './0001-initial-ledger';
+
+// Ordered, immutable list of shipped schema versions. Append only; a new version needs a new app
+// version/runtime and native build under docs/EAS_AND_OTA.md (never an OTA-only migration).
+export const MIGRATIONS: readonly Migration[] = [migration0001];
+
+export const LATEST_SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1]?.version ?? 0;

@@ -1,0 +1,253 @@
+{
+  "tool": "npm run test:db",
+  "device": {
+    "name": "SW iPhone SE 3 iOS 18.5",
+    "udid": "66F6F9E8-A5F1-499F-BBA7-1D61CA7AC729",
+    "runtime": "",
+    "state": "Booted"
+  },
+  "freshInstall": true,
+  "launches": [
+    {
+      "runId": "rmvl0y2c6a",
+      "suite": "all",
+      "seedId": null,
+      "startedAtUtc": "2026-10-23T13:47:24.877Z",
+      "finishedAtUtc": "2026-10-23T13:47:25.463Z",
+      "driver": "expo-sqlite",
+      "platform": {
+        "os": "ios",
+        "version": "18.5"
+      },
+      "hermes": true,
+      "uuidSource": "Math.random",
+      "appDatabase": {
+        "name": "saving-worlds.db",
+        "driver": "expo-sqlite",
+        "migrationAtThisLaunch": {
+          "fromVersion": 0,
+          "toVersion": 1,
+          "applied": [
+            1
+          ]
+        }
+      },
+      "summary": {
+        "total": 20,
+        "passed": 20,
+        "failed": 0
+      },
+      "results": [
+        {
+          "id": "S01",
+          "title": "Fresh database: schema 1, WAL, foreign keys on both connections, integrity checks",
+          "status": "pass",
+          "durationMs": 54,
+          "facts": {
+            "driver": "expo-sqlite",
+            "sqliteVersion": "3.53.3",
+            "history": [
+              {
+                "version": 1,
+                "name": "initial_ledger",
+                "checksum": "f060530662e52157"
+              }
+            ],
+            "goalColumns": [
+              "id",
+              "title",
+              "target_minor",
+              "deadline_date",
+              "theme_id",
+              "status",
+              "created_at_utc",
+              "updated_at_utc",
+              "revision"
+            ],
+            "entryColumns": [
+              "id",
+              "goal_id",
+              "signed_amount_minor",
+              "entry_date",
+              "note",
+              "created_at_utc",
+              "updated_at_utc",
+              "revision"
+            ],
+            "pragmas": {
+              "writer": {
+                "journalMode": "wal",
+                "foreignKeys": true,
+                "synchronous": 2
+              },
+              "reader": {
+                "journalMode": "wal",
+                "foreignKeys": true,
+                "synchronous": 2
+              }
+            }
+          }
+        },
+        {
+          "id": "S02",
+          "title": "Repeated startup keeps schema and data without re-running or resetting",
+          "status": "pass",
+          "durationMs": 48
+        },
+        {
+          "id": "S03",
+          "title": "Failed migration rolls back completely; prior data intact; later upgrade applies",
+          "status": "pass",
+          "durationMs": 47
+        },
+        {
+          "id": "S04",
+          "title": "Unknown newer schema, edited migration and foreign database fail safely without changes",
+          "status": "pass",
+          "durationMs": 34
+        },
+        {
+          "id": "S05",
+          "title": "Foreign keys, CHECK constraints and triggers defend the command invariants",
+          "status": "pass",
+          "durationMs": 19
+        },
+        {
+          "id": "S06",
+          "title": "v1.2 example: 0 + 50 − 20 = 30, withdrawal 31 rejected atomically",
+          "status": "pass",
+          "durationMs": 18
+        },
+        {
+          "id": "S07",
+          "title": "Withdrawal dated before the first deposit is rejected even when the final total is positive",
+          "status": "pass",
+          "durationMs": 18
+        },
+        {
+          "id": "S08",
+          "title": "Deleting a deposit needed by a later withdrawal is rejected despite a later positive total",
+          "status": "pass",
+          "durationMs": 29
+        },
+        {
+          "id": "S09",
+          "title": "Corrections overwrite current values, keep createdAt, step the revision and revalidate history",
+          "status": "pass",
+          "durationMs": 22
+        },
+        {
+          "id": "S10",
+          "title": "Future entry dates are rejected on create and correction, using the device-local date",
+          "status": "pass",
+          "durationMs": 29
+        },
+        {
+          "id": "S11",
+          "title": "Stable operation IDs replay without duplicating; a changed payload is a conflict",
+          "status": "pass",
+          "durationMs": 20
+        },
+        {
+          "id": "S12",
+          "title": "Stale revisions and missing rows fail clearly",
+          "status": "pass",
+          "durationMs": 20
+        },
+        {
+          "id": "S13",
+          "title": "Concurrent deposits, withdrawals and corrections serialize to an exact result",
+          "status": "pass",
+          "durationMs": 48
+        },
+        {
+          "id": "S14",
+          "title": "Unicode and SQL-special notes round-trip exactly; invalid notes are rejected",
+          "status": "pass",
+          "durationMs": 31
+        },
+        {
+          "id": "S15",
+          "title": "Forced mid-write failure rolls back entry and receipt; the same operation ID then succeeds",
+          "status": "pass",
+          "durationMs": 23
+        },
+        {
+          "id": "S16",
+          "title": "Readers see only committed data while a write transaction is open",
+          "status": "pass",
+          "durationMs": 17
+        },
+        {
+          "id": "S17",
+          "title": "Closed goals reject ledger changes; currency and goal rules gate creation",
+          "status": "pass",
+          "durationMs": 38
+        },
+        {
+          "id": "S18",
+          "title": "Exact minor units at the 10^12 ceiling survive storage; the ceiling is enforced",
+          "status": "pass",
+          "durationMs": 23
+        },
+        {
+          "id": "S19",
+          "title": "Same-date, same-createdAt entries are ordered by id",
+          "status": "pass",
+          "durationMs": 20
+        },
+        {
+          "id": "R1",
+          "title": "Restart seed: write goal, entries and a correction, then leave the database closed",
+          "status": "pass",
+          "durationMs": 23,
+          "facts": {
+            "database": "dbtest-restart-rmvl0y2c6a.db",
+            "goalId": "restart-0001",
+            "balanceMinor": 10000
+          }
+        }
+      ]
+    },
+    {
+      "runId": "rmvl0y2c6b",
+      "suite": "restart-verify",
+      "seedId": "rmvl0y2c6a",
+      "startedAtUtc": "2026-10-23T13:47:27.608Z",
+      "finishedAtUtc": "2026-10-23T13:47:27.685Z",
+      "driver": "expo-sqlite",
+      "platform": {
+        "os": "ios",
+        "version": "18.5"
+      },
+      "hermes": true,
+      "uuidSource": "Math.random",
+      "appDatabase": {
+        "name": "saving-worlds.db",
+        "driver": "expo-sqlite",
+        "migrationAtThisLaunch": {
+          "fromVersion": 1,
+          "toVersion": 1,
+          "applied": []
+        }
+      },
+      "summary": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0
+      },
+      "results": [
+        {
+          "id": "R2",
+          "title": "Restart verify: a new app process reads the same exact state without migrating again",
+          "status": "pass",
+          "durationMs": 75,
+          "facts": {
+            "balanceMinor": 10000
+          }
+        }
+      ]
+    }
+  ],
+  "passed": true
+}

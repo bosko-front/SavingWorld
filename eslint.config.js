@@ -29,7 +29,8 @@ const styleGuardrails = [
 
 // Imports restricted across src/**. Window geometry and the native adaptive container belong to the
 // shared layout layer (docs/ADAPTIVE_LAYOUT.md); `layoutOwner` relaxes only those two entries.
-function restrictedImports({ layoutOwner }) {
+// SQLite belongs to the data layer (docs/ARCHITECTURE.md): only src/data/db talks to expo-sqlite.
+function restrictedImports({ layoutOwner, sqliteOwner = false }) {
   return [
     'error',
     {
@@ -41,6 +42,14 @@ function restrictedImports({ layoutOwner }) {
             ? 'Use semantic colors from @/shared/theme; the app ships one light palette.'
             : 'Use semantic colors from @/shared/theme, and size content with @/shared/layout (Screen, AdaptiveGoalLayout, useMeasuredSize) instead of reading the window.',
         },
+        ...(sqliteOwner
+          ? []
+          : [
+              {
+                name: 'expo-sqlite',
+                message: 'Use repositories and commands from src/data and src/features; only src/data/db opens SQLite.',
+              },
+            ]),
         ...(layoutOwner
           ? []
           : [
@@ -79,6 +88,11 @@ module.exports = defineConfig([
     // development lab and gallery display those measurements.
     files: ['src/shared/layout/**/*.{ts,tsx}', 'src/dev/**/*.{ts,tsx}'],
     rules: { 'no-restricted-imports': restrictedImports({ layoutOwner: true }) },
+  },
+  {
+    // The SQLite adapter is the one module that imports expo-sqlite.
+    files: ['src/data/db/**/*.ts'],
+    rules: { 'no-restricted-imports': restrictedImports({ layoutOwner: false, sqliteOwner: true }) },
   },
   {
     // The theme module itself composes semantic tokens from the raw palette.

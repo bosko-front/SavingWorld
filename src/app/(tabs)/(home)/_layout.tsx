@@ -12,10 +12,12 @@ export default function HomeStackLayout() {
       <Stack.Screen name="index" options={{ title: 'Home' }} />
       <Stack.Screen name="details" options={{ title: 'Details', headerLargeTitleEnabled: false }} />
       <Stack.Screen name="settings" options={{ title: 'Settings' }} />
-      {/* Development/test-only gallery and layout lab. Unreachable in release builds (__DEV__ false). */}
+      {/* Development/test-only gallery, layout lab and native database runner. Unreachable in release
+          builds (__DEV__ false). */}
       <Stack.Protected guard={__DEV__}>
         <Stack.Screen name="dev-gallery" options={{ title: 'Component gallery', headerLargeTitleEnabled: false }} />
         <Stack.Screen name="dev-layout" options={{ title: 'Layout lab', headerLargeTitleEnabled: false }} />
+        <Stack.Screen name="dev-db" options={{ title: 'Database tests', headerLargeTitleEnabled: false }} />
       </Stack.Protected>
     </Stack>
   );

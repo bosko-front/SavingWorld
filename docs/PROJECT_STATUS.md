@@ -1,17 +1,19 @@
 # Project status
 
-Updated 23 October 2026 after the Phase 04 implementation session. Functional scope is fixed by the local [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx).
+Updated 23 October 2026 after the Phase 05 implementation session. Functional scope is fixed by the local [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx).
 
 ## Current state
 
-- Current stage: **Phase 04 VERIFIED COMPLETE** ([evidence](evidence/PHASE_04.md)). Next implementation prompt: [PHASE_05](prompts/PHASE_05.md).
+- Current stage: **Phase 05 VERIFIED COMPLETE** ([evidence](evidence/PHASE_05.md)). Next implementation prompt: [PHASE_06](prompts/PHASE_06.md).
+- Phase 05 added durable storage: `src/data/db/` (SqlDriver boundary, expo-sqlite adapter, `AppDatabase` with one serialized `BEGIN EXCLUSIVE` write connection and a query-only read connection, WAL + foreign keys + synchronous FULL, transactional migration runner refusing newer/edited/foreign schemas), schema 1 (STRICT settings/goals/ledger_entries/operation_receipts with CHECKs and invariant triggers; no audit or balance tables), repositories, `createEntry`/`correctEntry`/`deleteEntry` with stable operation IDs, identifiers-only receipts, stale-revision checks and the date/createdAt/id nonnegative-subtotal rule, `createGoal` (currency gate, Free slot, theme capability), and a startup `DatabaseGate` with a retryable storage failure screen that never resets data (DECISIONS D52-D55). Native evidence: `npm run test:db` 20/20 scenarios + process-restart verify on iPhone SE iOS 18.5 (fresh install), iPhone Duo iOS 27.1 and iPhone 17 Pro Max iOS 26.1, real expo-sqlite (SQLite 3.53.3).
 - Phase 04 added the pure domain in `src/core/`: exact minor-unit money with BigInt sums and the 10^12 ceiling, a bundled ISO 4217 registry (List One 2026-09-17, 155 codes, 0/2/3 decimals), strict locale-aware parsing and exact formatting; validated civil dates, an injected `Clock` and the v1.2 inclusive-day deadline pace; one shared stage 0-10 function with floored percent and visual-only fractional feedback; the Free/Pro capability contract with Free as the default. ESLint keeps `src/core` free of React/native/store imports and real-time reads (DECISIONS D50-D51).
-- Completed implementation phases: 01, 02, 03, 04. The repository has an Expo SDK 58 project (expo 58.0.17, React Native 0.88.0, React 19.3.0, Expo Router 58.0.25) with one npm lockfile, app.config.ts, eas.json, a native NativeTabs/Stack shell, the Phase 02 palette/tokens/shared controls, and now the Phase 03 layout layer `src/shared/layout/` (Screen, FormScreen, ContentColumn, AdaptiveGoalLayout with a guarded @expo/ui ArrangementView adapter and older-iOS fallback, inset policy, measured regions). Shell screens use it; PlaceholderScreen is gone. Development-only layout lab (`/dev-layout`) and sample form sheet (`/sample-form`).
+- Completed implementation phases: 01, 02, 03, 04, 05. The repository has an Expo SDK 58 project (expo 58.0.17, React Native 0.88.0, React 19.3.0, Expo Router 58.0.25) with one npm lockfile, app.config.ts, eas.json, a native NativeTabs/Stack shell, the Phase 02 palette/tokens/shared controls, and now the Phase 03 layout layer `src/shared/layout/` (Screen, FormScreen, ContentColumn, AdaptiveGoalLayout with a guarded @expo/ui ArrangementView adapter and older-iOS fallback, inset policy, measured regions). Shell screens use it; PlaceholderScreen is gone. Development-only layout lab (`/dev-layout`) and sample form sheet (`/sample-form`).
 - EAS: project `@bosko123/saving-worlds` (ID 25d3089f-a32e-461f-baf2-7c95a396984e), bundle ID `com.bosko123.savingworlds`, runtime policy appVersion (runtime 1.0.0, not yet shared). Current development simulator build: ab77dda9-8c1c-4a2e-92be-db22cbef9960 (Phase 02; built with Xcode 27.1, so ArrangementView is compiled in). Phase 03 changed no native code or config, so no rebuild. No preview/production build, no update publication, no store action.
+- Checks at Phase 05 close: lint, typecheck, 467 Jest tests (16 suites), `expo install --check`, expo-doctor 20/20 and `npm run test:db` on three simulators PASS; release export contains no runner/scenario code; native newer-schema recovery screen and retry checked on the SE. No native dependency/config change, build or update.
 - Checks at Phase 04 close: lint, typecheck, 421 Jest tests (13 suites), `expo install --check` and expo-doctor 20/20 PASS; no native change, build or update.
 - Checks at Phase 03 close: lint, typecheck, 119 Jest tests (7 suites), `expo install --check` and expo-doctor 20/20 PASS; release export contains no lab/sample code. Native: Duo closed/partially open/open in portrait and landscape, shell screen on the closed display, native sheet through rotate/fold/unfold and repeated changes while typing PASS (screenshots + `[layout-lab]` logs); SE iOS 18.5 and 17 Pro Max iOS 26.1 fallback, keyboard, largest text and 17 Pro Max landscape side insets PASS. Fixed: double side-column inset inside the native arrangement, and controls unreachable when the system collapses the arrangement on the closed display in landscape (DECISIONS D47).
-- No database, persisted records, screens using the domain, billing or reminders exist yet.
-- Git: `main` has the Phase 01, Phase 02 and Phase 03 commits plus the Phase 07.5 planning docs commit; Phase 04 is committed on `main` at the owner's request. Nothing pushed.
+- The app database exists and is migrated at startup, but no screen reads or writes financial data yet (forms and Home arrive in Phases 06-08). No billing or reminders.
+- Git: `main` has the Phase 01, Phase 02 and Phase 03 commits plus the Phase 07.5 planning docs commit; Phase 04 is committed on `main` at the owner's request. Phase 05 is uncommitted in the working tree. Nothing pushed.
 - Planning change (owner request, docs only): checkpoint Phase 07.5 "Visual direction and design review" sits between 07 and 08, so the Home dashboard is built on an owner-approved design (DECISIONS D49, [PHASE_07_5](prompts/PHASE_07_5.md)).
 - Both DOCX sources and historical source/evidence content are retained unchanged.
 
@@ -23,7 +25,7 @@ Updated 23 October 2026 after the Phase 04 implementation session. Functional sc
 | 02 | Palette design tokens and global native styling | VERIFIED COMPLETE | [PHASE_02](evidence/PHASE_02.md) |
 | 03 | Global adaptive layout and iPhone Duo foundation | VERIFIED COMPLETE | [PHASE_03](evidence/PHASE_03.md); physical-Duo split view is a release gate (D48) |
 | 04 | Exact money calendar and progression rules | VERIFIED COMPLETE | [PHASE_04](evidence/PHASE_04.md); Hermes Intl output is a carried Phase 06 device check |
-| 05 | SQLite migrations and ledger repositories | NOT STARTED | No implementation evidence |
+| 05 | SQLite migrations and ledger repositories | VERIFIED COMPLETE | [PHASE_05](evidence/PHASE_05.md); physical-device SQLite is a Phase 21 check |
 | 06 | Goal forms global currency and lifecycle | NOT STARTED | No implementation evidence |
 | 07 | Deposits withdrawals history and corrections | NOT STARTED | No implementation evidence |
 | 07.5 | Visual direction and design review checkpoint (owner-added) | NOT STARTED | No implementation evidence |
@@ -47,7 +49,7 @@ States: NOT STARTED, IN PROGRESS, BLOCKED, VERIFIED COMPLETE. Missing mandatory 
 
 ## Current verification
 
-[PHASE_01 evidence](evidence/PHASE_01.md), [PHASE_02 evidence](evidence/PHASE_02.md), [PHASE_03 evidence](evidence/PHASE_03.md) and [PHASE_04 evidence](evidence/PHASE_04.md) record the exact commands, EAS build IDs, artifact inspection, contrast results and simulator results. The documentation-only [planning checks](evidence/PLANNING_CHECKS.md) remain the record for planning. Jest mocks do not prove native SQLite, StoreKit, notifications or device behavior.
+[PHASE_01 evidence](evidence/PHASE_01.md), [PHASE_02 evidence](evidence/PHASE_02.md), [PHASE_03 evidence](evidence/PHASE_03.md), [PHASE_04 evidence](evidence/PHASE_04.md) and [PHASE_05 evidence](evidence/PHASE_05.md) record the exact commands, EAS build IDs, artifact inspection, contrast results and simulator results. The documentation-only [planning checks](evidence/PLANNING_CHECKS.md) remain the record for planning. Jest mocks do not prove native SQLite, StoreKit, notifications or device behavior.
 
 ## Resolved product decisions
 
@@ -55,6 +57,7 @@ Q01-Q06 are RESOLVED in [SOURCE_RECONCILIATION](SOURCE_RECONCILIATION.md). One g
 
 ## Known limitations and external dependencies
 
+- Phase 05 limitations: Hermes here has no `crypto.randomUUID`/`getRandomValues`, so ids use a `Math.random` UUID v4 (unique, not secret; D54). Opening sets WAL before the schema check, so a refused file may get its journal-mode flag changed (never schema or rows). Simulator-only SQLite evidence; physical-device file protection/low storage is Phase 21.
 - Phase 04 carried check: `formatMoney`, `separatorsForLocale` and `today()` use `Intl`; Jest ran them on Node ICU only. Phase 06 observes their Hermes output on a simulator (added to its prompt). The parser is strict by design (D50), so forms must explain each error code.
 - Phase 03 release gates (not simulator passes): inner split view with the app on both sides and the full pose matrix on a physical iPhone Duo (D48; RELEASE_CHECKLIST, Phase 21). Device Hub can be automated through the macOS Accessibility API once Accessibility is granted to the Claude Code helper process (see ADAPTIVE_LAYOUT); the hinge slider does not respond to AX value changes, the pose buttons do.
 - Known limitation: when the closed Duo in landscape collapses the native arrangement, AdaptiveGoalLayout switches to the stacked composition, which rebuilds both regions and drops keyboard focus (drafts and selection are kept).
@@ -66,7 +69,7 @@ Q01-Q06 are RESOLVED in [SOURCE_RECONCILIATION](SOURCE_RECONCILIATION.md). One g
 
 ## Next action and continuation
 
-Start a new Claude Code session in ~/Desktop/SavingWorld with the full [PHASE_05](prompts/PHASE_05.md) prompt (SQLite migrations and ledger repositories). It builds on `@/core/money` (checked sums, `signedAmount`) and `@/core/calendar` (civil dates, `Clock`) and owns chronological-subtotal enforcement. Later UI phases follow the ADAPTIVE_LAYOUT adoption contract. Keep implementation, native verification, production publication, store upload/submission and live status distinct.
+Start a new Claude Code session in ~/Desktop/SavingWorld with the full [PHASE_06](prompts/PHASE_06.md) prompt (goal forms, global currency and lifecycle). It builds on `createGoal`, `updateGoalStatus`, `writeCurrency` and `executeCommand` (see its "Carried from Phase 05" note) and still owns the carried Phase 04 Hermes `Intl` check. Keep implementation, native verification, production publication, store upload/submission and live status distinct.
 
 ## Ongoing updates
 
