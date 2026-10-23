@@ -6,7 +6,7 @@ Updated 23 October 2026 after the Phase 01 implementation session. Functional sc
 
 - Current stage: Phase 01 VERIFIED COMPLETE ([evidence](evidence/PHASE_01.md)). Next implementation prompt: [PHASE_02](prompts/PHASE_02.md).
 - Completed implementation phases: 01. The repository now has an Expo SDK 58 project (expo 58.0.17, React Native 0.88.0, React 19.3.0, Expo Router 58.0.25) with one npm lockfile, app.config.ts, eas.json, a native NativeTabs/Stack shell (Home, Challenges, Collection, Settings, temporary detail and form-sheet routes), real lint/typecheck/test scripts and a root CLAUDE.md.
-- EAS: project `@bosko123/saving-worlds` (ID 25d3089f-a32e-461f-baf2-7c95a396984e), bundle ID `com.bosko123.savingworlds`, runtime policy appVersion (runtime 1.0.0). Development simulator build bdbf2303-bcd2-4b92-980c-2fca9e98d949 finished and was verified on iPhone 17 (iOS 26.0) and iPhone SE 3rd gen (iOS 18.5) simulators. No preview/production build, no update publication, no store action.
+- EAS: project `@bosko123/saving-worlds` (ID 25d3089f-a32e-461f-baf2-7c95a396984e), bundle ID `com.bosko123.savingworlds`, runtime policy appVersion (runtime 1.0.0). Development simulator build bdbf2303-bcd2-4b92-980c-2fca9e98d949 finished and was verified on iPhone 17 (iOS 26.0), iPhone SE 3rd gen (iOS 18.5) and iPhone Duo (iOS 27.1) simulators. No preview/production build, no update publication, no store action.
 - Checks at close: lint, typecheck, 18 Jest tests, `expo install --check` and expo-doctor 20/20 PASS. No database, financial logic, billing or reminders exist yet.
 - Git: repository on `main` still has no commits; nothing was committed by this session. EAS uploads used `EAS_NO_VCS=1` with `.easignore` for that reason.
 - Both DOCX sources and historical source/evidence content are retained unchanged.
@@ -49,7 +49,7 @@ Q01-Q06 are RESOLVED in [SOURCE_RECONCILIATION](SOURCE_RECONCILIATION.md). One g
 
 ## Known limitations and external dependencies
 
-- **iPhone Duo simulator unavailable (early Phase 03 blocker).** Xcode 27.1 lists the iPhone Duo device type, but no installed runtime (18.5-27.0) supports it. Install an iOS 27.1+ simulator runtime before Phase 03's Duo checks.
+- iPhone Duo simulator is now available: iOS 27.1 runtime installed and `SW iPhone Duo iOS 27.1` (E273F5F5-A352-4903-8891-1457DE5E96DC) created. The dev build runs there with native side-column tabs/back. Phase 03 must fix content running under the right side-controls column (missing horizontal safe-area inset) and cover fully-open, partial-fold and split-view states. The automation tool's taps on the Duo were intermittent; deep links were used as a fallback.
 - No physical-device development build yet; it needs the owner's Apple Developer credentials and device registration.
 - App icon/splash image are Expo template placeholders until branding (Q09). Dev-client local-network and default ATS Info.plist entries need release privacy review (Phase 20/22).
 - Temporary shell screens use system colors and placeholder text; Phase 02 replaces them with the palette and shared primitives.
@@ -57,7 +57,7 @@ Q01-Q06 are RESOLVED in [SOURCE_RECONCILIATION](SOURCE_RECONCILIATION.md). One g
 
 ## Next action and continuation
 
-Start a new Claude Code session in ~/Desktop/SavingWorld with the full [PHASE_02](prompts/PHASE_02.md) prompt (palette, tokens and shared native styling). Install the Duo-capable simulator runtime before Phase 03. Style/layout remain 02/03, money 04, OTA drill 20 and final QA/release preparation 21/22. Keep implementation, native verification, production publication, store upload/submission and live status distinct.
+Start a new Claude Code session in ~/Desktop/SavingWorld with the full [PHASE_02](prompts/PHASE_02.md) prompt (palette, tokens and shared native styling). Style/layout remain 02/03, money 04, OTA drill 20 and final QA/release preparation 21/22. Keep implementation, native verification, production publication, store upload/submission and live status distinct.
 
 ## Ongoing updates
 

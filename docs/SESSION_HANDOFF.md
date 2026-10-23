@@ -26,11 +26,11 @@ Full file list, package/toolchain matrix, build IDs, artifact inspection and eve
 
 ## Checks
 
-lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (3 suites, 18 tests), `expo install --check` PASS, expo-doctor 20/20 PASS (after fixing three initial findings), all four EAS profiles resolve correctly, iOS export PASS, native simulator checks PASS. iPhone Duo simulator NOT RUN (no supporting runtime installed). Physical-device build and release-mode OTA NOT RUN (outside Phase 01).
+lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (3 suites, 18 tests), `expo install --check` PASS, expo-doctor 20/20 PASS (after fixing three initial findings), all four EAS profiles resolve correctly, iOS export PASS, native simulator checks PASS. iPhone Duo simulator PASS for Phase 01 navigation after installing iOS 27.1 (right-inset overlap recorded for Phase 03). Physical-device build and release-mode OTA NOT RUN (outside Phase 01).
 
 ## Incomplete work and blockers
 
-1. Install an iPhone Duo-capable simulator runtime (iOS 27.1+, Xcode → Settings → Components or `xcodebuild -downloadPlatform iOS`) before Phase 03. This is the only early blocker found.
+1. Resolved later the same session: the iOS 27.1 simulator runtime was installed and `SW iPhone Duo iOS 27.1` (E273F5F5-…) created. The dev build runs there; NativeTabs and Back move into the Duo side-controls column natively. Phase 03 must fix body content running under that right column (horizontal safe-area inset) and test fully-open/partial-fold/split-view states. Simulator UI in Xcode 27 is `Xcode.app/Contents/Applications/DeviceHub.app`.
 2. No Git commit exists. The owner may want to commit this baseline before Phase 02; afterwards EAS can run without `EAS_NO_VCS=1`.
 3. A device development build (`npm run eas -- build --platform ios --profile development`) needs the owner's Apple Developer credentials and device registration when wanted.
 4. A `.idea/` folder appeared during the session from the owner's IDE; it was left untouched and is not in .gitignore.

@@ -26,11 +26,11 @@ Selected: Expo SDK 58, `expo` 58.0.17. No beta/canary, no downgrade, no forced p
 | macOS | 27.0.1 (26A434) |
 | Node / npm | v22.16.0 / 10.9.2 (package.json `engines.node >=22.13.0`) |
 | Xcode | 27.1 (27A9275), `/Applications/Xcode.app` |
-| iOS simulator runtimes | 18.5, 26.0, 26.1, 26.4, 26.5, 27.0 |
+| iOS simulator runtimes | 18.5, 26.0, 26.1, 26.4, 26.5, 27.0; **27.1 (24A94425) added later the same day** via `xcodebuild -downloadPlatform iOS -buildVersion 27.1 -architectureVariant arm64` (7.85 GB) |
 | SDK 58 native minimum | iOS 16.4 (ExpoModulesCore/@expo/ui/expo-sqlite podspecs); React Native 0.88 min Xcode 16.1 |
 | Older-iPhone simulator | iPhone SE (3rd generation) supported on every installed runtime including iOS 18.5; created `SW iPhone SE 3 iOS 18.5` (66F6F9E8-A5F1-499F-BBA7-1D61CA7AC729) |
-| iPhone Duo simulator | Device type `com.apple.CoreSimulator.SimDeviceType.iPhone-Duo` exists, but **no installed runtime supports it**: `simctl create … iPhone-Duo … iOS-27-0` → "Incompatible device". Early blocker for Phase 03 (see Blockers). |
-| Device Hub | Not found as a separate app in /Applications; Xcode 27.1 is the only Apple developer app installed. Duo access is via simulator runtime download. |
+| iPhone Duo simulator | Initially unavailable: `simctl create … iPhone-Duo … iOS-27-0` → "Incompatible device". **Resolved** after installing iOS 27.1, the only runtime listing iPhone Duo: created `SW iPhone Duo iOS 27.1` (E273F5F5-A352-4903-8891-1457DE5E96DC). |
+| Device Hub | Bundled inside Xcode at `/Applications/Xcode.app/Contents/Applications/DeviceHub.app` (Xcode 27 replaces the old Simulator.app name). |
 | watchman | Not installed (optional; Metro works without it) |
 | EAS CLI | 25.3.0 (latest on npm at setup), pinned via `npm run eas` |
 
@@ -126,7 +126,8 @@ Artifact inspection (`SavingWorlds.app`): CFBundleIdentifier `com.bosko123.savin
 | EAS dev build on older iPhone | iPhone SE (3rd gen) simulator, iOS 18.5 (66F6F9E8-…), same build | PASS | Launch, classic native tab bar, Details push/back, Collection tab |
 | Native errors | both simulators | PASS | No crash reports; no `fault` log entries for SavingWorlds; Metro showed one dev-only RN warning ("Sending `onAnimatedValueUpdate` with no listeners registered") |
 | Settings build diagnostics in dev client | iPhone 17 | FAIL then PASS | First launch showed a blank Channel (native value is `''`) and "Not available" for a Metro-served launch. Fixed `describeBuildInfo` (empty string → Not available; no update ID → "No update loaded") with a regression test; re-verified on device: App version 1.0.0, Runtime 1.0.0, Channel Not available, Update No update loaded. |
-| iPhone Duo simulator | Xcode 27.1, runtimes ≤ 27.0 | NOT RUN (environment missing) | Device type exists but `simctl create` → "Incompatible device" on iOS 27.0; no installed runtime supports it. Early blocker for Phase 03. |
+| iPhone Duo simulator | Xcode 27.1, runtimes ≤ 27.0 | NOT RUN at first (environment missing) | Device type exists but `simctl create` → "Incompatible device" on iOS 27.0. |
+| iPhone Duo simulator, after installing iOS 27.1 | SW iPhone Duo iOS 27.1 (E273F5F5-…), default display 466×678 pt, same build bdbf2303, Metro | PASS for Phase 01 navigation | App launches. NativeTabs render automatically as a **vertical tab bar in the Duo side-controls column**, and the native Back button moves there too. Home→Details push (tap) and side Back (tap) work; Challenges, Collection and the sample form sheet were opened with `simctl openurl savingworlds:///…` deep links because the automation tool's taps on the Duo device timed out intermittently (input tooling limit, not an app error). No crash report. One SwiftUI log fault: `glassEffect() tried to update multiple times per frame` (native glass chrome; no visible effect). **Phase 03 finding:** body text extends under the right side-controls column (e.g. "…native sta" clipped), so the shell does not yet apply the right/horizontal safe-area inset; this is exactly the four-edge inset work in ADAPTIVE_LAYOUT. Fully open, partial-fold and split-view states were not exercised. |
 | Physical iPhone dev build | | NOT RUN (not required for Phase 01) | Needs the owner's Apple Developer account, device registration and `development` profile build; record when performed. |
 | Release-mode OTA / offline launch | | NOT RUN (Phase 20 scope) | Config inspected only; a dev client is not OTA acceptance. |
 
@@ -146,13 +147,13 @@ Generated/ignored (not committed): `node_modules/`, `.expo/`, `expo-env.d.ts`. N
 
 ## Blockers and limitations
 
-1. **iPhone Duo simulator unavailable (Phase 03 blocker).** Install a simulator runtime that supports the iPhone Duo device type (iOS 27.1 or later, matching Xcode 27.1), for example Xcode → Settings → Components, or `xcodebuild -downloadPlatform iOS`. Then `xcrun simctl create "Duo" com.apple.CoreSimulator.SimDeviceType.iPhone-Duo <runtime>` should succeed. ArrangementView also needs iOS 27.1+.
+1. ~~iPhone Duo simulator unavailable~~ **Resolved 23 Oct 2026:** iOS 27.1 runtime installed and `SW iPhone Duo iOS 27.1` created; the dev build runs there. Phase 03 must fix the right-edge (side-controls) inset overlap found above and cover fully-open/partial-fold/split-view states.
 2. No physical-device development build yet (owner Apple credentials/device registration). Not a Phase 01 acceptance item.
 3. Placeholder Expo app icon/splash image until branding (Q09).
 4. Dev-client local-network/ATS Info.plist entries need release review (Phase 20/22).
 
 ## Result
 
-**VERIFIED COMPLETE** for Phase 01 acceptance: docs preserved and CLAUDE.md added; latest stable SDK 58 locked with a documented matrix; a real EAS iOS development build (bdbf2303-bcd2-4b92-980c-2fca9e98d949, development-simulator, runtime 1.0.0) launches with working native tabs/stack/back/sheet and no native errors; EAS profiles/channels/environments, project/update URL and appVersion policy validated with no update published; lint, TypeScript, tests, expo install --check and expo-doctor pass; simulator/toolchain coverage recorded with the Duo runtime gap flagged as an early Phase 03 blocker.
+**VERIFIED COMPLETE** for Phase 01 acceptance: docs preserved and CLAUDE.md added; latest stable SDK 58 locked with a documented matrix; a real EAS iOS development build (bdbf2303-bcd2-4b92-980c-2fca9e98d949, development-simulator, runtime 1.0.0) launches with working native tabs/stack/back/sheet and no native errors; EAS profiles/channels/environments, project/update URL and appVersion policy validated with no update published; lint, TypeScript, tests, expo install --check and expo-doctor pass; simulator/toolchain coverage recorded, including the iPhone Duo simulator on iOS 27.1 (installed later the same day) with native side-column tabs/back and a right-inset overlap recorded for Phase 03.
 
 Next prompt: [PHASE_02](../prompts/PHASE_02.md).
