@@ -21,7 +21,7 @@ type StatusBadgeProps = {
   testID?: string;
 };
 
-// A short status word in a soft pill ("Paused", "Archived", "Target reached"). The word carries the
+// A short status word in a soft pill ("Paused", "Completed", "Target reached"). The word carries the
 // meaning; the color and icon only support it.
 export function StatusBadge({ label, tone = 'neutral', icon, testID }: StatusBadgeProps) {
   const toneColors = badgeColors[tone];

@@ -6,14 +6,15 @@ import type { SqlExecutor, SqlRow } from '../db/sql';
 import { CorruptRowError, rowReader } from './row-codec';
 
 // SQLite goal adapter (docs/DATA_MODEL.md "goals"). Goals start at zero and have no balance,
-// currency or exponent column: the balance is always recomputed from ledger_entries. There is no
-// delete function; archived goals keep every record (the schema also rejects DELETE).
+// currency or exponent column: the balance is always recomputed from ledger_entries. A goal is
+// deleted only by the confirmed `deleteGoal` command (D74), after its entries and souvenir.
 
-export const GOAL_STATUSES = ['active', 'paused', 'completed', 'archived'] as const;
+// Archive was removed by owner decision D74. Schema 1's CHECK still accepts the legacy 'archived'
+// value, but migration 2 converted any such row and no code writes it, so reading one is corruption.
+export const GOAL_STATUSES = ['active', 'paused', 'completed'] as const;
 export type GoalStatus = (typeof GOAL_STATUSES)[number];
 
-// active and paused are open: they take a slot and accept entries. completed and archived are
-// closed and read-only until Reopen (Phase 06).
+// active and paused are open: they accept entries. completed is closed and read-only until Reopen.
 export const OPEN_GOAL_STATUSES: readonly GoalStatus[] = ['active', 'paused'];
 
 export function isOpenStatus(status: GoalStatus): boolean {
@@ -77,11 +78,18 @@ export async function getGoal(executor: SqlExecutor, id: string): Promise<GoalRe
   return row ? decodeGoal(row) : null;
 }
 
-export async function countOpenGoals(executor: SqlExecutor): Promise<number> {
-  const row = await executor.get<{ count: unknown }>(
-    "SELECT count(*) AS count FROM goals WHERE status IN ('active', 'paused')",
-  );
+// Every goal in any status: the number the Free goal limit counts (D74).
+export async function countGoals(executor: SqlExecutor): Promise<number> {
+  const row = await executor.get<{ count: unknown }>('SELECT count(*) AS count FROM goals');
   return rowReader('goals', row ?? {}).integer('count');
+}
+
+// Removes the goal row inside the caller's transaction; its ledger entries and souvenir must be
+// deleted first (foreign keys). Returns false when the row is missing or changed since
+// `expectedRevision`.
+export async function deleteGoalRow(tx: SqlExecutor, id: string, expectedRevision: number): Promise<boolean> {
+  const result = await tx.run('DELETE FROM goals WHERE id = ? AND revision = ?', [id, expectedRevision]);
+  return result.changes === 1;
 }
 
 // Every goal with its balance recomputed from the ledger, oldest first.
@@ -101,8 +109,8 @@ export async function listGoalSummaries(executor: SqlExecutor): Promise<GoalSumm
 }
 
 // Revision-checked status change inside the caller's transaction. Returns false when the row is
-// missing or was changed since `expectedRevision` was read. Lifecycle rules (Pause/Resume, Archive,
-// Finish, Reopen with the Free slot check) are Phase 06 commands built on this.
+// missing or was changed since `expectedRevision` was read. Lifecycle rules (Pause/Resume, Finish,
+// Reopen with the goal-limit check) are Phase 06 commands built on this.
 export async function updateGoalStatus(
   tx: SqlExecutor,
   id: string,

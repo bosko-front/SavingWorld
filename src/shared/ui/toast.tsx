@@ -13,7 +13,7 @@ import { Icon } from './icon';
 // Transient confirmations (docs/DESIGN_SYSTEM.md "Transient feedback (toasts)", DECISIONS D40).
 // Screens call `showToast` only after a write has committed, for an outcome the screen also shows.
 // Form validation, destructive confirmation, money amounts and celebrations never use a toast. The
-// error tone is only for a one-tap action without a form (Pause, Archive, Reopen) that was refused or
+// error tone is only for a one-tap action without a form (Pause, Resume, Reopen, Delete) that was refused or
 // failed (DECISIONS D66); form errors stay inline with the person's input kept.
 // This module is the only importer of the toast engine (ESLint enforces it), so the engine can be
 // swapped without touching screens.

@@ -17,6 +17,10 @@ type AdaptiveGoalLayoutProps = {
   // Secondary region: saved amount, progress and every action. It always scrolls, so all actions
   // stay reachable in a short window, and its text and controls stay inside the safe area.
   controls: ReactElement;
+  // The screen's one primary action as a FloatingActionButton (Home: Add savings). It floats at the
+  // bottom trailing corner of the controls' scroll view, above the tab bar, so it stays visible on
+  // short windows and at large text (owner decisions D70, D72).
+  floatingAction?: ReactElement;
   // Width/height of the scene artwork; used to size the scene in the single-column fallback.
   sceneAspectRatio: number;
   // Tests and the development layout lab only. Product screens never choose a mode.
@@ -30,6 +34,7 @@ type AdaptiveGoalLayoutProps = {
 export function AdaptiveGoalLayout({
   scene,
   controls,
+  floatingAction,
   sceneAspectRatio,
   arrangement = 'automatic',
   testID,
@@ -68,7 +73,7 @@ export function AdaptiveGoalLayout({
         }
         secondary={
           <View style={styles.region} testID="adaptive-controls-region">
-            <ScrollingScreen keyboard="form" insets="container">
+            <ScrollingScreen keyboard="form" insets="container" floatingAction={floatingAction}>
               {controls}
             </ScrollingScreen>
           </View>
@@ -77,7 +82,13 @@ export function AdaptiveGoalLayout({
     );
   }
   return (
-    <StackedComposition testID={testID} scene={scene} controls={controls} sceneAspectRatio={sceneAspectRatio} />
+    <StackedComposition
+      testID={testID}
+      scene={scene}
+      controls={controls}
+      floatingAction={floatingAction}
+      sceneAspectRatio={sceneAspectRatio}
+    />
   );
 }
 
@@ -94,8 +105,9 @@ type StackedCompositionProps = Omit<AdaptiveGoalLayoutProps, 'arrangement'>;
 // Explicit fallback for iOS versions without ArrangementView, and for a window where the native
 // arrangement collapsed to the scene alone: one scrolling column with the scene
 // first and the controls below it. The scene takes the column width at its aspect ratio but at most
-// part of the visible height, so the saved amount and actions start close to the top.
-function StackedComposition({ scene, controls, sceneAspectRatio, testID }: StackedCompositionProps) {
+// part of the visible height, so the saved amount and actions start close to the top. A floating
+// action stays at the bottom trailing corner while both scroll.
+function StackedComposition({ scene, controls, floatingAction, sceneAspectRatio, testID }: StackedCompositionProps) {
   const [viewport, onViewportLayout] = useMeasuredSize();
   const [column, onColumnLayout] = useMeasuredSize();
   const sceneHeight = stackedSceneHeight(
@@ -104,7 +116,7 @@ function StackedComposition({ scene, controls, sceneAspectRatio, testID }: Stack
     sceneAspectRatio,
   );
   return (
-    <ScrollingScreen keyboard="form" testID={testID} onViewportLayout={onViewportLayout}>
+    <ScrollingScreen keyboard="form" testID={testID} onViewportLayout={onViewportLayout} floatingAction={floatingAction}>
       <View onLayout={onColumnLayout} testID="adaptive-scene-region" style={[styles.stackedScene, { height: sceneHeight }]}>
         {scene}
       </View>

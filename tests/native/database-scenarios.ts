@@ -9,7 +9,7 @@ import type { IdGenerator } from '@/data/ids';
 import { getGoal, updateGoalStatus } from '@/data/repositories/goal-repository';
 import { getEntry } from '@/data/repositories/ledger-repository';
 import { writeCurrency } from '@/data/repositories/settings-repository';
-import { createGoal, pauseGoal, type GoalCommandDeps } from '@/features/goals/application/goal-commands';
+import { createGoal, deleteGoal, pauseGoal, type GoalCommandDeps } from '@/features/goals/application/goal-commands';
 import { readGoalsOverview } from '@/features/goals/application/goal-queries';
 import { selectGoal } from '@/features/goals/application/goal-selection';
 import {
@@ -177,11 +177,11 @@ const EXPECTED_TABLES = ['goals', 'ledger_entries', 'migrations', 'operation_rec
 export const DATABASE_SCENARIOS: Scenario[] = [
   {
     id: 'S01',
-    title: 'Fresh database: schema 1, WAL, foreign keys on both connections, integrity checks',
+    title: 'Fresh database: latest schema, WAL, foreign keys on both connections, integrity checks',
     run: (context) =>
       withSession(context, async (s) => {
         const db = await s.openDb(s.name('fresh'));
-        equal(db.migration, { fromVersion: 0, toVersion: 1, applied: [1] }, 'migration outcome');
+        equal(db.migration, { fromVersion: 0, toVersion: 2, applied: [1, 2] }, 'migration outcome');
         const pragmas = await db.pragmas();
         equal(pragmas.writer.journalMode.toLowerCase(), 'wal', 'writer journal_mode');
         equal(pragmas.writer.foreignKeys, true, 'writer foreign_keys');
@@ -221,12 +221,19 @@ export const DATABASE_SCENARIOS: Scenario[] = [
         })();
         for (let i = 0; i < 3; i += 1) {
           const db = await s.openDb(h.name);
-          equal(db.migration, { fromVersion: 1, toVersion: 1, applied: [] }, `reopen ${i + 1} migration outcome`);
+          equal(db.migration, { fromVersion: 2, toVersion: 2, applied: [] }, `reopen ${i + 1} migration outcome`);
           const ledger = await readGoalLedger(db, h.goalId);
           equal(ledger?.balanceMinor, 3_750, `reopen ${i + 1} balance`);
           equal(ledger?.entries.map((e) => e.note), ['first', null], `reopen ${i + 1} notes`);
           const applied = await db.read((r) => r.all('SELECT version, applied_at_utc FROM migrations'));
-          equal(applied, [{ version: 1, applied_at_utc: firstAppliedAt }], `reopen ${i + 1} history unchanged`);
+          equal(
+            applied,
+            [
+              { version: 1, applied_at_utc: firstAppliedAt },
+              { version: 2, applied_at_utc: firstAppliedAt },
+            ],
+            `reopen ${i + 1} history unchanged`,
+          );
           await db.close();
         }
       }),
@@ -240,13 +247,13 @@ export const DATABASE_SCENARIOS: Scenario[] = [
         await mustCreate(h, 'deposit', 9_999, '2026-10-22', 'keep me');
         await h.db.close();
         const broken: Migration = {
-          version: 2,
+          version: 3,
           name: 'broken_upgrade',
           sql: 'CREATE TABLE upgrade_probe (id TEXT PRIMARY KEY) STRICT; UPDATE ledger_entries SET note = NULL; INSERT INTO missing_table VALUES (1);',
         };
-        await rejects(s.openDb(h.name, [...MIGRATIONS, broken]), /migration_failed|Migration 2 failed/, 'broken migration');
+        await rejects(s.openDb(h.name, [...MIGRATIONS, broken]), /migration_failed|Migration 3 failed/, 'broken migration');
         const db = await s.openDb(h.name);
-        equal(db.migration.applied, [], 'still schema 1');
+        equal(db.migration.applied, [], 'still schema 2');
         const state = await db.read(async (r) => ({
           tables: await tableNames(r),
           notes: (await r.all<{ note: string | null }>('SELECT note FROM ledger_entries')).map((row) => row.note),
@@ -254,9 +261,9 @@ export const DATABASE_SCENARIOS: Scenario[] = [
         equal(state.tables, EXPECTED_TABLES, 'no partial upgrade table');
         equal(state.notes, ['keep me'], 'data untouched by the failed migration');
         await db.close();
-        const good: Migration = { version: 2, name: 'probe_upgrade', sql: 'CREATE TABLE upgrade_probe (id TEXT PRIMARY KEY) STRICT;' };
+        const good: Migration = { version: 3, name: 'probe_upgrade', sql: 'CREATE TABLE upgrade_probe (id TEXT PRIMARY KEY) STRICT;' };
         const upgraded = await s.openDb(h.name, [...MIGRATIONS, good]);
-        equal(upgraded.migration, { fromVersion: 1, toVersion: 2, applied: [2] }, 'upgrade outcome');
+        equal(upgraded.migration, { fromVersion: 2, toVersion: 3, applied: [3] }, 'upgrade outcome');
         equal((await readGoalLedger(upgraded, h.goalId))?.balanceMinor, 9_999, 'balance after upgrade');
       }),
   },
@@ -269,17 +276,17 @@ export const DATABASE_SCENARIOS: Scenario[] = [
         await mustCreate(h, 'deposit', 4_200, '2026-10-22');
         await h.db.close();
         const raw = await s.raw(h.name);
-        await raw.run("INSERT INTO migrations VALUES (2, 'from_the_future', 'ffff', '2027-01-01T00:00:00.000Z')");
+        await raw.run("INSERT INTO migrations VALUES (3, 'from_the_future', 'ffff', '2027-01-01T00:00:00.000Z')");
         await raw.close();
         await rejects(s.openDb(h.name), /newer_schema|newer than supported/, 'newer schema');
         const after = await s.raw(h.name);
         equal(await count(after, 'ledger_entries'), 1, 'entries kept after newer-schema refusal');
-        equal(await count(after, 'migrations'), 2, 'history kept');
-        await after.run('DELETE FROM migrations WHERE version = 2');
+        equal(await count(after, 'migrations'), 3, 'history kept');
+        await after.run('DELETE FROM migrations WHERE version = 3');
         await after.close();
 
         const edited: Migration = { ...MIGRATIONS[0]!, sql: `${MIGRATIONS[0]!.sql}\n-- edited` };
-        await rejects(s.openDb(h.name, [edited]), /migration_history_mismatch|differs/, 'edited migration');
+        await rejects(s.openDb(h.name, [edited, ...MIGRATIONS.slice(1)]), /migration_history_mismatch|differs/, 'edited migration');
 
         const foreignName = s.name('foreign');
         const foreign = await s.raw(foreignName);
@@ -308,13 +315,14 @@ export const DATABASE_SCENARIOS: Scenario[] = [
         await rejects(row(insert, [entry.entryId, h.goalId, 5, '2026-10-22', null, START, START, 1]), /UNIQUE|PRIMARY/i, 'duplicate id');
         await rejects(row('UPDATE ledger_entries SET created_at_utc = ?, revision = revision + 1 WHERE id = ?', ['2026-01-01T00:00:00.000Z', entry.entryId]), /immutable/, 'createdAt immutable');
         await rejects(row('UPDATE ledger_entries SET signed_amount_minor = 7 WHERE id = ?', [entry.entryId]), /revision/, 'revision step');
-        await rejects(row('DELETE FROM goals WHERE id = ?', [h.goalId]), /never deleted/, 'no goal deletion');
+        // Schema 2 allows goal deletion (D74), but never while entries still reference the goal.
+        await rejects(row('DELETE FROM goals WHERE id = ?', [h.goalId]), /FOREIGN KEY/i, 'no goal deletion under its entries');
         await rejects(row("UPDATE goals SET status = 'deleted', revision = revision + 1 WHERE id = ?", [h.goalId]), /CHECK/i, 'status values');
         await rejects(row('UPDATE goals SET target_minor = 0, revision = revision + 1 WHERE id = ?', [h.goalId]), /CHECK/i, 'target > 0');
         await rejects(row("UPDATE operation_receipts SET request_hash = 'x'", []), /immutable/, 'receipts immutable');
         await rejects(row("INSERT INTO settings VALUES ('currency', 'not json', ?)", [START]), /CHECK|UNIQUE/i, 'settings json');
         await rejects(row('INSERT INTO goals VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', ['g2', 'x', 5.5, null, 'island', 'active', START, START, 1]), /datatype|CHECK|cannot store/i, 'STRICT integer target');
-        await h.db.write((tx) => updateGoalStatus(tx, h.goalId, 'archived', 1, START));
+        await h.db.write((tx) => updateGoalStatus(tx, h.goalId, 'completed', 1, START));
         await rejects(row('DELETE FROM ledger_entries WHERE id = ?', [entry.entryId]), /goal is closed/, 'closed goal trigger');
         const fkCheck = await h.db.read((r) => r.all('PRAGMA foreign_key_check'));
         equal(fkCheck.length, 0, 'foreign_key_check clean');
@@ -617,15 +625,18 @@ export const DATABASE_SCENARIOS: Scenario[] = [
 
         const free = await s.harness('free-limit');
         const second = { operationId: free.op(), title: 'Second', targetMinor: 500, deadlineDate: null, themeId: 'island' as const };
-        expectError(await createGoal(free.deps, second), 'open_goal_limit', 'Free: second open goal');
+        expectError(await createGoal(free.deps, second), 'goal_limit', 'Free: a second goal');
         expectError(await createGoal(free.deps, { ...second, operationId: free.op(), targetMinor: 0 }), 'invalid_target', 'target zero');
         expectError(await createGoal(free.deps, { ...second, operationId: free.op(), deadlineDate: '2026-10-22' }), 'past_deadline', 'past deadline');
         expectError(await createGoal(free.deps, { ...second, operationId: free.op(), themeId: 'garden' }), 'theme_unavailable', 'Garden on Free');
         expectError(await createGoal(free.deps, { ...second, operationId: free.op(), title: '   ' }), 'title_empty', 'blank title');
-        check(await free.db.write((tx) => updateGoalStatus(tx, free.goalId, 'archived', 1, START)), 'archive first goal');
-        check((await createGoal(free.deps, second)).ok, 'archived goal frees the slot');
+        // A finished goal still counts toward Free's one goal (D74); deleting it frees the place.
+        check(await free.db.write((tx) => updateGoalStatus(tx, free.goalId, 'completed', 1, START)), 'finish first goal');
+        expectError(await createGoal(free.deps, { ...second, operationId: free.op() }), 'goal_limit', 'Free: completed goal still counts');
+        check((await deleteGoal(free.deps, { operationId: free.op(), goalId: free.goalId, expectedRevision: 2 })).ok, 'delete the finished goal');
+        check((await createGoal(free.deps, second)).ok, 'deleting frees the place');
         const pro = { ...free.deps, capabilities: capabilitiesFor('pro') };
-        check((await createGoal(pro, { ...second, operationId: free.op(), themeId: 'garden', deadlineDate: '2026-10-23' })).ok, 'Pro: more open goals and Garden');
+        check((await createGoal(pro, { ...second, operationId: free.op(), themeId: 'garden', deadlineDate: '2026-10-23' })).ok, 'Pro: more goals and Garden');
       }),
   },
   {
@@ -721,7 +732,7 @@ export function restartVerifyScenario(seedId: string): Scenario {
       const clock = steppingClock();
       const db = await AppDatabase.open({ driver: context.driver, name, migrations: MIGRATIONS, clock });
       try {
-        equal(db.migration, { fromVersion: 1, toVersion: 1, applied: [] }, 'no re-migration');
+        equal(db.migration, { fromVersion: 2, toVersion: 2, applied: [] }, 'no re-migration');
         const state = await db.read(async (r) => ({
           currency: (await r.get<{ value_json: string }>("SELECT value_json FROM settings WHERE key = 'currency'"))?.value_json,
           goals: await r.all('SELECT id, title, target_minor, status, revision FROM goals ORDER BY created_at_utc, id'),

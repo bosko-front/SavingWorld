@@ -1,41 +1,39 @@
 import { getCurrency, separatorsForLocale, type AmountParseError, type CurrencyMetadata } from '@/core/money';
 import type { GoalStatus, GoalSummary } from '@/data/repositories/goal-repository';
-import type { CreateGoalError, EditGoalError, LifecycleError } from '@/features/goals/application/goal-commands';
+import type { CreateGoalError, DeleteGoalError, EditGoalError, LifecycleError } from '@/features/goals/application/goal-commands';
 import { resolveSelectedGoalId } from '@/features/goals/application/goal-queries';
-import { availableActions, lifecycleTarget, LIFECYCLE_ACTIONS, needsOpenSlot } from '@/features/goals/domain/goal-lifecycle';
-import { amountMessage, goalCommandMessage, lifecycleMessage } from '@/features/goals/presentation/goal-copy';
+import { availableActions, lifecycleTarget, LIFECYCLE_ACTIONS, needsGoalLimit } from '@/features/goals/domain/goal-lifecycle';
+import { amountMessage, deleteConfirmation, deleteMessage, goalCommandMessage, lifecycleMessage } from '@/features/goals/presentation/goal-copy';
 import { rescaleTarget } from '@/features/settings/domain/currency-change';
 import { currencyErrorMessage, noConversionMessage } from '@/features/settings/presentation/currency-copy';
 
 const EUR = getCurrency('EUR') as CurrencyMetadata;
 const JPY = getCurrency('JPY') as CurrencyMetadata;
-const STATUSES: GoalStatus[] = ['active', 'paused', 'completed', 'archived'];
+const STATUSES: GoalStatus[] = ['active', 'paused', 'completed'];
 
-describe('goal lifecycle transitions (v1.2 section 3)', () => {
+describe('goal lifecycle transitions (v1.2 section 3, Archive removed by D74)', () => {
   it('allows exactly the documented transitions', () => {
     const table = Object.fromEntries(
       LIFECYCLE_ACTIONS.map((action) => [action, Object.fromEntries(STATUSES.map((status) => [status, lifecycleTarget(action, status)]))]),
     );
     expect(table).toEqual({
-      pause: { active: 'paused', paused: null, completed: null, archived: null },
-      resume: { active: null, paused: 'active', completed: null, archived: null },
-      archive: { active: 'archived', paused: 'archived', completed: null, archived: null },
-      finish: { active: 'completed', paused: 'completed', completed: null, archived: null },
-      reopen: { active: null, paused: null, completed: 'active', archived: 'active' },
+      pause: { active: 'paused', paused: null, completed: null },
+      resume: { active: null, paused: 'active', completed: null },
+      finish: { active: 'completed', paused: 'completed', completed: null },
+      reopen: { active: null, paused: null, completed: 'active' },
     });
   });
 
-  it('only Reopen takes a slot; Reopen never leads to completed', () => {
-    expect(LIFECYCLE_ACTIONS.filter(needsOpenSlot)).toEqual(['reopen']);
+  it('only Reopen checks the goal limit; Reopen never leads to completed', () => {
+    expect(LIFECYCLE_ACTIONS.filter(needsGoalLimit)).toEqual(['reopen']);
     expect(lifecycleTarget('reopen', 'completed')).toBe('active');
   });
 
   it('offers Finish only for a funded open goal', () => {
-    expect(availableActions('active', false)).toEqual(['pause', 'archive']);
-    expect(availableActions('active', true)).toEqual(['pause', 'archive', 'finish']);
-    expect(availableActions('paused', true)).toEqual(['resume', 'archive', 'finish']);
+    expect(availableActions('active', false)).toEqual(['pause']);
+    expect(availableActions('active', true)).toEqual(['pause', 'finish']);
+    expect(availableActions('paused', true)).toEqual(['resume', 'finish']);
     expect(availableActions('completed', true)).toEqual(['reopen']);
-    expect(availableActions('archived', false)).toEqual(['reopen']);
   });
 });
 
@@ -77,7 +75,7 @@ function summary(id: string, status: GoalStatus): GoalSummary {
 }
 
 describe('Home selection fallback', () => {
-  const goals = [summary('a', 'archived'), summary('b', 'paused'), summary('c', 'active'), summary('d', 'completed')];
+  const goals = [summary('a', 'completed'), summary('b', 'paused'), summary('c', 'active'), summary('d', 'completed')];
 
   it('keeps a stored open goal', () => {
     expect(resolveSelectedGoalId(goals, 'c')).toBe('c');
@@ -91,7 +89,7 @@ describe('Home selection fallback', () => {
   });
 
   it('returns null when no goal is open', () => {
-    expect(resolveSelectedGoalId([summary('a', 'archived'), summary('d', 'completed')], 'a')).toBeNull();
+    expect(resolveSelectedGoalId([summary('a', 'completed'), summary('d', 'completed')], 'a')).toBeNull();
     expect(resolveSelectedGoalId([], null)).toBeNull();
   });
 });
@@ -110,7 +108,7 @@ describe('every command error has inline copy', () => {
     { code: 'operation_conflict' },
     { code: 'currency_missing' },
     { code: 'currency_invalid' },
-    { code: 'open_goal_limit' },
+    { code: 'goal_limit' },
     { code: 'invalid_reference' },
     { code: 'goal_not_found' },
     { code: 'stale_goal', currentRevision: 3 },
@@ -128,7 +126,10 @@ describe('every command error has inline copy', () => {
     expect(goalCommandMessage({ code: 'title_too_long' })).toEqual({ field: 'title', message: 'Use 100 characters or fewer.' });
     expect(goalCommandMessage({ code: 'past_deadline' }).field).toBe('deadline');
     expect(goalCommandMessage({ code: 'invalid_target' }).field).toBe('target');
-    expect(goalCommandMessage({ code: 'open_goal_limit' }).field).toBeNull();
+    expect(goalCommandMessage({ code: 'goal_limit' })).toEqual({
+      field: null,
+      message: 'Free includes one goal. Delete your current goal to start over, or unlock Pro for more goals.',
+    });
   });
 
   it('explains every amount parse error with the currency rules', () => {
@@ -149,15 +150,39 @@ describe('every command error has inline copy', () => {
       { code: 'operation_conflict' },
       { code: 'goal_not_found' },
       { code: 'stale_goal', currentRevision: 2 },
-      { code: 'invalid_transition', status: 'archived' },
-      { code: 'open_goal_limit' },
+      { code: 'invalid_transition', status: 'completed' },
+      { code: 'goal_limit' },
       { code: 'not_funded' },
       { code: 'storage_failure', message: 'x' },
     ];
     for (const error of errors) {
       expect(lifecycleMessage('reopen', error).length).toBeGreaterThan(10);
     }
-    expect(lifecycleMessage('reopen', { code: 'open_goal_limit' })).toMatch(/Archive your open goal first, then reopen this one/);
+    expect(lifecycleMessage('reopen', { code: 'goal_limit' })).toMatch(/Free includes one goal/);
+  });
+
+  it('explains every deletion refusal and names what deleting a completed goal loses (D74)', () => {
+    const errors: DeleteGoalError[] = [
+      { code: 'invalid_operation_id' },
+      { code: 'invalid_reference' },
+      { code: 'operation_conflict' },
+      { code: 'goal_not_found' },
+      { code: 'stale_goal', currentRevision: 2 },
+      { code: 'storage_failure', message: 'x' },
+    ];
+    for (const error of errors) {
+      expect(deleteMessage(error)).not.toMatch(/undefined/);
+      expect(deleteMessage(error).length).toBeGreaterThan(10);
+    }
+    expect(deleteConfirmation({ title: 'Bike', status: 'completed' })).toEqual({
+      title: 'Delete completed goal?',
+      message:
+        'This will permanently delete your savings history and the completed world from your Collection. This action cannot be undone.',
+    });
+    expect(deleteConfirmation({ title: 'Bike', status: 'paused' })).toEqual({
+      title: 'Delete “Bike”?',
+      message: 'This permanently deletes the goal and its savings history. This action cannot be undone.',
+    });
   });
 
   it('explains currency refusals and that nothing is converted', () => {

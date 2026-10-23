@@ -2,8 +2,8 @@ import { Stack, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Alert, StyleSheet, View, type TextInputInstance } from 'react-native';
 
-import { ledgerCommandDeps, refreshAppData, useAppDataStore, useCommittedRead } from '@/bootstrap/app-data';
-import { systemClock, today, type CivilDate } from '@/core/calendar';
+import { appClock, ledgerCommandDeps, refreshAppData, useAppDataStore, useCommittedRead } from '@/bootstrap/app-data';
+import { today, type CivilDate } from '@/core/calendar';
 import { formatMoney, type CurrencyMetadata, type EntryKind } from '@/core/money';
 import { randomUuid } from '@/data/ids';
 import { isOpenStatus, type GoalRecord } from '@/data/repositories/goal-repository';
@@ -38,7 +38,7 @@ import { committedToastTitle, KIND_LABEL, ledgerCommandMessage, type EntryFormFi
 // - Success is shown only after COMMIT: the sheet closes, the committed data is re-read, then one
 //   toast and one success haptic. A rule rejection or a failed write keeps every field as typed and
 //   explains the problem inline; a rule rejection also plays one warning haptic, a failed write none.
-// - Closed (completed/archived) goals are read-only until Reopen; paused goals stay editable and
+// - Completed goals are read-only until Reopen; paused goals stay editable and
 //   stay paused.
 
 type EntryFormProps =
@@ -141,7 +141,7 @@ type FormProps = {
 function EntryForm({ currency, goal, balanceMinor, entry }: FormProps) {
   const router = useRouter();
   const separators = deviceSeparators();
-  const [todayDate] = useState<CivilDate>(() => today(systemClock));
+  const [todayDate] = useState<CivilDate>(() => today(appClock()));
   // Captured when the form opens: a later change to this entry makes the save stale, never silently
   // overwritten.
   const [original] = useState(entry);

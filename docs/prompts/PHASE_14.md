@@ -8,7 +8,7 @@ You are implementing one phase of Saving Worlds in a fresh Claude Code session. 
 2. Read `docs/PROJECT_STATUS.md` and `docs/SESSION_HANDOFF.md`, including verification gaps. Read `docs/ARCHITECTURE.md`, `docs/DATA_MODEL.md`, the phase-specific documents below and its canonical roadmap entry. For any UI work, also read `docs/DESIGN_SYSTEM.md` and `docs/ADAPTIVE_LAYOUT.md`; reuse their tokens/primitives and layout policy. For native, dependency, persistence or delivery changes, read `docs/EAS_AND_OTA.md` and preserve its runtime/schema and activation contracts.
 3. Inspect the existing files, package scripts, lockfile, migrations, tests and working tree before changing anything. Preserve unrelated owner work. If Git is absent, inspect the directory and say so; do not assume a clean Git history.
 4. Verify actual dependency code and evidence against acceptance criteria. A checked box, previous handoff or earlier chat is insufficient. Resume missing work if this phase is partially complete. If already complete, verify that fact and report it without reimplementation or silently starting the next phase.
-5. Product authority is `docs/Saving_Worlds_MVP_Plan_v1_2.docx` (23 October 2026). It supersedes conflicting v1.1 and 22 October feature text, even when historical files say confirmed. Q01-Q06 are resolved; do not request reapproval or restore custom challenges, per-goal currencies, entry audit history or goal deletion. Read the compatible setup/layout and EAS/OTA source records for engineering only. Ask only for a genuinely missing operational dependency, continue independent authorized work and leave its evidence pending.
+5. Product authority is `docs/Saving_Worlds_MVP_Plan_v1_2.docx` (23 October 2026). It supersedes conflicting v1.1 and 22 October feature text, even when historical files say confirmed. Q01-Q06 are resolved; do not request reapproval or restore custom challenges, per-goal currencies or entry audit history. Owner decision D74 (DECISIONS) overrides v1.2 on goals: Archive and Close goal are removed (statuses active, paused, completed), any goal can be deleted after a native confirmation (goal, entries and souvenir; no undo), Free may have one goal in total in any status, and loss of Pro keeps one chosen goal usable and the others read-only. Do not restore Archive or the old no-deletion rule. Read the compatible setup/layout and EAS/OTA source records for engineering only. Ask only for a genuinely missing operational dependency, continue independent authorized work and leave its evidence pending.
 
 Phase-specific reading: `docs/ARCHITECTURE.md`, `docs/DATA_MODEL.md`, `docs/TECH_STACK.md`, `docs/TEST_PLAN.md` and the Phase 14 entry in `docs/DEVELOPMENT_ROADMAP.md`.
 
@@ -26,7 +26,7 @@ The schedule is fixed by v1.2, not an open cadence decision.
 
 - Add the single weeklyReminderEnabled Settings switch, default opt-in off. Ask OS permission only after user enables it; handle denied/provisional/authorized without blocking savings.
 - Persist global intent and reconcile a single logical weekly OS request for Sunday 18:00 device time. Schedule only if enabled, permitted and at least one goal status is active.
-- Reconcile on launch/foreground, settings/permission/timezone and goal Pause/Resume/Finish/Archive/Reopen. paused/completed/archived do not qualify; no active goal means no request. Editing a paused goal does not resume it.
+- Reconcile on launch/foreground, settings/permission/timezone and goal Pause/Resume/Finish/Reopen/Delete. paused/completed do not qualify; no active goal means no request. Editing a paused goal does not resume it.
 - Cancel duplicates/orphans and recover interrupted scheduling after SQLite commit. Use generic text and a safe Home/current-active-goal notification-tap fallback.
 - Use the actual local-notification adapter/config; no per-goal/per-challenge cadence/time/pause controls, push token/server or background-JavaScript assumption.
 
@@ -49,7 +49,7 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 ## Acceptance criteria
 
 - Permission denial leaves ledger fully usable and offers a system Settings path.
-- Exactly one desired global request with an active goal, none with only paused/completed/archived goals; repeat reconciliation never duplicates it.
+- Exactly one desired global request with an active goal, none with only paused/completed goals or after the last active goal is deleted; repeat reconciliation never duplicates it.
 - Real iPhone schedule/delivery/cancel/tap works for tested foreground/background/terminated scenarios with evidence.
 
 ## Tests and verification

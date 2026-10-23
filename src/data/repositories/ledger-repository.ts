@@ -103,3 +103,10 @@ export async function deleteEntry(tx: SqlExecutor, id: string, expectedRevision:
   const result = await tx.run('DELETE FROM ledger_entries WHERE id = ? AND revision = ?', [id, expectedRevision]);
   return result.changes === 1;
 }
+
+// Every entry of one goal, inside the goal deletion transaction (owner decision D74). The schema's
+// closed-goal triggers refuse this for a completed goal, so the command reopens the row first in the
+// same transaction.
+export async function deleteEntriesForGoal(tx: SqlExecutor, goalId: string): Promise<void> {
+  await tx.run('DELETE FROM ledger_entries WHERE goal_id = ?', [goalId]);
+}

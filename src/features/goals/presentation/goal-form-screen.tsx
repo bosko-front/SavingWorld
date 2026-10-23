@@ -2,8 +2,8 @@ import { Stack, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import { StyleSheet, View, type TextInputInstance } from 'react-native';
 
-import { goalCommandDeps, refreshAppData, useAppDataStore } from '@/bootstrap/app-data';
-import { systemClock, today, type CivilDate } from '@/core/calendar';
+import { appClock, goalCommandDeps, refreshAppData, useAppDataStore } from '@/bootstrap/app-data';
+import { today, type CivilDate } from '@/core/calendar';
 import { formatAmountInput, parseAmount, type CurrencyMetadata } from '@/core/money';
 import type { ThemeId } from '@/core/progression';
 import { randomUuid } from '@/data/ids';
@@ -69,7 +69,7 @@ export function GoalFormScreen({ goalId }: { goalId: string | null }) {
 function GoalForm({ currency, goal }: { currency: CurrencyMetadata; goal: GoalRecord | null }) {
   const router = useRouter();
   const separators = deviceSeparators();
-  const [todayDate] = useState<CivilDate>(() => today(systemClock));
+  const [todayDate] = useState<CivilDate>(() => today(appClock()));
   const [operationId] = useState(randomUuid);
   const [title, setTitle] = useState(goal?.title ?? '');
   const [targetText, setTargetText] = useState(() =>
@@ -110,7 +110,7 @@ function GoalForm({ currency, goal }: { currency: CurrencyMetadata; goal: GoalRe
     if (!result.ok) {
       setSaving(false);
       const message = goalCommandMessage(result.error);
-      if (result.error.code === 'open_goal_limit') {
+      if (result.error.code === 'goal_limit') {
         // A rule refused the save: one warning with the inline explanation (DESIGN_SYSTEM "Haptics").
         haptics.warning();
       }

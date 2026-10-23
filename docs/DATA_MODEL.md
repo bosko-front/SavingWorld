@@ -1,6 +1,6 @@
 # Data model and invariants
 
-Contract aligned 23 October 2026 to [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx), especially sections 3/4/7. Phase 05 implemented schema 1 (`src/data/db/migrations/0001-initial-ledger.ts`): migrations, settings, goals, ledger_entries and operation_receipts as STRICT tables with the constraints and triggers in DECISIONS D53; the other tables below are still planned. Apply tables only in their owning phases. Q01-Q06 are resolved; [reconciliation](SOURCE_RECONCILIATION.md) records authority.
+Contract aligned 23 October 2026 to [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx), especially sections 3/4/7. Phase 05 implemented schema 1 (`src/data/db/migrations/0001-initial-ledger.ts`): migrations, settings, goals, ledger_entries and operation_receipts as STRICT tables with the constraints and triggers in DECISIONS D53; the other tables below are still planned. Apply tables only in their owning phases. Q01-Q06 are resolved; owner decision D74 changes the goal status set, adds whole-goal deletion and makes the Free limit one goal in total; [reconciliation](SOURCE_RECONCILIATION.md) records authority.
 
 ## Money and date types
 
@@ -18,7 +18,7 @@ Every create/correct/delete transaction command computes the candidate history o
 
 ## Global currency lock
 
-Choose currency during onboarding before creating a goal. A later Settings-only change is allowed iff the database contains zero transactions and zero collectibles across all goals, including closed ones. Recheck this inside the same serialized write boundary as financial mutations. It is not a lifetime lock after a deleted transaction. A retained collectible still locks it. Apply a permitted choice to all existing empty goals; explain and confirm that no amounts are converted. Validate any newly interpreted target against the selected metadata without inventing FX behavior.
+Choose currency during onboarding before creating a goal. A later Settings-only change is allowed iff the database contains zero transactions and zero collectibles across all goals, including closed ones. Recheck this inside the same serialized write boundary as financial mutations. It is not a lifetime lock after a deleted transaction or a deleted goal (D74). A retained collectible still locks it. Apply a permitted choice to all existing empty goals; explain and confirm that no amounts are converted. Validate any newly interpreted target against the selected metadata without inventing FX behavior.
 
 Implemented in Phase 06 (DECISIONS D56): `setGlobalCurrency` serves onboarding and Settings, counts ledger entries and souvenirs inside its exclusive transaction, and rewrites each empty goal's target to the same written amount in the new exponent (1,000.00 EUR → 1,000 JPY). A target the new currency cannot show exactly, or one above 10^12, refuses the change instead of rounding. Until Phase 11 creates `collectibles`, the souvenir count is 0 when the table is absent.
 
@@ -36,11 +36,13 @@ version INTEGER PRIMARY KEY, name, checksum, applied_at_utc. Ordered immutable m
 
 key TEXT PRIMARY KEY, value_json TEXT NOT NULL, updated_at_utc. Typed keys: `currency` = {code, exponent, registryVersion} (implemented Phase 05; the global currencyCode with versioned exponent metadata), `selectedGoalId` = a JSON string (implemented Phase 06; a hint that falls back to the oldest open goal), weeklyReminderEnabled and optional additional reduce-motion preference. Onboarding is complete once a valid `currency` exists; no separate onboardingCompleted key is stored (D56). UI is English with locale-aware numeric/date formatting. No preferred-new-goal currency or purchase override. Missing/invalid currency gates goal creation; no silent default reinterpretation of financial data.
 
-### goals (Phase 05; lifecycle in 06, Finish integration in 11)
+### goals (Phase 05; lifecycle in 06, deletion and migration 2 from D74, Finish integration in 11)
 
 id TEXT PRIMARY KEY, title TEXT NOT NULL, target_minor INTEGER CHECK(target_minor>0 AND target_minor<=1000000000000), deadline_date TEXT NULL, theme_id TEXT NOT NULL, status TEXT CHECK(status IN ('active','paused','completed','archived')), created_at_utc, updated_at_utc, revision INTEGER CHECK(revision>=1).
 
-Start at zero; no currency/exponent/balance column. Index status/updated time. active and paused are open and count against Free's one slot; Pro has no open-goal limit. paused permits editing and transactions without resuming reminder eligibility. Archive preserves all records. No whole-goal deletion command or UI. completed/archived are read-only until Reopen passes the current Free limit and sets active. Finish requires open goal and B>=T, sets completed and releases a slot. Reopen at >=100% never auto-finishes. Target/theme/deadline/ledger edits share the closed-goal guard. Phase 06 implements Edit, Pause, Resume, Archive, Finish (command only; UI in Phase 11) and Reopen with revision checks and receipts (DECISIONS D57); Archive and Finish start from an open goal, and an unchanged expired deadline may be kept on edit.
+Start at zero; no currency/exponent/balance column. Index status/updated time. Statuses are active, paused and completed (D74): active and paused are open; completed is read-only until Reopen sets active. The CHECK keeps the legacy value 'archived' so schema 1 stays valid, but no code writes it. Free may have one goal in total in any status; Pro has no goal limit. Create checks the limit by counting all goals inside its exclusive transaction. Reopen adds no goal, so it is allowed while the person is within the limit. paused permits editing and transactions without resuming reminder eligibility. Finish requires an open goal and B>=T and sets completed. Reopen at >=100% never auto-finishes. Target/theme/deadline/ledger edits share the closed-goal guard. Phase 06 implemented Edit, Pause, Resume, Finish (command only; UI in Phase 11) and Reopen with revision checks and receipts (DECISIONS D57), plus an Archive command that D74 removed; Finish starts from an open goal, and an unchanged expired deadline may be kept on edit.
+
+Goal deletion (D74): any goal, in any status, Free or Pro, can be deleted after a native confirmation. One command, in one exclusive transaction with a stable operation ID, a goal revision check and an identifiers-only receipt, deletes the goal's ledger entries, its collectible (when the `collectibles` table exists), its challenge attempts (when the Phase 12 table exists) and then the goal. It cannot be undone and keeps no copy, audit or history of the deleted rows. Deleting the last transaction or souvenir can unlock the global currency, because the currency lock only counts what exists. Schema 1 has a trigger that blocks goal deletion; migration 2 drops that trigger and converts any pre-existing development rows with status 'archived' to 'paused'. Schema 1 itself and its pinned checksum are unchanged.
 
 ### ledger_entries (Phase 05; UI in 07)
 
@@ -58,7 +60,7 @@ The Phase 06 currency lock already reads this table through `src/data/repositori
 
 goal_id TEXT PRIMARY KEY REFERENCES goals(id), theme_id TEXT NOT NULL, theme_version INTEGER NOT NULL, earned_at_utc TEXT NOT NULL. Optional immutable display snapshots of title/target at award may be retained for honest Collection captions; they are not an entry audit or an authoritative financial total. Currency is global; a collectible locks Settings currency changes.
 
-After a saved transaction mutation or target edit first yields B>=T, insert exactly once by unique goal_id, in that same transaction. Also Free. Goal status is unchanged. Withdrawal, correction (including an initial mistake), target/theme changes, Archive, Finish and Reopen never remove/replace the souvenir. Repeat threshold crossings cannot add another. Preserve referenced historical theme manifests; no screenshot blob needed. Live scene always follows current B/T.
+After a saved transaction mutation or target edit first yields B>=T, insert exactly once by unique goal_id, in that same transaction. Also Free. Goal status is unchanged. Withdrawal, correction (including an initial mistake), target/theme changes, Finish and Reopen never remove/replace the souvenir. Only deleting its goal deletes it, in the same transaction (D74). Repeat threshold crossings cannot add another. Preserve referenced historical theme manifests; no screenshot blob needed. Live scene always follows current B/T.
 
 ### challenge_attempts (Phase 12)
 
@@ -82,7 +84,7 @@ Completed, Not completed and Skipped are historical presentations. Once historic
 
 ### reminder intent and notification_requests (Phase 14)
 
-Use settings.weeklyReminderEnabled as the single global opt-in, plus durable request intent/logical_key/native_request_id/revision/error status for OS reconciliation. No goal_id, challenge_id, editable cadence or time controls in reminder preferences. Desired schedule is one global local weekly Sunday 18:00 device-time notification iff opt-in, permission and at least one active goal exist. paused/completed/archived do not qualify. Editing a paused goal does not resume it.
+Use settings.weeklyReminderEnabled as the single global opt-in, plus durable request intent/logical_key/native_request_id/revision/error status for OS reconciliation. No goal_id, challenge_id, editable cadence or time controls in reminder preferences. Desired schedule is one global local weekly Sunday 18:00 device-time notification iff opt-in, permission and at least one active goal exist. paused/completed do not qualify. Editing a paused goal does not resume it.
 
 Persist intent before OS scheduling, reconcile pending requests at launch/foreground and after settings/lifecycle/permission/timezone changes, cancel duplicates/orphans. Native OS calls cannot join SQLite transactions. Use generic text and a safe Home/current-active-goal fallback on tap. No financial data in notifications or server push.
 
@@ -90,22 +92,22 @@ Persist intent before OS scheduling, reconcile pending requests at launch/foregr
 
 Cache: product_id PRIMARY KEY, status CHECK IN ('verified','not_owned','revoked','unknown'), native_transaction_id, verified_at_utc, last_attempt_at_utc, last_error_code. Events: native_transaction_id PRIMARY KEY, product_id, verification_state, processed_at_utc, finished_at_utc, revoked_at_utc. Re-delivery reconciles by ID. No raw receipt payload in normal logs. Native verified state is authoritative; pending/unverified never unlocks Pro.
 
-Pro maps only to unlimited open goals, Garden/open-goal switching and four statistics. Retain prior verified rights through temporary network failure. If StoreKit confirms no right, preserve all data/souvenirs, require selection of at most one open Free goal and archival of others before further entries, and use Island for the open Free goal. Retain Garden souvenirs. Never alter amounts or delete records. Restore restores license only.
+Pro maps only to unlimited goals, Garden/open-goal switching and four statistics. Retain prior verified rights through temporary network failure. If StoreKit confirms no right (verified revocation/refund, Family Sharing removed), delete or change nothing (D74). With several goals the person chooses one goal to keep using; the others stay visible but read-only (no new entries or edits) until Pro returns or they are deleted. A goal on the Garden theme keeps its world as it is but cannot progress further in Garden without Pro; to continue saving on it the person switches that goal to Island, keeping ledger, target and souvenir. Retain Garden souvenirs. Never alter amounts or delete records on entitlement change. Restore restores license only.
 
 ## Four Pro statistics
 
-1. Current total B across every goal, including active/paused/completed/archived.
+1. Current total B across every existing goal (active, paused, completed). A deleted goal's entries are gone and no longer counted (D74).
 2. Gross deposits and withdrawals in the current local calendar month by saved entry_date.
-3. One total daily-balance line for the last 30 calendar days, today and the preceding 29 dates. Include all valid entries before the window as opening balance, then each day's entries across all goals, including archived. No selected-goal chart or currency grouping.
-4. Count goals whose current status is completed; souvenir count is not this count. Reopen/Archive changes the status count without removing the souvenir.
+3. One total daily-balance line for the last 30 calendar days, today and the preceding 29 dates. Include all valid entries before the window as opening balance, then each day's entries across all existing goals. No selected-goal chart or currency grouping.
+4. Count goals whose current status is completed; souvenir count is not this count. Reopen changes the status count without removing the souvenir; deleting a completed goal removes it from the count and removes its souvenir.
 
 Backdated corrections/deletions update totals/month/chart. No double-counted collectible snapshot money. Use BigInt aggregates with checked presentation; provide readable chart text.
 
 ## Write invariants and deletion
 
-Enable foreign keys on every connection and WAL normally. Parameterize inputs. Serialize financial/lifecycle/currency writes in explicit exclusive transactions; query through their transaction handle. Validate lifecycle/capability/Free-slot/currency-lock and candidate chronological history against current data. Row revisions prevent stale overwrites; operation receipts make retries safe. No optimistic financial success before commit.
+Enable foreign keys on every connection and WAL normally. Parameterize inputs. Serialize financial/lifecycle/currency writes in explicit exclusive transactions; query through their transaction handle. Validate lifecycle/capability/Free goal limit/currency-lock and candidate chronological history against current data. Row revisions prevent stale overwrites; operation receipts make retries safe. No optimistic financial success before commit.
 
-The ledger mutation, eligible challenge result changes, unique collectible award and receipt commit together or roll back together. Failure/busy/low storage cannot partly create effects. Animation and notifications run after commit and cannot change money. No whole-goal deletion, no correction audit, no automatic database reset and no loss of records on entitlement change.
+The ledger mutation, eligible challenge result changes, unique collectible award and receipt commit together or roll back together. Failure/busy/low storage cannot partly create effects. Animation and notifications run after commit and cannot change money. Whole-goal deletion is the only command that removes a goal; it runs only after a native confirmation and removes the goal's entries, souvenir and attempts with it in one transaction (D74). No correction audit, no automatic database reset and no loss of records on entitlement change.
 
 ## OTA and persisted-data compatibility
 

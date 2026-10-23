@@ -43,6 +43,23 @@ export const containedRegionOwnership: InsetOwnership = {
   right: 'container',
 };
 
+// A floating action button at the bottom trailing corner of a scrolling screen (Screen and
+// AdaptiveGoalLayout `floatingAction`, DECISIONS D72-D73). It sits above the tab bar and home
+// indicator, so its bottom margin is added to the measured inset; the sides use max(inset, margin)
+// like a scrolling screen's gutter, so a long label at a large text size wraps inside them.
+export const floatingActionEdges: EdgeRecord = { top: 'off', bottom: 'additive', left: 'maximum', right: 'maximum' };
+
+// Distance of the floating button from the bottom and trailing edges of the usable area.
+export const FLOATING_ACTION_MARGIN = 16;
+
+// Extra bottom content inset under a floating button: its measured height, its bottom margin and a
+// small gap, so the last row can scroll clear of it. The native scroll view adds the tab bar and
+// home indicator itself (`automatic`), exactly as the button's bottom edge does, so neither is
+// counted here.
+export function floatingActionInset(buttonHeight: number): number {
+  return buttonHeight > 0 ? Math.ceil(buttonHeight + FLOATING_ACTION_MARGIN + 8) : 0;
+}
+
 // SafeAreaView edges for an ownership. `maximum` means padding = max(inset, gutter): the gutter
 // is a minimum margin, not added on top of the inset.
 export function safeAreaEdges(ownership: InsetOwnership): EdgeRecord {
@@ -87,7 +104,7 @@ export function fitAspect(region: Size, aspectRatio: number): Size {
 // Scene height in the single-column fallback: full column width at the scene's aspect ratio, but
 // never more than `maxShare` of the visible height, so the saved amount and actions stay close in a
 // short window. Text size is irrelevant here; controls below scroll and grow with Dynamic Type.
-export function stackedSceneHeight(columnWidth: number, visibleHeight: number, aspectRatio: number, maxShare = 0.45): number {
+export function stackedSceneHeight(columnWidth: number, visibleHeight: number, aspectRatio: number, maxShare = 0.4): number {
   if (columnWidth <= 0 || !(aspectRatio > 0)) {
     return 0;
   }

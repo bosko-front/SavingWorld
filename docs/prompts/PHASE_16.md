@@ -8,7 +8,7 @@ You are implementing one phase of Saving Worlds in a fresh Claude Code session. 
 2. Read `docs/PROJECT_STATUS.md` and `docs/SESSION_HANDOFF.md`, including verification gaps. Read `docs/ARCHITECTURE.md`, `docs/DATA_MODEL.md`, the phase-specific documents below and its canonical roadmap entry. For any UI work, also read `docs/DESIGN_SYSTEM.md` and `docs/ADAPTIVE_LAYOUT.md`; reuse their tokens/primitives and layout policy. For native, dependency, persistence or delivery changes, read `docs/EAS_AND_OTA.md` and preserve its runtime/schema and activation contracts.
 3. Inspect the existing files, package scripts, lockfile, migrations, tests and working tree before changing anything. Preserve unrelated owner work. If Git is absent, inspect the directory and say so; do not assume a clean Git history.
 4. Verify actual dependency code and evidence against acceptance criteria. A checked box, previous handoff or earlier chat is insufficient. Resume missing work if this phase is partially complete. If already complete, verify that fact and report it without reimplementation or silently starting the next phase.
-5. Product authority is `docs/Saving_Worlds_MVP_Plan_v1_2.docx` (23 October 2026). It supersedes conflicting v1.1 and 22 October feature text, even when historical files say confirmed. Q01-Q06 are resolved; do not request reapproval or restore custom challenges, per-goal currencies, entry audit history or goal deletion. Read the compatible setup/layout and EAS/OTA source records for engineering only. Ask only for a genuinely missing operational dependency, continue independent authorized work and leave its evidence pending.
+5. Product authority is `docs/Saving_Worlds_MVP_Plan_v1_2.docx` (23 October 2026). It supersedes conflicting v1.1 and 22 October feature text, even when historical files say confirmed. Q01-Q06 are resolved; do not request reapproval or restore custom challenges, per-goal currencies or entry audit history. Owner decision D74 (DECISIONS) overrides v1.2 on goals: Archive and Close goal are removed (statuses active, paused, completed), any goal can be deleted after a native confirmation (goal, entries and souvenir; no undo), Free may have one goal in total in any status, and loss of Pro keeps one chosen goal usable and the others read-only. Do not restore Archive or the old no-deletion rule. Read the compatible setup/layout and EAS/OTA source records for engineering only. Ask only for a genuinely missing operational dependency, continue independent authorized work and leave its evidence pending.
 
 Phase-specific reading: `docs/ARCHITECTURE.md`, `docs/DATA_MODEL.md`, `docs/TECH_STACK.md`, `docs/TEST_PLAN.md` and the Phase 16 entry in `docs/DEVELOPMENT_ROADMAP.md`.
 
@@ -20,14 +20,15 @@ Connect verified purchases to the complete Free/Pro access rules and a truthful 
 
 Phase 15
 
-Q05 is resolved by v1.2; use its confirmed-loss policy without reapproval. Test paywall pricing may use configured sandbox data; public-release sale copy waits for final Q07 price.
+Q05 is resolved by v1.2 and its confirmed-loss policy is changed by owner decision D74; use the D74 policy without reapproval. Test paywall pricing may use configured sandbox data; public-release sale copy waits for final Q07 price.
 
 ## Exact scope
 
 - Implement lifetime paywall with exact included features, localized product price and buy/restore controls; handle loading/offline/pending/cancelled/owned/error states.
+- Replace the Phase 08 native alert with the "Build another world" paywall entry when Free tries to create a second goal (D74): title "Build another world", message "You've already created your free savings goal. Unlock Pro to create more goals and grow your collection of worlds.", button "Explore Pro", footnote "One-time purchase. No subscription.", with Garden shown as an extra Pro benefit. Free can also delete its goal and start over.
 - Replace all temporary test capability wiring with the verified production provider; inspect every command entry point for duplicate/free-limit bypasses.
-- Enable unlimited open Pro goals and statistics navigation; fixed challenges remain identical in both tiers; Garden becomes selectable only when Phase 17 is complete.
-- Implement v1.2 verified-loss behavior: retain all goals/history/souvenirs, require the user to choose at most one open Free goal and archive the others before further entries, and use Island on the open Free goal while Garden souvenirs persist. Temporary offline failure retains previously verified rights; never alter amounts or delete data.
+- Enable unlimited Pro goals and statistics navigation; Free keeps the one-goal-in-total limit (any status) for Create; fixed challenges remain identical in both tiers; Garden becomes selectable only when Phase 17 is complete.
+- Implement the D74 verified-loss behavior (verified revocation/refund, Family Sharing removed): delete or change nothing; with several goals the person chooses one goal to keep using; the other goals stay visible but read-only (no new entries or edits) until Pro returns or they are deleted. A Garden goal keeps its world as it is but cannot progress further in Garden without Pro; to continue saving the person switches it to Island (Phase 17). Garden souvenirs persist. Temporary offline failure retains previously verified rights; never alter amounts or delete data.
 - Provide restore from both paywall and Settings, distinguish purchase rights from data recovery, and return users to the action that opened the paywall.
 
 ## Expected files and modules
@@ -36,7 +37,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 
 - `src/features/billing/presentation/ paywall and restore states`
 - `src/features/goals/ multi-goal selection and command gates`
-- `src/core/access/ open-goal limit and read-only paid-statistics gates`
+- `src/core/access/ Free goal limit, read-only-after-loss and paid-statistics gates`
 - `src/features/settings/ Restore Purchases entry`
 - `capability and purchase user-journey tests`
 
@@ -50,13 +51,14 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 
 - Free and Pro feature matrix matches R05/R14/R15/R18/R19/R20 across cold restart and deep-link entry.
 - Restore/error/cancellation states are understandable and do not trap the user.
-- Verified revocation preserves records and Garden souvenirs, blocks further entries until the user leaves at most one open goal, and shows Island for that Free goal. Unknown offline state does not revoke.
+- Verified revocation deletes or changes nothing; with several goals the person chooses one goal to keep using; the other goals stay visible but read-only (no new entries or edits) until Pro returns or they are deleted; Garden souvenirs stay. Unknown offline state does not revoke.
+- A Free second Create shows the "Build another world" paywall entry with the exact D74 copy; buying Pro returns to Create.
 
 ## Tests and verification
 
 - Unit/integration access matrix, deep-link and repeated goal-create tests.
 - Device purchase/restore/cancel/offline/pending walkthrough; all three fixed challenges stay Free before/after Pro.
-- Resolved v1.2 revocation/over-limit and archived-before-further-entry behavior, accessibility checks and standard checks.
+- D74 revocation behavior (choose one goal, the others read-only until Pro returns or they are deleted), the Free one-goal limit, accessibility checks and standard checks.
 
 ## Definition of Done
 

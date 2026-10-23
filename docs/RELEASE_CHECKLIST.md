@@ -5,12 +5,12 @@ Product authority is [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx). Q01-Q06 
 ## Product and financial correctness
 
 - [ ] R01-R26 have implementation and test evidence linked from status and the test plan.
-- [ ] Free: active+paused<=1 open goal, Island, all three fixed challenges, shared ledger/history and exact inclusive-day deadline estimates; completed/archived excluded from limit.
-- [ ] Pro lifetime: unlimited open goals, complete Garden, simple open-goal Island/Garden switching and four precise statistics. Fixed challenges identical to Free; no custom editor/schedule/pause.
+- [ ] Free: one goal in total in any status (active, paused or completed), one finished world in Collection, delete and start over, Pause, Island, all three fixed challenges, shared ledger/history and exact inclusive-day deadline estimates (D74). A second Create shows the "Build another world" paywall entry.
+- [ ] Pro lifetime: unlimited goals and finished worlds, complete Garden, simple open-goal Island/Garden switching and four precise statistics. Fixed challenges identical to Free; no custom editor/schedule/pause.
 - [ ] One global currency from onboarding/Settings, locked with any transaction or souvenir; no goal picker/FX. Positive entry amounts, no future dates, chronological nonnegative subtotals, edits/confirmed deletes and overfunding pass native tests; no audit versions.
 - [ ] Both themes have the exact base plus ten unlocks, production-approved licensed assets, bounded animations and accessible descriptions.
-- [ ] First saved>=100% gives one permanent souvenir even Free, without status change. Explicit Finish/Reopen, closed read-only guards, paused editing, one-slot limit and no whole-goal deletion pass. Challenge eligibility/frozen attempts/history never creates duplicate money or reactivates past attempts.
-- [ ] Four Pro statistics exactly match all-goal current total, current-month gross inflow/outflow, all-goal daily balance for last 30 days including opening balance/archived ledger, and count status=completed.
+- [ ] First saved>=100% gives one permanent souvenir even Free, without status change. Explicit Finish/Reopen, completed read-only guards, paused editing, the one-goal Free limit and confirmed whole-goal deletion (goal, entries and souvenir removed, exact confirmation copy, no undo, no Archive or Close goal; D74) pass. Challenge eligibility/frozen attempts/history never creates duplicate money or reactivates past attempts.
+- [ ] Four Pro statistics exactly match all-goal current total, current-month gross inflow/outflow, all-goal daily balance for last 30 days including opening balance across all existing goals (deleted goals excluded), and count status=completed.
 - [ ] No backup/export/import/sync, custom/advanced challenges, extra schedules, advanced gamification/forecasts, scene editor, accounts or future-theme promises entered scope.
 
 ## Setup styling and adaptive platform foundation
@@ -29,7 +29,7 @@ Product authority is [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx). Q01-Q06 
 - [ ] No automatic wipe/reinitialize on storage failure; retry/recovery copy is usable and diagnostics redact financial content.
 - [ ] App sandbox/file protection behavior is appropriate for the tested locked-device/foreground cases.
 - [ ] Data explanation states local storage/app deletion risk and OS backup limitations; no backup/sync guarantee or fake import/export action.
-- [ ] Restore Purchases clearly restores paid rights, not savings records. No records disappear on confirmed loss; select at most one open Free goal and archive others before further entries, use Island live and retain Garden souvenirs. Temporary offline failure alone retains prior verified rights.
+- [ ] Restore Purchases clearly restores paid rights, not savings records. Nothing is deleted or changed on confirmed loss; with several goals the person chooses one to keep using and the others stay visible but read-only until Pro returns or they are deleted; a Garden goal stays as it is and continues only after switching to Island; Garden souvenirs retained (D74). Temporary offline failure alone retains prior verified rights.
 
 ## Purchases and notifications
 
@@ -47,7 +47,7 @@ Product authority is [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx). Q01-Q06 
 - [ ] English catalog is complete; currency/date formatting and longer/RTL-ready layouts are verified without claiming untranslated language support.
 - [ ] Airplane-mode core journeys and already verified Pro features work without an app login.
 - [ ] Release build launch/query/frame/memory measurements meet the documented device budgets or a reviewed adjustment.
-- [ ] Empty/error/complete/overfunded/paused/archived/offline/store-unavailable states are present and tested.
+- [ ] Empty/error/complete/overfunded/paused/read-only-after-loss/offline/store-unavailable states are present and tested.
 
 ## EAS Build and OTA delivery
 

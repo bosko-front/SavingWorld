@@ -1,8 +1,10 @@
-import { render, screen, userEvent } from '@testing-library/react-native';
+import { act, render, screen, userEvent } from '@testing-library/react-native';
 import { useState } from 'react';
+import { Dimensions } from 'react-native';
 
 import { AmountText } from '@/shared/ui/amount-text';
 import { Button } from '@/shared/ui/button';
+import { FloatingActionButton } from '@/shared/ui/floating-action-button';
 import { Notice } from '@/shared/ui/notice';
 import { TextField } from '@/shared/ui/text-field';
 
@@ -115,5 +117,28 @@ describe('Notice and AmountText', () => {
   it('renders the formatted amount text unchanged', async () => {
     await render(<AmountText formatted="− €20.00 withdrawal" kind="withdrawal" />);
     expect(screen.getByText('− €20.00 withdrawal')).toBeOnTheScreen();
+  });
+});
+
+describe('FloatingActionButton', () => {
+  async function setFontScale(fontScale: number) {
+    await act(async () => {
+      Dimensions.set({ window: { width: 375, height: 667, scale: 2, fontScale }, screen: { width: 375, height: 667, scale: 2, fontScale } });
+    });
+  }
+
+  it('says what it adds: "+ Add savings", compacting to the icon at large text with the same spoken name (D73)', async () => {
+    const onPress = jest.fn();
+    await setFontScale(1);
+    await render(<FloatingActionButton icon="add" label="Add savings" onPress={onPress} testID="fab" />);
+    expect(screen.getByTestId('fab')).toHaveTextContent('Add savings');
+    expect(screen.getByRole('button', { name: 'Add savings' })).toBeOnTheScreen();
+    await userEvent.press(screen.getByTestId('fab'));
+    expect(onPress).toHaveBeenCalledTimes(1);
+
+    await setFontScale(3.1);
+    expect(screen.getByTestId('fab')).not.toHaveTextContent('Add savings');
+    expect(screen.getByRole('button', { name: 'Add savings' })).toBeOnTheScreen();
+    await setFontScale(2);
   });
 });

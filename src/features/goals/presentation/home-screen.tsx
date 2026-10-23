@@ -1,18 +1,20 @@
 import { Link } from 'expo-router';
-import { Alert, StyleSheet, View } from 'react-native';
+import { useState, type ReactElement } from 'react';
+import { StyleSheet, View } from 'react-native';
 
 import { currentCapabilities, goalCommandDeps, refreshAppData, useAppDataStore } from '@/bootstrap/app-data';
-import { hasOpenGoalSlot } from '@/core/access';
-import type { CurrencyMetadata } from '@/core/money';
-import { sceneFeedback } from '@/core/progression';
+import { hasGoalSlot } from '@/core/access';
 import { isOpenStatus, type GoalSummary } from '@/data/repositories/goal-repository';
-import { formatCivilDate } from '@/shared/i18n/locale';
-import { Screen } from '@/shared/layout';
-import { spacing } from '@/shared/theme';
+import { WORLD_SCENE_ASPECT, WorldScene } from '@/features/worlds/world-scene';
+import { AdaptiveGoalLayout, Screen } from '@/shared/layout';
+import { colors, radii, spacing } from '@/shared/theme';
 import { AmountText } from '@/shared/ui/amount-text';
 import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
+import { FloatingActionButton } from '@/shared/ui/floating-action-button';
+import { haptics } from '@/shared/ui/haptics';
+import { Icon } from '@/shared/ui/icon';
 import { ListGroup, ListRow } from '@/shared/ui/list-row';
 import { Notice } from '@/shared/ui/notice';
 import { ProgressBar, progressTextTone } from '@/shared/ui/progress-bar';
@@ -21,32 +23,32 @@ import { StatusBadge } from '@/shared/ui/status-badge';
 
 import { selectGoal } from '../application/goal-selection';
 
-import { goalAmounts } from './goal-amounts';
-import { LIFECYCLE_COPY } from './goal-copy';
+import { DeadlineCard } from './deadline-card';
+import { GoalMenu } from './goal-menu';
+import { useDeleteGoal } from './use-delete-goal';
+import { homeDashboard, type HomeDashboard, type NextMilestone } from './home-dashboard';
 import { useGoalAction } from './use-goal-action';
 
-// Home (Phase 06 basics, Phase 07 ledger actions, Phase 07.5 visual direction A "Calm hero"): the
-// selected open goal's saved amount as the largest text, a milestone progress bar with the percent
-// and remaining amount in words, one primary action (Add savings) and the other actions grouped in
-// rows instead of a stack of buttons. Settings is in the navigation bar. Phase 08 adds the scene on
-// AdaptiveGoalLayout, the next milestone and the deadline estimates to this composition. Free shows
-// at most one open goal; with more open goals (Pro) a simple list chooses which one Home shows. The
-// choice is stored, and after a restart a missing or closed choice falls back to the oldest open goal.
+// Home (Phase 06 basics, Phase 07 ledger actions, Phase 07.5 visual direction A "Calm hero", Phase 08
+// dashboard): the world first, then progress. The controls show the goal title with its options
+// menu (⋯: History, Edit, Pause/Resume, New goal, Delete), the saved amount as the largest text,
+// the target, a milestone progress bar with the floored percent and the remaining (or overfunded)
+// amount, the next milestone and the deadline card. The one primary action is the floating
+// "+ Add savings" button (D72, D73). Every number comes from the committed snapshot (balance
+// recomputed from the ledger) and the civil date it was read on; a commit or a new date re-reads
+// it. Settings is in the navigation bar. Free shows at most one open goal; with more open goals (Pro) a simple list chooses
+// which one Home shows. The choice is stored, and after a restart a missing or closed choice falls
+// back to the oldest open goal.
 export function HomeScreen() {
   const state = useAppDataStore((store) => store.state);
 
   if (state.status === 'failed') {
-    return (
-      <Screen>
-        <Notice tone="error" title="Couldn’t load your goals" message="Nothing was changed. Try again." />
-        <Button label="Try again" onPress={() => void refreshAppData()} />
-      </Screen>
-    );
+    return <LoadFailed />;
   }
   if (state.status !== 'ready') {
     return null;
   }
-  const { currency, goals } = state.data;
+  const { currency, goals, today } = state.data;
   if (currency.currency.status !== 'set') {
     return (
       <Screen>
@@ -60,50 +62,93 @@ export function HomeScreen() {
   }
 
   const open = goals.goals.filter((summary) => isOpenStatus(summary.goal.status));
-  const closedCount = goals.goals.length - open.length;
+  const completedCount = goals.goals.length - open.length;
   const selected = open.find((summary) => summary.goal.id === goals.selectedGoalId) ?? null;
-  const canCreate = hasOpenGoalSlot(currentCapabilities(), open.length);
+  const canCreate = hasGoalSlot(currentCapabilities(), goals.goals.length);
 
   if (!selected) {
     return (
       <Screen testID="home" centered>
-        <EmptyHome closedCount={closedCount} />
+        <EmptyHome completedCount={completedCount} canCreate={canCreate} />
       </Screen>
     );
   }
 
   return (
-    <Screen testID="home">
-      <SelectedGoal summary={selected} currency={currency.currency.currency} />
-      {open.length > 1 ? <GoalSwitcher open={open} selectedId={selected.goal.id} /> : null}
-      {canCreate ? (
-        <ListGroup>
-          <Link href="/goal-form" asChild>
-            <ListRow title="New goal" icon="milestone" chevron testID="home-new-goal" />
-          </Link>
-        </ListGroup>
-      ) : (
-        <AppText role="footnote" tone="secondary" testID="home-slot-notice">
-          Free includes one open goal, active or paused. Archive this goal to start another one; it keeps all its records.
-        </AppText>
-      )}
+    <SelectedGoalHome
+      summary={selected}
+      dashboard={homeDashboard(selected, currency.currency.currency, today)}
+      open={open}
+      canCreate={canCreate}
+    />
+  );
+}
+
+type SelectedGoalHomeProps = { summary: GoalSummary; dashboard: HomeDashboard; open: GoalSummary[]; canCreate: boolean };
+
+// The selected goal on AdaptiveGoalLayout: the world, then the numbers and the deadline card; goal
+// administration is in the ⋯ menu and Add savings is the floating button (owner direction D73).
+function SelectedGoalHome({ summary, dashboard, open, canCreate }: SelectedGoalHomeProps) {
+  const { goal } = summary;
+  const action = useGoalAction();
+  const { deleting, confirmDelete } = useDeleteGoal();
+  const busy = action.pending?.goalId === goal.id || deleting === goal.id;
+  return (
+    <AdaptiveGoalLayout
+      testID="home"
+      sceneAspectRatio={WORLD_SCENE_ASPECT}
+      scene={<WorldScene themeId={goal.themeId} stage={dashboard.stage} />}
+      floatingAction={
+        <Link href={{ pathname: '/entry-form', params: { goalId: goal.id } }} asChild>
+          <FloatingActionButton icon="add" label="Add savings" disabled={busy} testID="home-add-savings" />
+        </Link>
+      }
+      controls={
+        <View style={styles.controls}>
+          <GoalNumbers summary={summary} dashboard={dashboard} menu={<GoalMenu summary={summary} canCreate={canCreate} busy={busy} run={action.run} onDelete={() => confirmDelete(goal)} />} />
+          {open.length > 1 ? <GoalSwitcher open={open} selectedId={goal.id} /> : null}
+        </View>
+      }
+    />
+  );
+}
+
+// A read that failed after the app opened: nothing is shown as current, nothing was changed, and
+// one tap reads again. The navigator stays, so the person keeps their place.
+function LoadFailed() {
+  const [retrying, setRetrying] = useState(false);
+  const retry = async () => {
+    setRetrying(true);
+    await refreshAppData();
+    setRetrying(false);
+  };
+  return (
+    <Screen testID="home-load-failed">
+      <Notice tone="error" title="Couldn’t load your goals" message="Nothing was changed. Try again." />
+      <Button label="Try again" loading={retrying} onPress={() => void retry()} testID="home-retry" />
     </Screen>
   );
 }
 
-function EmptyHome({ closedCount }: { closedCount: number }) {
+// No open goal. A finished goal (Phase 11) still counts toward Free's one goal (D74), so Free is told
+// where it is and what the two ways forward are instead of being sent to a form that would refuse.
+function EmptyHome({ completedCount, canCreate }: { completedCount: number; canCreate: boolean }) {
   return (
     <EmptyState
       icon="milestone"
-      title={closedCount > 0 ? 'Start a new goal' : 'Start your first goal'}
+      title={completedCount > 0 ? 'Start a new goal' : 'Start your first goal'}
       message="Name something you are saving for and set a target. Each amount you record grows a small world.">
       <View style={styles.emptyActions}>
-        <Link href="/goal-form" asChild>
-          <Button label="Create a goal" testID="home-new-goal" />
-        </Link>
-        {closedCount > 0 ? (
+        {canCreate ? (
+          <Link href="/goal-form" asChild>
+            <Button label="Create a goal" testID="home-new-goal" />
+          </Link>
+        ) : null}
+        {completedCount > 0 ? (
           <AppText role="footnote" tone="secondary" style={styles.centered} testID="home-closed-hint">
-            {`Your ${closedCount === 1 ? 'closed goal is' : `${closedCount} closed goals are`} in Collection, where you can reopen ${closedCount === 1 ? 'it' : 'one'}.`}
+            {canCreate
+              ? `Your finished ${completedCount === 1 ? 'goal is' : 'goals are'} in Collection.`
+              : 'Your finished goal is in Collection. Unlock Pro to build another world, or delete it there to start over.'}
           </AppText>
         ) : null}
       </View>
@@ -111,106 +156,71 @@ function EmptyHome({ closedCount }: { closedCount: number }) {
   );
 }
 
-function SelectedGoal({ summary, currency }: { summary: GoalSummary; currency: CurrencyMetadata }) {
+// Title and status, saved amount and target, progress, next milestone and the deadline card.
+function GoalNumbers({ summary, dashboard, menu }: { summary: GoalSummary; dashboard: HomeDashboard; menu: ReactElement }) {
   const { goal } = summary;
-  const amounts = goalAmounts(summary, currency);
-  const { overall } = sceneFeedback(summary.balanceMinor, goal.targetMinor);
-  const { pending, run } = useGoalAction();
+  const { amounts, deadline } = dashboard;
   const paused = goal.status === 'paused';
-  const busy = pending?.goalId === goal.id;
-  const entries = summary.entryCount === 1 ? '1 entry' : `${summary.entryCount} entries`;
-
-  const confirmArchive = () => {
-    Alert.alert(
-      `Archive “${goal.title}”?`,
-      'It moves to Collection with all of its records and stops taking your open-goal slot. You can reopen it later.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Archive', onPress: () => void run('archive', goal) },
-      ],
-    );
-  };
-
+  const progressDetail = amounts.over ? `${amounts.over} over target` : `${amounts.remaining} to go`;
   return (
-    <>
-      <View style={styles.summary} testID="home-goal">
-        <View style={styles.titleRow}>
-          <AppText role="title" accessibilityRole="header" style={styles.title} testID="home-goal-title">
-            {goal.title}
-          </AppText>
-          {paused ? <StatusBadge label="Paused" tone="info" icon="pause" testID="home-paused" /> : null}
-        </View>
-        <View style={styles.amount} accessible accessibilityLabel={`Saved ${amounts.saved} of ${amounts.target}`}>
-          <AmountText formatted={amounts.saved} size="display" testID="home-saved" />
-          <AppText tone="secondary">{`saved of ${amounts.target}`}</AppText>
-        </View>
-        <View style={styles.progress}>
-          <ProgressBar fraction={overall} percent={amounts.percent} />
-          <View style={styles.progressText} testID="home-progress">
-            <AppText role="label" tone={progressTextTone(amounts.percent)}>{`${amounts.percent}%`}</AppText>
-            <AppText role="footnote" tone="secondary">
-              {amounts.funded ? 'Target reached' : `${amounts.remaining} to go`}
-            </AppText>
-          </View>
-        </View>
-        <AppText role="footnote" tone="secondary" testID="home-deadline">
-          {goal.deadlineDate ? `Deadline ${formatCivilDate(goal.deadlineDate)}` : 'No deadline'}
+    <View style={styles.summary} testID="home-goal">
+      <View style={styles.titleRow}>
+        <AppText role="title" accessibilityRole="header" style={styles.title} testID="home-goal-title">
+          {goal.title}
         </AppText>
-        {paused ? (
-          <AppText role="footnote" tone="secondary">
-            You can still edit this goal and record savings. It stays paused until you resume it.
-          </AppText>
-        ) : null}
+        {paused ? <StatusBadge label="Paused" tone="info" icon="pause" testID="home-paused" /> : null}
+        {amounts.funded ? <StatusBadge label="Target reached" tone="success" icon="success" testID="home-funded" /> : null}
+        <View style={styles.menu}>{menu}</View>
       </View>
-      <Link href={{ pathname: '/entry-form', params: { goalId: goal.id } }} asChild>
-        <Button label="Add savings" icon="deposit" disabled={busy} testID="home-add-savings" />
-      </Link>
-      <ListGroup>
-        <Link href={{ pathname: '/history', params: { goalId: goal.id } }} asChild>
-          <ListRow
-            title="History"
-            icon="history"
-            iconColor="blue"
-            value={summary.entryCount === 0 ? undefined : entries}
-            chevron
-            disabled={busy}
-            testID="home-history"
-          />
-        </Link>
-        <Link href={{ pathname: '/goal-form', params: { goalId: goal.id } }} asChild>
-          <ListRow title="Edit goal" icon="edit" iconColor="neutral" chevron disabled={busy} testID="home-edit" />
-        </Link>
-      </ListGroup>
-      <ListGroup>
-        <ListRow
-          title={LIFECYCLE_COPY[paused ? 'resume' : 'pause'].label}
-          icon={paused ? 'resume' : 'pause'}
-          iconColor="honey"
-          loading={busy && (pending?.action === 'pause' || pending?.action === 'resume')}
-          disabled={busy && pending?.action === 'archive'}
-          onPress={() => void run(paused ? 'resume' : 'pause', goal)}
-          testID="home-pause-resume"
-        />
-        <ListRow
-          title={`${LIFECYCLE_COPY.archive.label}…`}
-          icon="archive"
-          iconColor="neutral"
-          detail="Moves it to Collection with all its records."
-          loading={busy && pending?.action === 'archive'}
-          disabled={busy && pending?.action !== 'archive'}
-          onPress={confirmArchive}
-          accessibilityLabel={LIFECYCLE_COPY.archive.label}
-          testID="home-archive"
-        />
-      </ListGroup>
-    </>
+      <View style={styles.amount} accessible accessibilityLabel={`Saved ${amounts.saved} of ${amounts.target}`} testID="home-amount">
+        <AmountText formatted={amounts.saved} size="display" testID="home-saved" />
+        <AppText tone="secondary" testID="home-target">{`saved of ${amounts.target}`}</AppText>
+      </View>
+      <View style={styles.progress}>
+        <ProgressBar fraction={dashboard.fraction} percent={amounts.percent} />
+        <View
+          style={styles.progressText}
+          accessible
+          accessibilityLabel={`${amounts.percent}%, ${progressDetail}`}
+          testID="home-progress">
+          <AppText role="label" tone={progressTextTone(amounts.percent)}>{`${amounts.percent}%`}</AppText>
+          <AppText role="footnote" tone="secondary" testID="home-remaining">
+            {progressDetail}
+          </AppText>
+        </View>
+      </View>
+      <MilestoneCallout next={dashboard.next} />
+      <DeadlineCard copy={deadline} goalId={goal.id} />
+    </View>
   );
 }
 
-// Pro only in practice: Free never has more than one open goal.
+// The next of the ten unlocks and the amount still needed for it, on the warm accent surface. Stage
+// names come from the theme manifest in Phase 09; until then the callout names the percentage.
+function MilestoneCallout({ next }: { next: NextMilestone }) {
+  const title = next.kind === 'next' ? `Next milestone: ${next.percent}%` : 'All 10 milestones unlocked';
+  const detail = next.kind === 'next' ? `${next.toNext} more to reach ${next.percent}%` : 'Your world is complete.';
+  return (
+    <View style={styles.milestone} accessible accessibilityLabel={`${title}. ${detail}`} testID="home-next-milestone">
+      <Icon name="milestone" role="headline" tone="accent" filled />
+      <View style={styles.title}>
+        <AppText role="label">{title}</AppText>
+        <AppText role="footnote" tone="secondary" testID="home-next-detail">
+          {detail}
+        </AppText>
+      </View>
+    </View>
+  );
+}
+
+// Pro only in practice: Free never has more than one open goal. A custom selection control, so a
+// changed selection plays the selection haptic once (DESIGN_SYSTEM "Haptics").
 function GoalSwitcher({ open, selectedId }: { open: GoalSummary[]; selectedId: string }) {
   const choose = async (goalId: string) => {
-    await selectGoal(goalCommandDeps(), goalId);
+    const result = await selectGoal(goalCommandDeps(), goalId);
+    if (result.ok) {
+      haptics.selection();
+    }
     await refreshAppData();
   };
   return (
@@ -230,6 +240,9 @@ function GoalSwitcher({ open, selectedId }: { open: GoalSummary[]; selectedId: s
 }
 
 const styles = StyleSheet.create({
+  controls: {
+    gap: spacing.md,
+  },
   summary: {
     gap: spacing.md,
   },
@@ -242,6 +255,10 @@ const styles = StyleSheet.create({
   title: {
     flexShrink: 1,
   },
+  // The ⋯ menu sits at the trailing end of the title row.
+  menu: {
+    marginLeft: 'auto',
+  },
   amount: {
     gap: spacing.xs / 2,
   },
@@ -253,6 +270,14 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     columnGap: spacing.sm,
+  },
+  milestone: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.md,
+    borderRadius: radii.lg,
+    backgroundColor: colors.accentSurface,
   },
   switcher: {
     gap: spacing.sm,

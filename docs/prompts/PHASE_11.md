@@ -8,7 +8,7 @@ You are implementing one phase of Saving Worlds in a fresh Claude Code session. 
 2. Read `docs/PROJECT_STATUS.md` and `docs/SESSION_HANDOFF.md`, including verification gaps. Read `docs/ARCHITECTURE.md`, `docs/DATA_MODEL.md`, the phase-specific documents below and its canonical roadmap entry. For any UI work, also read `docs/DESIGN_SYSTEM.md` and `docs/ADAPTIVE_LAYOUT.md`; reuse their tokens/primitives and layout policy. For native, dependency, persistence or delivery changes, read `docs/EAS_AND_OTA.md` and preserve its runtime/schema and activation contracts.
 3. Inspect the existing files, package scripts, lockfile, migrations, tests and working tree before changing anything. Preserve unrelated owner work. If Git is absent, inspect the directory and say so; do not assume a clean Git history.
 4. Verify actual dependency code and evidence against acceptance criteria. A checked box, previous handoff or earlier chat is insufficient. Resume missing work if this phase is partially complete. If already complete, verify that fact and report it without reimplementation or silently starting the next phase.
-5. Product authority is `docs/Saving_Worlds_MVP_Plan_v1_2.docx` (23 October 2026). It supersedes conflicting v1.1 and 22 October feature text, even when historical files say confirmed. Q01-Q06 are resolved; do not request reapproval or restore custom challenges, per-goal currencies, entry audit history or goal deletion. Read the compatible setup/layout and EAS/OTA source records for engineering only. Ask only for a genuinely missing operational dependency, continue independent authorized work and leave its evidence pending.
+5. Product authority is `docs/Saving_Worlds_MVP_Plan_v1_2.docx` (23 October 2026). It supersedes conflicting v1.1 and 22 October feature text, even when historical files say confirmed. Q01-Q06 are resolved; do not request reapproval or restore custom challenges, per-goal currencies or entry audit history. Owner decision D74 (DECISIONS) overrides v1.2 on goals: Archive and Close goal are removed (statuses active, paused, completed), any goal can be deleted after a native confirmation (goal, entries and souvenir; no undo), Free may have one goal in total in any status, and loss of Pro keeps one chosen goal usable and the others read-only. Do not restore Archive or the old no-deletion rule. Read the compatible setup/layout and EAS/OTA source records for engineering only. Ask only for a genuinely missing operational dependency, continue independent authorized work and leave its evidence pending.
 
 Phase-specific reading: `docs/ARCHITECTURE.md`, `docs/DATA_MODEL.md`, `docs/TECH_STACK.md`, `docs/TEST_PLAN.md` and the Phase 11 entry in `docs/DEVELOPMENT_ROADMAP.md`.
 
@@ -20,16 +20,16 @@ Award one permanent world souvenir per goal independently of explicit Finish/Reo
 
 Phase 10; verify Phase 06 lifecycle and Phase 07 atomic ledger mutation boundary.
 
-Q03 is resolved by v1.2. No retention/award reapproval or souvenir-deletion policy is needed.
+Q03 is resolved by v1.2. No retention/award reapproval is needed. D74 decides souvenir deletion: a souvenir is deleted only together with its goal.
 
 ## Exact scope
 
 - Add collectibles with unique goal_id, theme_id, theme_version and earned_at timestamp. Award at the first saved transaction mutation or target edit yielding B>=T, atomically with the triggering mutation, including Free. Do not change goal status at threshold.
-- Retain the souvenir permanently even after correcting an initial mistake, withdrawal, target/theme changes, Archive, Finish or Reopen. Re-crossing 100% or retrying a command never duplicates it; preserve referenced historical theme versions.
-- Integrate explicit Finish action for open goals at >=100%: set completed, make read-only and release the Free slot. Reopen on completed/archived checks active+paused slot limit then sets active, enables edits and never auto-finishes even if already >=100%.
-- Build Collection souvenir/detail and completed/archived goal views with clear historical/current captions. A live regressed scene and permanent completed souvenir may coexist. No goal/souvenir deletion. Use the Phase 07.5 look (DESIGN_SYSTEM "Visual direction"): `SectionHeader` sections, `StatusBadge` for Completed/Archived, `ListGroup` rows, `EmptyState` when there is nothing yet (replace the current Collection empty state). Put Finish in Home's second row group with Pause/Resume and Archive when B >= T.
+- Retain the souvenir even after correcting an initial mistake, withdrawal, target/theme changes, Finish or Reopen. Re-crossing 100% or retrying a command never duplicates it; preserve referenced historical theme versions. The D74 goal-deletion command (`deleteGoal`, Phase 08) already deletes the goal's row in `collectibles` in the same exclusive transaction once that table exists (`deleteCollectiblesForGoal`); keep the table name and verify it with the real table natively. The souvenir is removed only that way.
+- Integrate explicit Finish action for open goals at >=100%: set completed and make read-only. Free keeps that one finished world in Collection; the goal still counts toward the Free limit of one goal in total (D74). Reopen on a completed goal adds no goal, so it is allowed while the person is within the limit; it sets active, enables edits and never auto-finishes even if already >=100%.
+- Build Collection souvenir/detail and completed goal views with clear historical/current captions, with Reopen and Delete on a completed goal; there is no archived list (D74). Delete asks first with a native destructive confirmation: title "Delete completed goal?", message "This will permanently delete your savings history and the completed world from your Collection. This action cannot be undone." A live regressed scene and completed souvenir may coexist. Use the Phase 07.5 look (DESIGN_SYSTEM "Visual direction"): `SectionHeader` sections, `StatusBadge` for Completed, `ListGroup` rows, `EmptyState` when there is nothing yet (replace the current Collection empty state). Offer Finish among Home's goal actions (with Pause/Resume and Delete goal) when B >= T.
 - Ensure target/theme/ledger edits respect closed-goal guards and the global currency lock includes collectibles even if every transaction was deleted after Reopen.
-- Call `haptics.success()` for the first-100% souvenir moment (instead of the milestone haptic) and after Finish; `haptics.warning()` when Reopen is refused by the Free open-goal limit. Use the `finish`, `reopen`, `archive` and `souvenir` icons from the shared icon map.
+- Call `haptics.success()` for the first-100% souvenir moment (instead of the milestone haptic) and after Finish; `haptics.warning()` when Reopen is refused by the Free goal limit; `haptics.success()` with the "Goal deleted" toast after a confirmed deletion. Use the `finish`, `reopen`, `delete` and `souvenir` icons from the shared icon map.
 
 ## Expected files and modules
 
@@ -50,7 +50,8 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 ## Acceptance criteria
 
 - First saved100% gives one souvenir for Free while status stays active or paused until explicit Finish.
-- Finish frees the slot; Reopen fails when another Free goal is open and otherwise stays active at100%.
+- Finish keeps the goal counted toward the Free one-goal limit; Reopen within the limit succeeds and stays active at100%; a Free Create while the finished goal exists is refused with the "Build another world" entry.
+- Deleting a completed goal after confirmation removes goal, entries and souvenir in one transaction; Collection no longer shows it, the currency lock recounts and Free can create a new goal.
 - Reopen then correction100->10 regresses live scene while the souvenir persists; repeated Finish never adds another.
 
 ## Tests and verification
@@ -65,7 +66,7 @@ Every acceptance criterion above has evidence; required dependencies are verifie
 
 ## Out of scope
 
-- XP/badges, public sharing, whole-goal or souvenir deletion, custom retention policies and multiple rewards per goal.
+- XP/badges, public sharing, deleting a souvenir without its goal, Archive or Close goal, custom retention policies and multiple rewards per goal.
 
 ## Verification and session close
 

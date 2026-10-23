@@ -1,7 +1,9 @@
 import type { AmountParseError, CurrencyMetadata, NumberSeparators } from '@/core/money';
 import { amountMessage as sharedAmountMessage } from '@/shared/i18n/amount-messages';
 
-import type { CreateGoalError, EditGoalError, LifecycleError } from '../application/goal-commands';
+import type { GoalRecord } from '@/data/repositories/goal-repository';
+
+import type { CreateGoalError, DeleteGoalError, EditGoalError, LifecycleError } from '../application/goal-commands';
 import type { LifecycleAction } from '../domain/goal-lifecycle';
 
 // English copy for goal forms and lifecycle actions. Every command error code has a message that
@@ -14,8 +16,16 @@ export type FormMessage = { field: GoalFormField | null; message: string };
 
 export const SAVE_FAILED = 'Couldn’t save. Nothing was changed. Try again.';
 
+// Shown when a second goal is attempted on Free (Home's goal menu, D73-D74). Phase 16 turns this
+// into the paywall entry with "Explore Pro".
+export const ANOTHER_WORLD = {
+  title: 'Build another world',
+  message:
+    'You’ve already created your free savings goal. Unlock Pro to create more goals and grow your collection of worlds. One-time purchase, no subscription. To start over instead, delete this goal from its menu.',
+} as const;
+
 const FREE_LIMIT =
-  'Free includes one open goal (active or paused). Archive your open goal first, then try again.';
+  'Free includes one goal. Delete your current goal to start over, or unlock Pro for more goals.';
 
 export function goalCommandMessage(error: CreateGoalError | EditGoalError): FormMessage {
   switch (error.code) {
@@ -34,7 +44,7 @@ export function goalCommandMessage(error: CreateGoalError | EditGoalError): Form
     case 'invalid_theme':
     case 'theme_unavailable':
       return { field: 'theme', message: 'This world isn’t available for this goal. Island is.' };
-    case 'open_goal_limit':
+    case 'goal_limit':
       return { field: null, message: FREE_LIMIT };
     case 'currency_missing':
       return { field: null, message: 'Choose a currency in Settings before creating a goal.' };
@@ -63,17 +73,14 @@ export function amountMessage(error: AmountParseError, currency: CurrencyMetadat
 export const LIFECYCLE_COPY: Record<LifecycleAction, { label: string; done: string; failed: string }> = {
   pause: { label: 'Pause goal', done: 'Goal paused', failed: 'Goal not paused' },
   resume: { label: 'Resume goal', done: 'Goal resumed', failed: 'Goal not resumed' },
-  archive: { label: 'Archive goal', done: 'Goal archived', failed: 'Goal not archived' },
   finish: { label: 'Finish goal', done: 'Goal finished', failed: 'Goal not finished' },
   reopen: { label: 'Reopen goal', done: 'Goal reopened', failed: 'Goal not reopened' },
 };
 
 export function lifecycleMessage(action: LifecycleAction, error: LifecycleError): string {
   switch (error.code) {
-    case 'open_goal_limit':
-      return action === 'reopen'
-        ? 'Free includes one open goal (active or paused). Archive your open goal first, then reopen this one.'
-        : FREE_LIMIT;
+    case 'goal_limit':
+      return FREE_LIMIT;
     case 'not_funded':
       return 'Finish becomes available when this goal reaches its target.';
     case 'invalid_transition':
@@ -86,5 +93,36 @@ export function lifecycleMessage(action: LifecycleAction, error: LifecycleError)
     case 'invalid_operation_id':
     case 'storage_failure':
       return SAVE_FAILED;
+  }
+}
+
+export const DELETE_COPY = { label: 'Delete goal', done: 'Goal deleted', failed: 'Goal not deleted' } as const;
+
+// The native confirmation before a goal is deleted (owner decision D74). A completed goal also
+// loses its finished world, so it says so in the owner's words.
+export function deleteConfirmation(goal: Pick<GoalRecord, 'title' | 'status'>): { title: string; message: string } {
+  return goal.status === 'completed'
+    ? {
+        title: 'Delete completed goal?',
+        message:
+          'This will permanently delete your savings history and the completed world from your Collection. This action cannot be undone.',
+      }
+    : {
+        title: `Delete “${goal.title}”?`,
+        message: 'This permanently deletes the goal and its savings history. This action cannot be undone.',
+      };
+}
+
+export function deleteMessage(error: DeleteGoalError): string {
+  switch (error.code) {
+    case 'stale_goal':
+      return 'This goal changed in the meantime. Its latest state is shown; try again if you still want to delete it.';
+    case 'goal_not_found':
+    case 'invalid_reference':
+      return 'This goal couldn’t be found. It may already be deleted.';
+    case 'operation_conflict':
+    case 'invalid_operation_id':
+    case 'storage_failure':
+      return 'Couldn’t delete. Nothing was changed. Try again.';
   }
 }

@@ -21,7 +21,7 @@ export const ICON_SYMBOLS = {
   calendar: 'calendar',
   pause: 'pause.circle',
   resume: 'play.circle',
-  archive: 'archivebox',
+  delete: 'trash',
   reopen: 'arrow.uturn.backward.circle',
   finish: 'flag.checkered',
   lock: 'lock.fill',
@@ -37,6 +37,8 @@ export const ICON_SYMBOLS = {
   challenges: 'flag',
   currency: 'banknote',
   device: 'iphone',
+  // Phase 08: the floating Add savings button and New goal in Home's goal menu.
+  add: 'plus',
 } as const satisfies Record<string, SFSymbol>;
 
 export type IconName = keyof typeof ICON_SYMBOLS;
@@ -50,7 +52,7 @@ export const FILLED_SYMBOLS: Partial<Record<IconName, SFSymbol>> = {
   calendar: 'calendar',
   pause: 'pause.fill',
   resume: 'play.fill',
-  archive: 'archivebox.fill',
+  delete: 'trash.fill',
   reopen: 'arrow.uturn.backward',
   settings: 'gearshape.fill',
   souvenir: 'sparkles',
@@ -63,6 +65,7 @@ export const FILLED_SYMBOLS: Partial<Record<IconName, SFSymbol>> = {
   info: 'info',
   success: 'checkmark',
   error: 'exclamationmark',
+  add: 'plus',
 };
 
 type IconProps = {

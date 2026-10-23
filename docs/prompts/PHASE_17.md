@@ -8,7 +8,7 @@ You are implementing one phase of Saving Worlds in a fresh Claude Code session. 
 2. Read `docs/PROJECT_STATUS.md` and `docs/SESSION_HANDOFF.md`, including verification gaps. Read `docs/ARCHITECTURE.md`, `docs/DATA_MODEL.md`, the phase-specific documents below and its canonical roadmap entry. For any UI work, also read `docs/DESIGN_SYSTEM.md` and `docs/ADAPTIVE_LAYOUT.md`; reuse their tokens/primitives and layout policy. For native, dependency, persistence or delivery changes, read `docs/EAS_AND_OTA.md` and preserve its runtime/schema and activation contracts.
 3. Inspect the existing files, package scripts, lockfile, migrations, tests and working tree before changing anything. Preserve unrelated owner work. If Git is absent, inspect the directory and say so; do not assume a clean Git history.
 4. Verify actual dependency code and evidence against acceptance criteria. A checked box, previous handoff or earlier chat is insufficient. Resume missing work if this phase is partially complete. If already complete, verify that fact and report it without reimplementation or silently starting the next phase.
-5. Product authority is `docs/Saving_Worlds_MVP_Plan_v1_2.docx` (23 October 2026). It supersedes conflicting v1.1 and 22 October feature text, even when historical files say confirmed. Q01-Q06 are resolved; do not request reapproval or restore custom challenges, per-goal currencies, entry audit history or goal deletion. Read the compatible setup/layout and EAS/OTA source records for engineering only. Ask only for a genuinely missing operational dependency, continue independent authorized work and leave its evidence pending.
+5. Product authority is `docs/Saving_Worlds_MVP_Plan_v1_2.docx` (23 October 2026). It supersedes conflicting v1.1 and 22 October feature text, even when historical files say confirmed. Q01-Q06 are resolved; do not request reapproval or restore custom challenges, per-goal currencies or entry audit history. Owner decision D74 (DECISIONS) overrides v1.2 on goals: Archive and Close goal are removed (statuses active, paused, completed), any goal can be deleted after a native confirmation (goal, entries and souvenir; no undo), Free may have one goal in total in any status, and loss of Pro keeps one chosen goal usable and the others read-only. Do not restore Archive or the old no-deletion rule. Read the compatible setup/layout and EAS/OTA source records for engineering only. Ask only for a genuinely missing operational dependency, continue independent authorized work and leave its evidence pending.
 
 Phase-specific reading: `docs/ARCHITECTURE.md`, `docs/DATA_MODEL.md`, `docs/ASSET_SPEC.md`, `docs/UI_UX_GUIDELINES.md`, `docs/TEST_PLAN.md` and the Phase 17 entry in `docs/DEVELOPMENT_ROADMAP.md`.
 
@@ -20,15 +20,15 @@ Deliver the complete Pro Garden theme and the full confirmed personalization sco
 
 Phase 16
 
-Approved Garden art and provenance plus verified implementation of v1.2 Q03/Q05 policies are required for visual and access acceptance.
+Approved Garden art and provenance plus verified implementation of v1.2 Q03 and the D74-changed Q05 policies are required for visual and access acceptance.
 
 ## Exact scope
 
 - Integrate approved Garden base and all ten exact outcomes from ASSET_SPEC through the existing renderer.
-- Allow verified Pro users to select Island/Garden when creating a goal and change an existing open active/paused goal theme later; completed/archived require Reopen before any edit.
+- Allow verified Pro users to select Island/Garden when creating a goal and change an existing open active/paused goal theme later; completed goals require Reopen before any edit.
 - Persist theme changes as metadata through a capability-checked command while preserving target, currency, ledger, challenge evidence and current milestone.
 - Keep completion snapshots on their historical theme/version; switching an open live goal already at100% does not rewrite its souvenir or award another.
-- Use a brief bounded transition and accessible confirmation; verify all Garden states offline and implement v1.2 verified-loss Island fallback with Garden souvenirs retained and excess open goals archived before further entries.
+- Use a brief bounded transition and accessible confirmation; verify all Garden states offline and implement the D74 verified-loss Garden rule: a Garden goal is never deleted or changed and its world stays visible as it is, but without Pro it cannot progress further in Garden; to continue saving the person switches that goal to Island (ledger, target and souvenir kept). Garden souvenirs stay.
 - Call `haptics.selection()` when the user picks Island or Garden in a custom theme picker; the theme change confirmation uses the shared toast.
 
 ## Expected files and modules

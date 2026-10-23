@@ -2,11 +2,11 @@
 
 The current 22 focused phases implement [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx), the supreme product authority. No implementation has started. The six broad product stages are decomposed into bounded setup/style/layout, financial, world, motivation, monetization and release phases without expanding product scope.
 
-[DEVELOPMENT_RULES](DEVELOPMENT_RULES.md) owns the shared Definition of Done/session protocol; [evidence](evidence/README.md) records actual checks. Q01-Q06 are resolved by v1.2. Compatible setup/layout and EAS choices remain. Historical source text never overrides the current product rules.
+[DEVELOPMENT_RULES](DEVELOPMENT_RULES.md) owns the shared Definition of Done/session protocol; [evidence](evidence/README.md) records actual checks. Q01-Q06 are resolved by v1.2; owner decision D74 (23 October 2026) overrides the v1.2 rules for Archive, whole-goal deletion, the Free goal limit and loss of Pro. Compatible setup/layout and EAS choices remain. Historical source text never overrides the current product rules.
 
 ## Planning revisions and continuation
 
-The original 19-phase plan expanded to 21 for early style/adaptive layout, then 22 for EAS preview/OTA recovery. On 23 October 2026 the owner authorized documentation alignment to v1.2 only. This revision replaces per-goal currency, custom challenges, audit versions, contribution-calendar estimates and unresolved lifecycle/statistics policies. No app files, packages, database, builds or cloud actions were created. Use current prompt names rather than saved older copies; a partial phase repeats its own prompt. On 23 October 2026, after Phase 03, the owner added checkpoint Phase 07.5 (visual direction and design review, DECISIONS D49) between 07 and 08; the 22 numbered phases keep their numbers.
+The original 19-phase plan expanded to 21 for early style/adaptive layout, then 22 for EAS preview/OTA recovery. On 23 October 2026 the owner authorized documentation alignment to v1.2 only. This revision replaces per-goal currency, custom challenges, audit versions, contribution-calendar estimates and unresolved lifecycle/statistics policies. No app files, packages, database, builds or cloud actions were created. Use current prompt names rather than saved older copies; a partial phase repeats its own prompt. On 23 October 2026, after Phase 03, the owner added checkpoint Phase 07.5 (visual direction and design review, DECISIONS D49) between 07 and 08; the 22 numbered phases keep their numbers. On 23 October 2026, during Phase 08, the owner removed Archive (statuses active, paused, completed), allowed confirmed whole-goal deletion (goal, entries and souvenir), changed the Free limit to one goal in total in any status and replaced the loss-of-Pro rule (DECISIONS D74). Phases 09-22 below follow D74; archive or no-deletion text inside the completed Phase 04-07 sections is historical and superseded by D74.
 
 ## Ordered phases
 
@@ -247,7 +247,7 @@ None beyond verified dependencies.
 - Bundle a supported currency/exponent registry with source/version evidence. Include zero-, two- and three-decimal behavior and never assume every currency has cents.
 - Implement validated civil-date helpers, injected clock boundaries and v1.2 weekly=min(R,ceil(R*7/D)) and monthly=min(R,ceil(R*30/D)) estimates with inclusive civil-day D from DATA_MODEL, with no automatic deposits.
 - Implement one shared stage 0-10 function, exact thresholds, numeric overfunding and bounded fractional scene feedback. Do not introduce theme-specific math.
-- Define the small capability input used by commands: open-goal count limit, Garden/open-goal theme switching and the four Pro statistics; challenges are the same in Free/Pro. Default production behavior is Free until native verification is integrated.
+- Define the small capability input used by commands: open-goal count limit (D74 later changed it to a count of all goals), Garden/open-goal theme switching and the four Pro statistics; challenges are the same in Free/Pro. Default production behavior is Free until native verification is integrated.
 
 ## Expected files and modules
 
@@ -361,10 +361,10 @@ Q01/Q02 are resolved by v1.2. No further owner choice is required for currency, 
 
 - Add a short onboarding with one global currency choice. Settings is the only later currency editor; change allowed only with zero transactions and zero collectibles across the database. Empty goals inherit the new selection; explain no conversion and recheck lock atomically.
 - Create/edit title, positive target, optional today/future deadline and available theme. Currency is read-only AppSettings information, never a goal field. Existing deadlines may expire naturally.
-- Implement active/paused/completed/archived commands. Free counts active+paused<=1 for Create and Reopen, with completed/archived excluded; Pro capability contract permits unlimited open goals later.
-- Pause/Resume and Archive preserve history. paused can edit/add transactions without resuming reminders. completed/archived are read-only until Reopen checks the slot and sets active; never automatically Finish at 100%. Define guarded Finish requiring B>=T for Phase 11 integration. No whole-goal deletion.
+- Implement active/paused/completed/archived commands. Free counts active+paused<=1 for Create and Reopen, with completed/archived excluded; Pro capability contract permits unlimited open goals later. (Historical; superseded by D74: no archived status, confirmed whole-goal deletion exists and Free allows one goal in total in any status.)
+- Pause/Resume and Archive preserve history. paused can edit/add transactions without resuming reminders. completed/archived are read-only until Reopen checks the slot and sets active; never automatically Finish at 100%. Define guarded Finish requiring B>=T for Phase 11 integration. No whole-goal deletion. (Historical; superseded by D74: no archived status, confirmed whole-goal deletion exists and Free allows one goal in total in any status.)
 - Implement basic Home open-goal summary/selection and restart fallback. Keep Island-only selection until paid Garden integration; use shared accessible/adaptive controls.
-- Set up the shared feedback layer from DESIGN_SYSTEM "Transient feedback (toasts)" and "UX library plan": install `sonner-native`, `react-native-svg` and `expo-symbols` with `npx expo install`; create `src/shared/ui/toast.tsx` (`showToast({ tone, title })` plus a `<Toaster />` host in the root layout) rendered with tokens/AppText, one toast at a time, VoiceOver announcement, Reduce Motion fade and top placement; add a gallery demo. Use it only for committed confirmations here (goal created/saved, paused, resumed, archived, reopened, currency changed); errors stay inline. Use `@expo/ui` Picker for the currency choice. Rebuild the development client for the new native modules.
+- Set up the shared feedback layer from DESIGN_SYSTEM "Transient feedback (toasts)" and "UX library plan": install `sonner-native`, `react-native-svg` and `expo-symbols` with `npx expo install`; create `src/shared/ui/toast.tsx` (`showToast({ tone, title })` plus a `<Toaster />` host in the root layout) rendered with tokens/AppText, one toast at a time, VoiceOver announcement, Reduce Motion fade and top placement; add a gallery demo. Use it only for committed confirmations here (goal created/saved, paused, resumed, archived (Archive later removed by D74), reopened, currency changed); errors stay inline. Use `@expo/ui` Picker for the currency choice. Rebuild the development client for the new native modules.
 - Create `src/shared/ui/icon.tsx` (expo-symbols `SymbolView` with the DESIGN_SYSTEM "Icons" semantic name map, token colors, size following text scale, hidden from VoiceOver by default) and replace the TextField warning glyph with the `error` icon. Use icons in toasts, Notice and goal lifecycle actions; no icon fonts, custom SVG icons or emoji.
 
 ## Expected files and modules
@@ -383,18 +383,18 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 
 - Use one serialized boundary for currency lock, ledger mutation and slot checks; no synthetic opening balance.
 - Apply closed-goal guards to title/target/deadline/theme/transaction changes, not just UI buttons.
-- No whole-goal deletion, per-goal currency, FX, custom challenge capability or new product decisions.
+- No whole-goal deletion, per-goal currency, FX, custom challenge capability or new product decisions. (Whole-goal deletion was later added by D74.)
 
 ## Acceptance criteria
 
 - Global currency and zero-balance goal survive restart; second goal never has its own currency picker.
-- A paused goal consumes the Free slot; Archive frees it; Reopen at the limit fails and at >=100% remains active.
+- A paused goal consumes the Free slot; Archive frees it; Reopen at the limit fails and at >=100% remains active. (Historical; superseded by D74: no archived status, confirmed whole-goal deletion exists and Free allows one goal in total in any status.)
 - Currency changes update empty goals without conversion, fail with any transaction or collectible, and unlock again only if neither exists.
 - Committed goal/currency actions show one announced confirmation toast; failures show inline errors and keep input; no screen imports a toast library directly.
 
 ## Tests and verification
 
-- Repository-backed Create/Reopen concurrent slot checks and closed/paused edit guards; confirm no goal-delete route.
+- Repository-backed Create/Reopen concurrent slot checks and closed/paused edit guards; confirm no goal-delete route. (Historical; D74 later added confirmed goal deletion.)
 - Currency fixtures: empty goals change globally, transaction blocks, deleting last transaction without collectible permits change, collectible alone blocks; use a boundary fixture before Phase 11 introduces real collectible storage.
 - UI cancel/invalid target/deadline/write-error tests; native cold restart/selection and VoiceOver/keyboard walkthrough; standard checks.
 - Carried from Phase 04 (evidence/PHASE_04.md): on a simulator dev build, observe the Hermes `Intl` output of `formatMoney` (EUR, JPY, KWD, IQD, including 9,999,999,999.99), `separatorsForLocale` for the device locale and `today(systemClock)` after changing the simulator time zone; Jest runs on Node ICU only.
@@ -429,7 +429,7 @@ Q01/Q02 are final v1.2 rules, not approval gates.
 - Retain a stable operation ID across retries, disable repeated submissions and show success only after commit; failed writes preserve draft input.
 - Implement current transaction History with edit and confirmed deletion. Overwrite corrected current values; do not keep ledger audit tables, old-entry snapshots or audit detail screens. Preserve immutable createdAt for ordering/eligibility.
 - For every create/edit/delete, order the candidate goal history by date, createdAt, id and reject any negative subtotal or final balance. Correcting an amount/date/sign revalidates the entire affected sequence.
-- Guard completed/archived as read-only until Reopen. paused remains editable without Resume. Invalidate balance, stage, estimates and later challenge/statistics queries after commit.
+- Guard completed/archived as read-only until Reopen (D74 later removed archived; completed remains read-only). paused remains editable without Resume. Invalidate balance, stage, estimates and later challenge/statistics queries after commit.
 - Feedback per DESIGN_SYSTEM: after a committed create/edit/delete, show the Phase 06 `showToast` confirmation ("Deposit saved", "Withdrawal saved", "Entry updated", "Entry deleted") and a light success haptic; install `expo-haptics` with `npx expo install` and rebuild the development client. Deletion still needs a native confirmation first and has no Undo. Use the `@expo/ui` DatePicker for the entry date. Rejections and write failures stay inline with the draft preserved.
 - Create `src/shared/ui/haptics.ts` with the four DESIGN_SYSTEM "Haptics" helpers. Call `success()` once after each committed create/edit/delete (with the toast) and `warning()` once per rejected submit (negative running balance, future date) alongside the inline explanation; also wire `warning()` into the Phase 06 Free-limit Create rejection. No haptic on press-in, navigation or failed I/O.
 
@@ -470,7 +470,7 @@ Every acceptance criterion above has evidence; required dependencies are verifie
 
 ## Out of scope
 
-- Entry audit/history versions, whole-goal deletion, banks/transfers, animations, challenge engine and forecasting.
+- Entry audit/history versions, whole-goal deletion (later added by D74, not in Phase 07), banks/transfers, animations, challenge engine and forecasting.
 
 [Full implementation prompt](prompts/PHASE_07.md).
 
@@ -542,7 +542,7 @@ Phase 07.5 (which depends on Phase 07). Build Home in the approved direction A "
 
 ## Exact scope
 
-- Compose Home as direction A (D64): scene region, title + status badge, display amount, progress bar with percent and remaining, next-milestone callout, deadline line, one Add savings, grouped rows; extend the Phase 07.5 Home and keep Add savings reachable on the SE with the real scene.
+- Compose Home as direction A (D64): scene region, title + status badge, display amount, progress bar with percent and remaining, next-milestone callout, deadline line, one Add savings, grouped rows; extend the Phase 07.5 Home and keep Add savings reachable on the SE with the real scene (done in Phase 08: "+ Add savings" floats on Home and History and goal administration moved to a ⋯ menu, owner decisions D70/D72/D73).
 - Show current saved, target, remaining amount and numerical percentage directly from ledger queries.
 - Integrate optional deadline weekly/monthly suggestions using v1.2 inclusive-day D and the exact formulas in DATA_MODEL (remaining 100.00,D=30 => weekly 23.34/monthly 100.00). Display the calculation explanation and no-deadline/overdue/complete states.
 - Recalculate after deposits, withdrawals, corrections, target/deadline edits and foreground civil-date changes.
@@ -608,7 +608,8 @@ Approved Island artwork and ownership/license provenance are required for visual
 - Integrate approved Island base and all ten milestone outcomes: tree, path, flowers/bushes, house, bridge, pond, trees, larger house/details, final decorations, completed island.
 - Render the exact current stage computed by the shared financial engine, including empty base and 100% cap.
 - Implement accessible scene/next-stage descriptions and a scene-only error fallback that keeps financial tracking usable.
-- Render the scene in the Phase 07.5/08 scene region (rounded `radii.xl` 4:3 box measured with `useMeasuredSize`/`fitAspect`), replacing the development placeholder; feed the next-milestone callout's stage name from the manifest.
+- Render the scene in the Phase 07.5/08 scene region (rounded `radii.xl` 4:3 box measured with `useMeasuredSize`/`fitAspect`), replacing the temporary inside of the Phase 08 `WorldScene` (`src/features/worlds/world-scene.tsx`, same props and aspect); feed the next-milestone callout's stage name from the manifest.
+- World first (D73): the real Island is the star of Home (no caption/icon inside the world, most visual weight the layout allows); after it renders, review Home with the owner and remove text/cards that are no longer needed. No card polishing before the Island exists.
 - Validate asset alignment and decoded memory on an iPhone; keep development scene inspection controls out of release flows.
 
 ## Expected files and modules
@@ -672,6 +673,7 @@ Phase 09 must have verified production Island assets.
 - Respect OS Reduce Motion and avoid any financial writes or eligibility logic inside animation callbacks.
 - Animated empty states (D69): gentle looping Reanimated motion on the centered empty states (stage-0 Island on Home, floating icon tiles elsewhere), paused off-screen, still under Reduce Motion; Skia only with a measured need and a recorded decision.
 - Call `haptics.milestone()` once per committed unlock sequence (coalesced with the animation, also under Reduce Motion); no haptic for regression after withdrawals or target edits.
+- Milestone unlock moment (D73): count-up of the saved amount, progress bar fill, Island stage reveal, short new-object animation and an in-world "New milestone unlocked!" message (not a toast), one haptic, Reduce Motion shows the final state at once; this moment is what sells the app.
 
 ## Expected files and modules
 
@@ -694,6 +696,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 - At animation end the scene always equals the current committed stage, including 100% -> 90%.
 - Rapid updates and background/resume cannot resurrect removed layers or replay a stale completion.
 - Reduced Motion delivers immediate stable state plus concise accessible feedback.
+- A threshold-crossing deposit shows the D73 unlock moment on a device recording: count-up, bar, stage reveal, new-object animation, "New milestone unlocked!" message, one haptic.
 
 ## Tests and verification
 
@@ -721,16 +724,16 @@ Award one permanent world souvenir per goal independently of explicit Finish/Reo
 
 Phase 10; verify Phase 06 lifecycle and Phase 07 atomic ledger mutation boundary.
 
-Q03 is resolved by v1.2. No retention/award reapproval or souvenir-deletion policy is needed.
+Q03 is resolved by v1.2. No retention/award reapproval is needed. D74 decides souvenir deletion: a souvenir is deleted only together with its goal.
 
 ## Exact scope
 
 - Add collectibles with unique goal_id, theme_id, theme_version and earned_at timestamp. Award at the first saved transaction mutation or target edit yielding B>=T, atomically with the triggering mutation, including Free. Do not change goal status at threshold.
-- Retain the souvenir permanently even after correcting an initial mistake, withdrawal, target/theme changes, Archive, Finish or Reopen. Re-crossing 100% or retrying a command never duplicates it; preserve referenced historical theme versions.
-- Integrate explicit Finish action for open goals at >=100%: set completed, make read-only and release the Free slot. Reopen on completed/archived checks active+paused slot limit then sets active, enables edits and never auto-finishes even if already >=100%.
-- Build Collection souvenir/detail and completed/archived goal views with clear historical/current captions. A live regressed scene and permanent completed souvenir may coexist. No goal/souvenir deletion. Follow the Phase 07.5 look: `SectionHeader` sections, `StatusBadge` for Completed/Archived, `EmptyState` when empty; Finish joins Home's Pause/Archive row group at >= 100%.
+- Retain the souvenir even after correcting an initial mistake, withdrawal, target/theme changes, Finish or Reopen. Re-crossing 100% or retrying a command never duplicates it; preserve referenced historical theme versions. Extend the D74 goal-deletion command so it deletes the goal's collectible in the same exclusive transaction; the souvenir is removed only that way.
+- Integrate explicit Finish action for open goals at >=100%: set completed and make read-only. Free keeps that one finished world in Collection; the goal still counts toward the Free limit of one goal in total (D74). Reopen on a completed goal adds no goal, so it is allowed while the person is within the limit; it sets active, enables edits and never auto-finishes even if already >=100%.
+- Build Collection souvenir/detail and completed goal views with clear historical/current captions, with Reopen and Delete on a completed goal; there is no archived list (D74). Delete uses the D74 native confirmation: title "Delete completed goal?", message "This will permanently delete your savings history and the completed world from your Collection. This action cannot be undone." A live regressed scene and completed souvenir may coexist. Follow the Phase 07.5 look: `SectionHeader` sections, `StatusBadge` for Completed, `EmptyState` when empty; Finish joins Home's Pause/Delete actions at >= 100%.
 - Ensure target/theme/ledger edits respect closed-goal guards and the global currency lock includes collectibles even if every transaction was deleted after Reopen.
-- Call `haptics.success()` for the first-100% souvenir moment (instead of the milestone haptic) and after Finish; `haptics.warning()` when Reopen is refused by the Free open-goal limit. Use the `finish`, `reopen`, `archive` and `souvenir` icons from the shared icon map.
+- Call `haptics.success()` for the first-100% souvenir moment (instead of the milestone haptic) and after Finish; `haptics.warning()` when Reopen is refused by the Free goal limit; `haptics.success()` with the "Goal deleted" toast after a confirmed deletion. Use the `finish`, `reopen`, `delete` and `souvenir` icons from the shared icon map.
 
 ## Expected files and modules
 
@@ -751,13 +754,14 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 ## Acceptance criteria
 
 - First saved100% gives one souvenir for Free while status stays active or paused until explicit Finish.
-- Finish frees the slot; Reopen fails when another Free goal is open and otherwise stays active at100%.
+- Finish keeps the goal counted toward the Free one-goal limit; Reopen within the limit succeeds and stays active at100%; a Free Create while the finished goal exists is refused with the "Build another world" entry.
+- Deleting a completed goal after confirmation removes goal, entries and souvenir in one transaction; Collection no longer shows it, the currency lock recounts and Free can create a new goal.
 - Reopen then correction100->10 regresses live scene while the souvenir persists; repeated Finish never adds another.
 
 ## Tests and verification
 
 - Real SQLite failure between ledger/target and award rolls back both; unique goal_id plus separate-operation re-crossing tests.
-- Native Finish/Reopen/closed edit/paused edit/global currency lock tests; count status-completed separately from souvenir count.
+- Native Finish/Reopen/closed edit/paused edit/global currency lock tests, including goal deletion with a souvenir (rollback on failure, receipt replay); count status-completed separately from souvenir count.
 - Process termination and historical-manifest/Collection VoiceOver walkthrough; standard checks.
 
 ## Definition of Done
@@ -766,7 +770,7 @@ Every acceptance criterion above has evidence; required dependencies are verifie
 
 ## Out of scope
 
-- XP/badges, public sharing, whole-goal or souvenir deletion, custom retention policies and multiple rewards per goal.
+- XP/badges, public sharing, deleting a souvenir without its goal, Archive or Close goal, custom retention policies and multiple rewards per goal.
 
 [Full implementation prompt](prompts/PHASE_11.md).
 
@@ -790,6 +794,7 @@ Q04 is resolved. No custom schedule, evidence-link choice or owner confirmation 
 - Count records with immutable createdAt>startedAt and entry date from startDate through saved period end if any. New records created after an ended week cannot retroactively finish it; corrections to existing corresponding records may change results.
 - Next/Weekly progress=max(0,sum eligible signed amounts); First checks positive deposit. Recalculate on correction/deletion/withdrawal. Goal target/deadline changes do not rewrite the started target/period.
 - Completed/Not completed/Skipped remain historical; expiry of an unsuccessful weekly period gives Not completed. Corrected historical results never reactivate, take the current slot or repeat notification. Skip preserves history. Engine never creates, links/copies or duplicates a transaction; shared Add savings is UI integration in 13.
+- Extend the D74 `deleteGoal` command to delete the goal's challenge attempts in the same transaction (attempts reference goals).
 
 ## Expected files and modules
 
@@ -904,7 +909,7 @@ The schedule is fixed by v1.2, not an open cadence decision.
 
 - Add the single weeklyReminderEnabled Settings switch, default opt-in off. Ask OS permission only after user enables it; handle denied/provisional/authorized without blocking savings.
 - Persist global intent and reconcile a single logical weekly OS request for Sunday 18:00 device time. Schedule only if enabled, permitted and at least one goal status is active.
-- Reconcile on launch/foreground, settings/permission/timezone and goal Pause/Resume/Finish/Archive/Reopen. paused/completed/archived do not qualify; no active goal means no request. Editing a paused goal does not resume it.
+- Reconcile on launch/foreground, settings/permission/timezone and goal Pause/Resume/Finish/Reopen/Delete. paused/completed do not qualify; no active goal means no request. Editing a paused goal does not resume it.
 - Cancel duplicates/orphans and recover interrupted scheduling after SQLite commit. Use generic text and a safe Home/current-active-goal notification-tap fallback.
 - Use the actual local-notification adapter/config; no per-goal/per-challenge cadence/time/pause controls, push token/server or background-JavaScript assumption.
 
@@ -927,7 +932,7 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 ## Acceptance criteria
 
 - Permission denial leaves ledger fully usable and offers a system Settings path.
-- Exactly one desired global request with an active goal, none with only paused/completed/archived goals; repeat reconciliation never duplicates it.
+- Exactly one desired global request with an active goal, none with only paused/completed goals or after the last active goal is deleted; repeat reconciliation never duplicates it.
 - Real iPhone schedule/delivery/cancel/tap works for tested foreground/background/terminated scenarios with evidence.
 
 ## Tests and verification
@@ -964,7 +969,7 @@ Q07 product ID/store setup and Q09 bundle identifier are required; a configured 
 - Implement event-driven purchase states, verified/unverified/pending distinction and product metadata. Do not grant rights from callback success or JWS decoding alone.
 - Persist idempotent transaction processing and entitlement snapshots before finishing/acknowledging store transactions; handle replay after interruption.
 - Implement current-entitlement queries, transaction update listeners, explicit restore and foreground reconciliation. Treat network failure as unknown rather than revocation.
-- Map Pro to unlimited open goals, Garden/open-goal theme switching and the four precise statistics; fixed challenges are identical for Free/Pro, with theme rights addressable independently. Pro price remains storefront-sourced and commercially undecided.
+- Map Pro to unlimited goals, Garden/open-goal theme switching and the four precise statistics; fixed challenges are identical for Free/Pro, with theme rights addressable independently. Pro price remains storefront-sourced and commercially undecided.
 
 ## Expected files and modules
 
@@ -1014,14 +1019,15 @@ Connect verified purchases to the complete Free/Pro access rules and a truthful 
 
 Phase 15
 
-Q05 is resolved by v1.2; use its confirmed-loss policy without reapproval. Test paywall pricing may use configured sandbox data; public-release sale copy waits for final Q07 price.
+Q05 is resolved by v1.2 and its confirmed-loss policy is changed by owner decision D74; use the D74 policy without reapproval. Test paywall pricing may use configured sandbox data; public-release sale copy waits for final Q07 price.
 
 ## Exact scope
 
 - Implement lifetime paywall with exact included features, localized product price and buy/restore controls; handle loading/offline/pending/cancelled/owned/error states.
+- Replace the Phase 08 native alert with the "Build another world" paywall entry when Free tries to create a second goal (D74): title "Build another world", message "You've already created your free savings goal. Unlock Pro to create more goals and grow your collection of worlds.", button "Explore Pro", footnote "One-time purchase. No subscription.", with Garden shown as an extra Pro benefit. Free can also delete its goal and start over.
 - Replace all temporary test capability wiring with the verified production provider; inspect every command entry point for duplicate/free-limit bypasses.
-- Enable unlimited open Pro goals and statistics navigation; fixed challenges remain identical in both tiers; Garden becomes selectable only when Phase 17 is complete.
-- Implement v1.2 verified-loss behavior: retain all goals/history/souvenirs, require the user to choose at most one open Free goal and archive the others before further entries, and use Island on the open Free goal while Garden souvenirs persist. Temporary offline failure retains previously verified rights; never alter amounts or delete data.
+- Enable unlimited Pro goals and statistics navigation; Free keeps the one-goal-in-total limit (any status) for Create; fixed challenges remain identical in both tiers; Garden becomes selectable only when Phase 17 is complete.
+- Implement the D74 verified-loss behavior (verified revocation/refund, Family Sharing removed): delete or change nothing; with several goals the person chooses one goal to keep using; the other goals stay visible but read-only (no new entries or edits) until Pro returns or they are deleted. A Garden goal keeps its world as it is but cannot progress further in Garden without Pro; to continue saving the person switches it to Island (Phase 17). Garden souvenirs persist. Temporary offline failure retains previously verified rights; never alter amounts or delete data.
 - Provide restore from both paywall and Settings, distinguish purchase rights from data recovery, and return users to the action that opened the paywall.
 
 ## Expected files and modules
@@ -1030,7 +1036,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 
 - `src/features/billing/presentation/ paywall and restore states`
 - `src/features/goals/ multi-goal selection and command gates`
-- `src/core/access/ open-goal limit and read-only paid-statistics gates`
+- `src/core/access/ Free goal limit, read-only-after-loss and paid-statistics gates`
 - `src/features/settings/ Restore Purchases entry`
 - `capability and purchase user-journey tests`
 
@@ -1044,13 +1050,14 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 
 - Free and Pro feature matrix matches R05/R14/R15/R18/R19/R20 across cold restart and deep-link entry.
 - Restore/error/cancellation states are understandable and do not trap the user.
-- Verified revocation preserves records and Garden souvenirs, blocks further entries until the user leaves at most one open goal, and shows Island for that Free goal. Unknown offline state does not revoke.
+- Verified revocation deletes or changes nothing; with several goals the person chooses one goal to keep using; the other goals stay visible but read-only (no new entries or edits) until Pro returns or they are deleted; Garden souvenirs stay. Unknown offline state does not revoke.
+- A Free second Create shows the "Build another world" paywall entry with the exact D74 copy; buying Pro returns to Create.
 
 ## Tests and verification
 
 - Unit/integration access matrix, deep-link and repeated goal-create tests.
 - Device purchase/restore/cancel/offline/pending walkthrough; all three fixed challenges stay Free before/after Pro.
-- Resolved v1.2 revocation/over-limit and archived-before-further-entry behavior, accessibility checks and standard checks.
+- D74 revocation behavior (choose one goal, the others read-only until Pro returns or they are deleted), the Free one-goal limit, accessibility checks and standard checks.
 
 ## Definition of Done
 
@@ -1072,15 +1079,15 @@ Deliver the complete Pro Garden theme and the full confirmed personalization sco
 
 Phase 16
 
-Approved Garden art and provenance plus verified implementation of v1.2 Q03/Q05 policies are required for visual and access acceptance.
+Approved Garden art and provenance plus verified implementation of v1.2 Q03 and the D74-changed Q05 policies are required for visual and access acceptance.
 
 ## Exact scope
 
 - Integrate approved Garden base and all ten exact outcomes from ASSET_SPEC through the existing renderer.
-- Allow verified Pro users to select Island/Garden when creating a goal and change an existing open active/paused goal theme later; completed/archived require Reopen before any edit.
+- Allow verified Pro users to select Island/Garden when creating a goal and change an existing open active/paused goal theme later; completed goals require Reopen before any edit.
 - Persist theme changes as metadata through a capability-checked command while preserving target, currency, ledger, challenge evidence and current milestone.
 - Keep completion snapshots on their historical theme/version; switching an open live goal already at100% does not rewrite its souvenir or award another.
-- Use a brief bounded transition and accessible confirmation; verify all Garden states offline and implement v1.2 verified-loss Island fallback with Garden souvenirs retained and excess open goals archived before further entries.
+- Use a brief bounded transition and accessible confirmation; verify all Garden states offline and implement the D74 verified-loss Garden rule: a Garden goal is never deleted or changed and its world stays visible as it is, but without Pro it cannot progress further in Garden; to continue saving the person switches that goal to Island (ledger, target and souvenir kept). Garden souvenirs stay.
 - Call `haptics.selection()` when the user picks Island or Garden in a custom theme picker; the theme change confirmation uses the shared toast.
 
 ## Expected files and modules
@@ -1137,11 +1144,11 @@ Q06 is resolved by v1.2. Chart scope/range and completed count are fixed, not qu
 
 ## Exact scope
 
-- Show one current total across all goal balances, including active/paused/completed/archived; never add souvenir snapshots.
+- Show one current total across all existing goal balances (active, paused, completed); a deleted goal's entries are gone and no longer counted (D74); never add souvenir snapshots.
 - Show gross deposits and withdrawals in the current local calendar month by saved entry date, separate from current net total.
-- Build one all-goal daily-balance graph for today and the preceding 29 calendar dates. Carry in every valid earlier transaction as opening balance, then accumulate each displayed date across every goal, including archived. No selected-goal graph or currency selector.
-- Count goals whose current status is completed, not the number of souvenirs. Reopen/Archive changes the count even though souvenirs remain.
-- Recalculate after transaction correction/deletion, goal status change and date/month rollover; provide clear empty/loading/error states, accessible chart text and Pro command/query entry guards.
+- Build one all-goal daily-balance graph for today and the preceding 29 calendar dates. Carry in every valid earlier transaction as opening balance, then accumulate each displayed date across every existing goal. No selected-goal graph or currency selector.
+- Count goals whose current status is completed, not the number of souvenirs. Reopen changes the count even though souvenirs remain; deleting a completed goal removes it from the count.
+- Recalculate after transaction correction/deletion, goal status change, goal deletion and date/month rollover; provide clear empty/loading/error states, accessible chart text and Pro command/query entry guards.
 
 ## Expected files and modules
 
@@ -1156,19 +1163,19 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 ## Technical requirements
 
 - Use global currency and BigInt/checked aggregate presentation; no multi-currency grouping or FX.
-- Include opening balance before the window and archived records in money totals/chart.
+- Include opening balance before the window and every existing goal's records in money totals/chart; a deleted goal contributes nothing.
 - Use minimal SVG, no forecasting/analytics service or broad charting framework.
 
 ## Acceptance criteria
 
 - All four views match independently computed fixtures; current-month gross values and 30 daily points have exact semantics.
-- A goal with a souvenir but active/archived status is not counted as completed; explicit Finish changes the count.
+- A goal with a souvenir but active/paused status is not counted as completed; explicit Finish changes the count.
 - Backdated edit/deletion updates opening balance/month/series, and chart information remains accessible without graphics.
 
 ## Tests and verification
 
 - Fixtures with several statuses, deposits/withdrawals, same-day ordering, before-window opening balance, missing-activity days and current-month boundary.
-- Completed-count Finish/Reopen/Archive cases; souvenir remains unchanged; archived money still contributes.
+- Completed-count Finish/Reopen/Delete cases; souvenir remains unchanged on Reopen; a deleted goal's money and count disappear.
 - Native repository comparisons, fake-clock local month/day changes, Pro denial, chart VoiceOver/container reflow and standard checks.
 
 ## Definition of Done
@@ -1229,7 +1236,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 - Repeat the shared Duo matrix with actual forms, both themes, charts and native sheets; record focused-draft preservation and four-edge safe-area results.
 
 - Manual iPhone VoiceOver/text-size/Reduce Motion checklist with screen-by-screen evidence.
-- Carried from Phase 06 (DECISIONS D60): on a physical iPhone, run the VoiceOver walkthrough of onboarding, Create/Edit Goal (inline errors read with the field), Home Pause/Resume/Archive, Collection Reopen and the Settings currency lock; each confirmation toast is announced once and never takes focus.
+- Carried from Phase 06 (DECISIONS D60): on a physical iPhone, run the VoiceOver walkthrough of onboarding, Create/Edit Goal (inline errors read with the field), Home Pause/Resume and Delete goal (Archive was removed by D74), Collection Reopen and Delete and the Settings currency lock; each confirmation toast is announced once and never takes focus.
 - Carried from Phase 07 (DECISIONS D63): on a physical iPhone, run the VoiceOver walkthrough of the Add/Edit Entry form (`/entry-form`: amount/note labels and inline errors read with their field, the Deposit/Withdrawal control, the date picker, the delete confirmation) and History (`/history`: rows read as "Deposit/Withdrawal, signed amount, date, note", closed-goal read-only state); each ledger toast is announced once and never takes focus. Feel the haptics: one success after each committed write, one warning per rule rejection, none otherwise.
 - Formatting tests for at least two numeric/date locales, currency exponents and all user-facing catalog keys.
 - Contrast/touch/layout review, relevant interaction regressions and standard checks.
@@ -1322,7 +1329,7 @@ All prior native/device/art checks must be truly complete. Required devices, sig
 
 ## Exact scope
 
-- Automate core journeys: Free create/deposit/withdraw/correct/restart, deadline, challenge recording, first-souvenir/Finish/Reopen/Archive/Collection, fixed challenge attempts, global currency lock, global reminder, verified Pro/confirmed-loss handling, open-goal theme change and four exact statistics.
+- Automate core journeys: Free create/deposit/withdraw/correct/restart, deadline, challenge recording, first-souvenir/Finish/Reopen/Collection, confirmed goal deletion and delete-and-start-over on Free, fixed challenge attempts, global currency lock, global reminder, verified Pro/confirmed-loss handling, open-goal theme change and four exact statistics.
 - Exercise actual SQLite migrations and financial commands under interruption, repeated taps, stale edits, low-storage/write failures and foreground date changes.
 - Profile local launch, goal/history queries and both worlds on the oldest supported iPhone using realistic multi-goal data, including a 10,000-entry fixture in the one global currency. Test alternate currency exponents in separate whole-app fixtures only.
 - Fix measured bottlenecks with indexes, bounded query results, memoized layers and stopped offscreen effects; record before/after evidence without redesigning the app.
@@ -1430,6 +1437,6 @@ Every acceptance criterion above has evidence; required dependencies are verifie
 
 ## Release scope and gates
 
-One global currency; exact local ledger with nonnegative chronological balance; active+paused Free limit; explicit Finish/Reopen; a unique permanent souvenir; Island/Garden base plus ten unlocks; three fixed challenge rules; one optional global Sunday 18:00 reminder; lifetime Apple Pro with restore, unlimited open goals, open-goal theme switching and four precise statistics. Include archived ledger and pre-window opening balance in the 30-day total daily graph; completed count is current goal status. No audit history, goal deletion, custom challenge editor, backup/export/import/sync, AI, accounts, Android launch or extra themes.
+One global currency; exact local ledger with nonnegative chronological balance; a Free limit of one goal in total in any status (D74); explicit Finish/Reopen; confirmed whole-goal deletion (goal, entries and souvenir; D74); a unique souvenir per goal; Island/Garden base plus ten unlocks; three fixed challenge rules; one optional global Sunday 18:00 reminder; lifetime Apple Pro with restore, unlimited goals, open-goal theme switching and four precise statistics. Include every existing goal's ledger and the pre-window opening balance in the 30-day total daily graph; completed count is current goal status. Loss of Pro keeps one chosen goal usable and the others read-only (D74). No audit history, Archive or Close goal, custom challenge editor, backup/export/import/sync, AI, accounts, Android launch or extra themes.
 
 Compatible native styling/adaptation and EAS delivery must be verified in actual builds. Licensed final art, identity/price/store/native/EAS access are phase/release dependencies. VERIFIED COMPLETE requires evidence; a finished Phase 22 prepares release, not production publishing, store submission or Apple approval. Core testing does not wait for final Pro price.

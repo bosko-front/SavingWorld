@@ -8,7 +8,7 @@ You are implementing one phase of Saving Worlds in a fresh Claude Code session. 
 2. Read `docs/PROJECT_STATUS.md` and `docs/SESSION_HANDOFF.md`, including verification gaps. Read `docs/ARCHITECTURE.md`, `docs/DATA_MODEL.md`, the phase-specific documents below and its canonical roadmap entry. For any UI work, also read `docs/DESIGN_SYSTEM.md` and `docs/ADAPTIVE_LAYOUT.md`; reuse their tokens/primitives and layout policy. For native, dependency, persistence or delivery changes, read `docs/EAS_AND_OTA.md` and preserve its runtime/schema and activation contracts.
 3. Inspect the existing files, package scripts, lockfile, migrations, tests and working tree before changing anything. Preserve unrelated owner work. If Git is absent, inspect the directory and say so; do not assume a clean Git history.
 4. Verify actual dependency code and evidence against acceptance criteria. A checked box, previous handoff or earlier chat is insufficient. Resume missing work if this phase is partially complete. If already complete, verify that fact and report it without reimplementation or silently starting the next phase.
-5. Product authority is `docs/Saving_Worlds_MVP_Plan_v1_2.docx` (23 October 2026). It supersedes conflicting v1.1 and 22 October feature text, even when historical files say confirmed. Q01-Q06 are resolved; do not request reapproval or restore custom challenges, per-goal currencies, entry audit history or goal deletion. Read the compatible setup/layout and EAS/OTA source records for engineering only. Ask only for a genuinely missing operational dependency, continue independent authorized work and leave its evidence pending.
+5. Product authority is `docs/Saving_Worlds_MVP_Plan_v1_2.docx` (23 October 2026). It supersedes conflicting v1.1 and 22 October feature text, even when historical files say confirmed. Q01-Q06 are resolved; do not request reapproval or restore custom challenges, per-goal currencies or entry audit history. Owner decision D74 (DECISIONS) overrides v1.2 on goals: Archive and Close goal are removed (statuses active, paused, completed), any goal can be deleted after a native confirmation (goal, entries and souvenir; no undo), Free may have one goal in total in any status, and loss of Pro keeps one chosen goal usable and the others read-only. Do not restore Archive or the old no-deletion rule. Read the compatible setup/layout and EAS/OTA source records for engineering only. Ask only for a genuinely missing operational dependency, continue independent authorized work and leave its evidence pending.
 
 Phase-specific reading: `docs/ARCHITECTURE.md`, `docs/DATA_MODEL.md`, `docs/TECH_STACK.md`, `docs/TEST_PLAN.md` and the Phase 18 entry in `docs/DEVELOPMENT_ROADMAP.md`.
 
@@ -24,10 +24,10 @@ Q06 is resolved by v1.2. Chart scope/range and completed count are fixed, not qu
 
 ## Exact scope
 
-- Show one current total across all goal balances, including active/paused/completed/archived; never add souvenir snapshots.
+- Show one current total across all existing goal balances (active, paused, completed); a deleted goal's entries are gone and no longer counted (D74); never add souvenir snapshots.
 - Show gross deposits and withdrawals in the current local calendar month by saved entry date, separate from current net total.
-- Build one all-goal daily-balance graph for today and the preceding 29 calendar dates. Carry in every valid earlier transaction as opening balance, then accumulate each displayed date across every goal, including archived. No selected-goal graph or currency selector.
-- Count goals whose current status is completed, not the number of souvenirs. Reopen/Archive changes the count even though souvenirs remain.
+- Build one all-goal daily-balance graph for today and the preceding 29 calendar dates. Carry in every valid earlier transaction as opening balance, then accumulate each displayed date across every existing goal. No selected-goal graph or currency selector.
+- Count goals whose current status is completed, not the number of souvenirs. Reopen changes the count even though souvenirs remain; deleting a completed goal removes it from the count.
 - Recalculate after transaction correction/deletion, goal status change and date/month rollover; provide clear empty/loading/error states, accessible chart text and Pro command/query entry guards.
 
 ## Expected files and modules
@@ -43,19 +43,19 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 ## Technical requirements
 
 - Use global currency and BigInt/checked aggregate presentation; no multi-currency grouping or FX.
-- Include opening balance before the window and archived records in money totals/chart.
+- Include opening balance before the window and every existing goal's records in money totals/chart; a deleted goal contributes nothing.
 - Use minimal SVG, no forecasting/analytics service or broad charting framework.
 
 ## Acceptance criteria
 
 - All four views match independently computed fixtures; current-month gross values and 30 daily points have exact semantics.
-- A goal with a souvenir but active/archived status is not counted as completed; explicit Finish changes the count.
+- A goal with a souvenir but active/paused status is not counted as completed; explicit Finish changes the count.
 - Backdated edit/deletion updates opening balance/month/series, and chart information remains accessible without graphics.
 
 ## Tests and verification
 
 - Fixtures with several statuses, deposits/withdrawals, same-day ordering, before-window opening balance, missing-activity days and current-month boundary.
-- Completed-count Finish/Reopen/Archive cases; souvenir remains unchanged; archived money still contributes.
+- Completed-count Finish/Reopen/Delete cases; souvenir remains unchanged on Reopen; a deleted goal's money and count disappear.
 - Native repository comparisons, fake-clock local month/day changes, Pro denial, chart VoiceOver/container reflow and standard checks.
 
 ## Definition of Done

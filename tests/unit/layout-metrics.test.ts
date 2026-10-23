@@ -4,6 +4,8 @@ import {
   containedRegionOwnership,
   fitAspect,
   isArrangementCollapsed,
+  floatingActionEdges,
+  floatingActionInset,
   readableColumnWidth,
   safeAreaEdges,
   scrollingScreenOwnership,
@@ -109,10 +111,18 @@ describe('content bounds', () => {
   it('caps the stacked fallback scene in a short window so the controls start near the top', () => {
     // Tall window: natural 4:3 height.
     expect(stackedSceneHeight(360, 700, 4 / 3)).toBe(270);
-    // Short window (split view, landscape, keyboard): at most 45% of the visible height.
-    expect(stackedSceneHeight(360, 300, 4 / 3)).toBe(135);
+    // Short window (split view, landscape, keyboard): at most 40% of the visible height (Phase 08).
+    expect(stackedSceneHeight(360, 300, 4 / 3)).toBe(120);
     // Not yet measured: no scene height rather than a guessed one.
     expect(stackedSceneHeight(0, 700, 4 / 3)).toBe(0);
+  });
+
+  it('gives a floating action button room under the scrolling content without counting the bars twice', () => {
+    // A 56 pt button, 16 pt bottom margin and an 8 pt gap; the native scroll view already adds the
+    // tab bar and home indicator, and the button's own bottom edge adds them too.
+    expect(floatingActionInset(56)).toBe(80);
+    expect(floatingActionInset(0)).toBe(0);
+    expect(floatingActionEdges).toEqual({ top: 'off', bottom: 'additive', left: 'maximum', right: 'maximum' });
   });
 });
 

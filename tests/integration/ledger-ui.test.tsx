@@ -8,12 +8,14 @@ import { addDays, systemClock, today, type Clock } from '@/core/calendar';
 import { randomUuid, uuidGenerator } from '@/data/ids';
 import { getGoal } from '@/data/repositories/goal-repository';
 import { listEntriesForGoal } from '@/data/repositories/ledger-repository';
-import { archiveGoal, createGoal, pauseGoal } from '@/features/goals/application/goal-commands';
+import { capabilitiesFor } from '@/core/access';
+import { createGoal, finishGoal, pauseGoal } from '@/features/goals/application/goal-commands';
 import { correctEntry, createEntry } from '@/features/ledger/application/ledger-commands';
 import { civilDateToLocalDate } from '@/shared/i18n/local-date';
 
 import { APP_DIR, chooseCurrency, freshAppDatabase, resetApp } from '../support/app-fixture';
 import { playedHaptics } from '../support/expo-haptics-fake';
+import { chooseGoalOption, goalOptionLabels } from '../support/goal-menu';
 import { liveToasts } from '../support/sonner-native-fake';
 
 // Phase 07 screens on the real routes (Jest, host SQLite): the shared Add/Edit Entry form from Home
@@ -155,7 +157,7 @@ describe('Add savings from Home', () => {
 
     await userEvent.press(screen.getByTestId('entry-cancel'));
     expect(screen.getByTestId('home-saved')).toHaveTextContent('€30.00');
-    expect(screen.getByTestId('home-history')).toHaveAccessibleName('History, 2 entries');
+    expect(goalOptionLabels()).toContain('History (2 entries)');
   });
 
   it('explains zero and malformed amounts without a haptic, and defaults to a deposit dated today', async () => {
@@ -292,7 +294,7 @@ describe('History, corrections and confirmed deletion', () => {
     const deposit = await seedEntry(goalId, 'deposit', 5_000, first);
     const withdrawal = await seedEntry(goalId, 'withdrawal', 2_000, addDays(TODAY, -1));
     await renderRouter(APP_DIR, { initialUrl: '/' });
-    await userEvent.press(screen.getByTestId('home-history'));
+    await chooseGoalOption(/^History/);
     expect(screen).toHavePathname('/history');
     expect(screen.getByTestId('history-balance')).toHaveTextContent('Saved: €30.00');
 
@@ -394,18 +396,22 @@ describe('History, corrections and confirmed deletion', () => {
     const goalId = await setupGoal();
     await renderRouter(APP_DIR, { initialUrl: `/history?goalId=${goalId}` });
     expect(screen.getByTestId('history-empty')).toHaveTextContent(/No entries yet/);
+    // The same floating + button as on Home (D72).
+    expect(screen.getByTestId('floating-action-slot')).toContainElement(screen.getByTestId('history-add'));
+    expect(screen.getByTestId('history-add')).toHaveAccessibleName('Add savings');
     await userEvent.press(screen.getByTestId('history-add'));
     expect(screen).toHavePathname('/entry-form');
   });
 
   it('closed goals are read-only: no Add savings, rows are not buttons and the form explains Reopen', async () => {
     const goalId = await setupGoal();
-    const entryId = await seedEntry(goalId, 'deposit', 3_000, TODAY);
-    const archived = await archiveGoal(deps(), { operationId: randomUuid(), goalId, expectedRevision: 1 });
-    expect(archived.ok).toBe(true);
+    const entryId = await seedEntry(goalId, 'deposit', 100_000, TODAY);
+    const finished = await finishGoal(deps(), { operationId: randomUuid(), goalId, expectedRevision: 1 });
+    expect(finished.ok).toBe(true);
     await renderRouter(APP_DIR, { initialUrl: `/history?goalId=${goalId}` });
     expect(screen.getByTestId('history-closed')).toBeOnTheScreen();
     expect(screen.queryByTestId('history-add')).not.toBeOnTheScreen();
+    expect(screen.queryByTestId('floating-action-slot')).not.toBeOnTheScreen();
     expect(screen.getByTestId(`history-row-${entryId}`)).not.toHaveProp('accessibilityRole', 'button');
 
     await act(async () => {
@@ -432,19 +438,23 @@ describe('Free-limit rejections play one warning haptic', () => {
     await userEvent.type(screen.getByTestId('goal-title'), 'Second');
     await userEvent.type(screen.getByTestId('goal-target'), '100');
     await userEvent.press(screen.getByTestId('goal-save'));
-    expect(screen.getByTestId('goal-form-error')).toHaveTextContent(/Free includes one open goal/);
+    expect(screen.getByTestId('goal-form-error')).toHaveTextContent(/Free includes one goal\. Delete your current goal to start over/);
     expect(hapticTypes()).toEqual(['warning']);
     expect(liveToasts()).toHaveLength(0);
   });
 
-  it('Reopen at the Free limit', async () => {
+  it('Reopen over the Free limit (two goals, as after losing Pro)', async () => {
     const closed = await setupGoal('Closed goal');
-    expect((await archiveGoal(deps(), { operationId: randomUuid(), goalId: closed, expectedRevision: 1 })).ok).toBe(true);
-    await setupGoal('Open goal');
+    await seedEntry(closed, 'deposit', 100_000, TODAY);
+    expect((await finishGoal(deps(), { operationId: randomUuid(), goalId: closed, expectedRevision: 1 })).ok).toBe(true);
+    const pro = { ...deps(), capabilities: capabilitiesFor('pro') };
+    expect(
+      (await createGoal(pro, { operationId: randomUuid(), title: 'Open goal', targetMinor: 100_000, deadlineDate: null, themeId: 'island' })).ok,
+    ).toBe(true);
     await renderRouter(APP_DIR, { initialUrl: '/collection' });
     await userEvent.press(screen.getByTestId(`reopen-${closed}`));
     // A one-tap action has no form, so its refusal is an error toast with the explanation (D66).
-    await waitFor(() => expect(toastsShown()).toEqual([expect.stringMatching(/^Goal not reopened\. .*Archive your open goal first/)]));
+    await waitFor(() => expect(toastsShown()).toEqual([expect.stringMatching(/^Goal not reopened\. Free includes one goal/)]));
     expect(hapticTypes()).toEqual(['warning']);
   });
 });

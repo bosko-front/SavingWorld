@@ -104,10 +104,11 @@ Typography uses the system font. Each role (`display` 40/46 bold for the Home sa
 | `src/shared/ui/progress-bar.tsx` `ProgressBar` (Phase 07.5) | Range-colored fill (`progressFillColor`, D66) on a progressTrack with nine marks at the 10% milestones. Takes the visual `fraction` from `sceneFeedback().overall` and the floored `percent`; `progressbar` role with the percent as its value. The percent is always also written next to it. |
 | `src/shared/ui/list-row.tsx` `ListGroup`, `ListRow`, `ListCell` (Phase 07.5; `ListCell` for custom row content such as a date picker or an inset field, D67) | Inset-grouped rows on one rounded surface with hairline separators. Row: optional icon, title, `detail`, trailing `value`, `chevron` for navigation, `tone="destructive"`, `loading`, `disabled`; pressable when it gets `onPress` (also inside `Link asChild`), otherwise a static readable row. Use for secondary actions and settings instead of stacked buttons. |
 | `src/shared/ui/section-header.tsx` `SectionHeader` (Phase 07.5) | The one in-content heading (headline + optional caption). Screens never repeat their native title in the content. |
-| `src/shared/ui/status-badge.tsx` `StatusBadge` (Phase 07.5) | Soft pill with a status word (`info`, `success`, `neutral`), e.g. Paused, Completed, Archived. |
+| `src/shared/ui/status-badge.tsx` `StatusBadge` (Phase 07.5) | Soft pill with a status word (`info`, `success`, `neutral`), e.g. Paused, Completed. |
 | `src/shared/ui/empty-state.tsx` `EmptyState` (Phase 07.5) | Icon in a soft circle, a title that says what belongs here, one sentence on how it fills, optional single action. Replaces "will appear here" copy. |
 | `src/shared/ui/icon-tile.tsx` `IconTile` (D68) | Filled SF Symbol on a pastel rounded-square tile in `green`, `honey`, `blue`, `red` or `neutral` (`tileColors`), scaled with the text role; decorative. |
 | `src/shared/ui/header-button.tsx` `HeaderIconButton` (Phase 07.5) | Icon-only 44 pt button for a navigation-bar slot, with a required accessibility label (Settings on Home). |
+| `src/shared/ui/floating-action-button.tsx` `FloatingActionButton` (Phase 08, D72-D73) | The screen's one primary action as an `actionPrimary` pill (min 56 pt) with a white SF Symbol and a visible label ("+ Add savings"), which is also its spoken name. Above text scale 1.35 it shows only the icon (growing with text). Placed only through the `floatingAction` slot of `Screen`/`AdaptiveGoalLayout`. Works inside `Link asChild`. |
 
 Screens are composed with the Phase 03 layout primitives (`Screen`, `FormScreen`, `ContentColumn`, `AdaptiveGoalLayout` in `src/shared/layout/`); see [ADAPTIVE_LAYOUT](ADAPTIVE_LAYOUT.md#implementation-phase-03). The temporary `PlaceholderScreen` was removed in Phase 03.
 
@@ -124,10 +125,10 @@ Screens are composed with the Phase 03 layout primitives (`Screen`, `FormScreen`
 
 The owner approved toasts for feedback where they follow UX best practice (23 October 2026, DECISIONS D40). A toast is a short, self-dismissing confirmation; it never replaces the screen's own state.
 
-Use a toast for a low-priority confirmation of something the user just did and can already see reflected on screen: "Deposit saved", "Withdrawal saved", "Entry updated", "Entry deleted", "Goal archived", "Reminder turned on". Do not use one for:
+Use a toast for a low-priority confirmation of something the user just did and can already see reflected on screen: "Deposit saved", "Withdrawal saved", "Entry updated", "Entry deleted", "Goal deleted", "Reminder turned on". Do not use one for:
 
-- Form errors and validation. Keep those inline (`Notice` / TextField `error`) and preserve the user's input. Since D66 an **error toast** (title + one sentence on what to do) is used only for a refused or failed one-tap action that has no form: Pause, Resume, Archive, Reopen (later Finish, Skip).
-- Destructive confirmation. Deleting an entry still needs a native confirmation first; there is no Undo, because v1.2 keeps no entry history.
+- Form errors and validation. Keep those inline (`Notice` / TextField `error`) and preserve the user's input. Since D66 an **error toast** (title + one sentence on what to do) is used only for a refused or failed one-tap action that has no form: Pause, Resume, Reopen, Delete goal (later Finish, Skip).
+- Destructive confirmation. Deleting an entry or a whole goal (D74) still needs a native confirmation first; there is no Undo, because v1.2 keeps no entry history and a deleted goal is gone.
 - Essential information, money amounts or anything the screen does not also show. Updated balances appear on screen; the toast only confirms the action.
 - Milestone, souvenir or completion celebrations. Those are the world's job (Phases 10/11) and stay dismissible and accessible on their own.
 - Purchase results. The paywall shows them in place (Phase 16).
@@ -143,7 +144,7 @@ Behavior rules:
 7. Pair a toast with `haptics.success()` only where the Haptics table says so (committed financial writes, Finish), never for every tap.
 8. Shown only after the write has committed, never optimistically. A form that stays open after saving shows its result inline instead.
 
-Implemented in Phase 06 (DECISIONS D58): `src/shared/ui/toast.tsx` exposes `showToast({ tone, title })` (`tone` is `success` or `info`; there is no error tone) and the `<Toaster />` host rendered once in the root layout inside a `FullWindowOverlay`, so a toast also shows above native sheets. One visible toast; the previous one is dismissed before the next. Duration 4 s, plus 60 ms per character beyond 40, at most 8 s. Tap or swipe up dismisses. Announcement: `AccessibilityInfo.announceForAccessibilityWithOptions(title, { queue: true })`. Reduce Motion: the engine skips its slide and the card fades in over `motion.standard` with React Native `Animated`. ESLint allows `sonner-native` only in this file. Phase 06 confirmations: Goal created, Goal saved, Goal paused, Goal resumed, Goal archived, Goal reopened, Currency changed to XXX. Original plan: a shared `src/shared/ui/toast.tsx` exposes `showToast({ tone, title })` and the `<Toaster />` host in the root layout, so screens never import a toast library directly. It renders with our tokens and AppText, adds the VoiceOver announcement and enforces the rules above. The planned engine is `sonner-native` (see the UX library plan below); its own styling, icons and stacking are overridden or disabled. Phase 06 (the first phase that saves something) installs the engine, creates this module and adds a gallery demo; Phase 07 reuses it for financial writes and adds the success haptic. Both prompts name this explicitly.
+Implemented in Phase 06 (DECISIONS D58): `src/shared/ui/toast.tsx` exposes `showToast({ tone, title })` (`tone` is `success` or `info`; there is no error tone) and the `<Toaster />` host rendered once in the root layout inside a `FullWindowOverlay`, so a toast also shows above native sheets. One visible toast; the previous one is dismissed before the next. Duration 4 s, plus 60 ms per character beyond 40, at most 8 s. Tap or swipe up dismisses. Announcement: `AccessibilityInfo.announceForAccessibilityWithOptions(title, { queue: true })`. Reduce Motion: the engine skips its slide and the card fades in over `motion.standard` with React Native `Animated`. ESLint allows `sonner-native` only in this file. Phase 06 confirmations: Goal created, Goal saved, Goal paused, Goal resumed, Goal archived (removed with Archive by D74; goal deletion confirms with Goal deleted), Goal reopened, Currency changed to XXX. Original plan: a shared `src/shared/ui/toast.tsx` exposes `showToast({ tone, title })` and the `<Toaster />` host in the root layout, so screens never import a toast library directly. It renders with our tokens and AppText, adds the VoiceOver announcement and enforces the rules above. The planned engine is `sonner-native` (see the UX library plan below); its own styling, icons and stacking are overridden or disabled. Phase 06 (the first phase that saves something) installs the engine, creates this module and adds a gallery demo; Phase 07 reuses it for financial writes and adds the success haptic. Both prompts name this explicitly.
 
 ## Haptics
 
@@ -151,14 +152,14 @@ Haptics confirm a meaningful moment the user caused; they are never the only fee
 
 | Helper | iOS feedback | Use | Phase |
 | --- | --- | --- | --- |
-| `haptics.success()` | Notification success | Rule since D68: once after every committed write confirmed by a success toast: deposit, withdrawal, entry edit, entry delete, goal created, goal saved, Pause, Resume, Archive, Reopen, currency changed; after Finish; when a challenge attempt becomes Completed while its screen is visible | 07, 11, 13 |
-| `haptics.warning()` | Notification warning | Once per submit when a save is rejected by a rule (negative running balance, future date, Free open-goal limit on Create/Reopen), together with the inline explanation | 07, 11 (06 adds the call once the helper exists) |
+| `haptics.success()` | Notification success | Rule since D68: once after every committed write confirmed by a success toast: deposit, withdrawal, entry edit, entry delete, goal created, goal saved, Pause, Resume, Reopen, goal deleted, currency changed; after Finish; when a challenge attempt becomes Completed while its screen is visible | 07, 11, 13 |
+| `haptics.warning()` | Notification warning | Once per submit when a save is rejected by a rule (negative running balance, future date, Free goal limit on Create/Reopen), together with the inline explanation | 07, 11 (06 adds the call once the helper exists) |
 | `haptics.milestone()` | Impact, medium | Once per committed stage unlock, coalesced when several thresholds are crossed; the first 100% uses `success` instead because the souvenir moment is the same event | 10, 11 |
 | `haptics.selection()` | Selection changed | Custom selection controls only: Home goal switcher, theme picker, challenge type choice; and each press on a bottom tab (owner request, D66, `screenListeners.tabPress` in `src/app/(tabs)/_layout.tsx`). Native `@expo/ui` pickers and switches already give system feedback, so do not add more | 08, 13, 17 |
 
 Never: on other navigation (push, back, sheets), scrolling, every button tap, press-in, Skip, refused or failed actions (those get `warning` only for rule refusals), info toasts on their own, withdrawal or target-edit scene regression (no punitive feel), purchase or restore results (StoreKit has its own), animation frames or loops, or while the app is in the background. Fire after the commit, in the same place the confirmation toast is shown. One user action produces at most one haptic.
 
-Implemented in Phase 07 (DECISIONS D62): `src/shared/ui/haptics.ts` exports `haptics.success/warning/milestone/selection` over `expo-haptics` ~58.0.7; ESLint allows `expo-haptics` only in that file, and Jest maps it to a recording fake. `success()` follows each committed deposit, withdrawal, entry edit and entry delete together with its toast ("Deposit saved", "Withdrawal saved", "Entry updated", "Entry deleted"). `warning()` plays once per submit refused by `negative_balance`, `negative_running_balance`, `balance_limit`, `future_date`, or the Free open-goal limit on Create Goal and Reopen. Amount format errors, stale or closed-goal refusals and storage failures play nothing. The simulator has no Taptic Engine; the felt result is a physical-device check.
+Implemented in Phase 07 (DECISIONS D62): `src/shared/ui/haptics.ts` exports `haptics.success/warning/milestone/selection` over `expo-haptics` ~58.0.7; ESLint allows `expo-haptics` only in that file, and Jest maps it to a recording fake. `success()` follows each committed deposit, withdrawal, entry edit and entry delete together with its toast ("Deposit saved", "Withdrawal saved", "Entry updated", "Entry deleted"). `warning()` plays once per submit refused by `negative_balance`, `negative_running_balance`, `balance_limit`, `future_date`, or the Free goal limit on Create Goal and Reopen (one goal in total since D74). Amount format errors, stale or closed-goal refusals and storage failures play nothing. The simulator has no Taptic Engine; the felt result is a physical-device check.
 
 ## Icons
 
@@ -177,7 +178,7 @@ Rules:
 3. Color comes from semantic tokens (`textSecondary` for neutral, `actionPrimary` for actions, `success`/`error`/`info` for status, money colors only next to an amount with its sign).
 4. Size follows the adjacent text role and grows with the user's text size (the base size multiplied by the current font scale); weight matches the text (regular or semibold).
 5. Filled variants for status, outlined variants for actions. Every name must exist in SF Symbols 4 (iOS 16.4, the SDK 58 minimum).
-6. **Icon tiles (owner choice D68).** Leading icons of list rows, form rows, History entries and empty states are `IconTile`s: the filled glyph (`FILLED_SYMBOLS`) in semibold on a small pastel rounded square, sized from the text role. Colors by meaning: blue History; honey Pause/Resume and withdrawals (warm, never an alarm color); green deposits, World, New goal and the default; red dates; neutral Edit and Archive; honey souvenirs. `ListRow` draws its `icon` as a tile (`iconColor`; destructive rows red, disabled neutral). Buttons, the header button and status badges use the same filled glyphs (D69); notices and toasts keep their status symbols, the tab bar its system symbols. A fully custom icon set remains possible later (with the Island artist, Phase 09) but needs a new decision.
+6. **Icon tiles (owner choice D68).** Leading icons of list rows, form rows, History entries and empty states are `IconTile`s: the filled glyph (`FILLED_SYMBOLS`) in semibold on a small pastel rounded square, sized from the text role. Colors by meaning: blue History; honey Pause/Resume and withdrawals (warm, never an alarm color); green deposits, World, New goal and the default; red dates; neutral Edit; red Delete goal (destructive row); honey souvenirs. `ListRow` draws its `icon` as a tile (`iconColor`; destructive rows red, disabled neutral). Buttons, the header button and status badges use the same filled glyphs (D69); notices and toasts keep their status symbols, the tab bar its system symbols. A fully custom icon set remains possible later (with the Island artist, Phase 09) but needs a new decision.
 
 Initial semantic map (extend only for a real repeated need):
 
@@ -188,7 +189,7 @@ Initial semantic map (extend only for a real repeated need):
 | history | `clock.arrow.circlepath` | History entry point |
 | calendar | `calendar` | Date and deadline fields |
 | pause / resume | `pause.circle` / `play.circle` | Goal lifecycle actions |
-| archive / reopen | `archivebox` / `arrow.uturn.backward.circle` | Lifecycle, Collection |
+| delete / reopen | `trash` / `arrow.uturn.backward.circle` | Lifecycle, Collection (D74) |
 | finish | `flag.checkered` | Finish action |
 | lock | `lock.fill` | Locked global currency explanation |
 | reminder | `bell` | Weekly reminder setting |
@@ -200,6 +201,7 @@ Initial semantic map (extend only for a real repeated need):
 | chevron | `chevron.right` | Disclosure in navigating rows |
 | milestone | `leaf.fill` | Next-milestone callout, New goal, empty Home |
 | challenges | `flag` | Challenges empty state (matches the tab) |
+| add | `plus` | "+ Add savings" on Home and History, New goal in the goal menu (Phase 08, D72-D73) |
 | currency / device | `banknote` / `iphone` | Reserved for Settings rows (Phases 14/19) |
 
 ## UX library plan
@@ -230,19 +232,21 @@ Approved by the owner on 23 October 2026 (DECISIONS D64): Home direction **A "Ca
 
 ### Home composition (Phase 08 builds this on AdaptiveGoalLayout)
 
-1. **Scene region** (primary): the world, framed as a rounded (`radii.xl`) 4:3 box that measures itself; Phase 09 replaces the development placeholder with licensed Island art.
+1. **Scene region** (primary): the world, framed as a rounded (`radii.xl`) 4:3 box that measures itself (`WorldScene`, `src/features/worlds/world-scene.tsx`; Phase 08 shows a temporary box with the theme name and "n of 10 milestones unlocked", which Phase 09 replaces with licensed Island art).
 2. **Controls region** (secondary), top to bottom, gap `spacing.md`–`lg`:
-   - Goal title (`title`) with a `StatusBadge` when paused (and later "Target reached"); the Pro goal switcher as grouped rows under a `SectionHeader`.
+   - Goal title (`title`) with a `StatusBadge` when paused and "Target reached" (success) at 100% or more, and the ⋯ goal menu at the trailing end (native SwiftUI `Menu`: History, Edit goal, Pause/Resume, Delete goal…, New goal; D73, Archive removed by D74); the Pro goal switcher as grouped rows under a `SectionHeader` (selection haptic on a change).
    - Saved amount as the largest text: `AmountText size="display"`, then "saved of {target}" in `textSecondary`.
-   - `ProgressBar` (ten milestone segments, fill colored by range: honey, olive, soft green, strong green at 100%; D66), with the floored percent (`progressTextTone`) on the left and "{remaining} to go" (or "Target reached", overfunding as a number) on the right.
-   - Next-milestone callout on `accentSurface` with the `milestone` icon: "Next: {stage name}" and "{amount} more to reach {n}%" (Phase 08; stage names from the theme manifest in Phase 09).
-   - Deadline line in `footnote`: deadline and the weekly/monthly estimate (Phase 08), Overdue/no-deadline states.
-   - One primary action: **Add savings** (full width).
-   - Secondary actions as `ListGroup` rows, never as more full-width buttons: History (entry count, chevron), Edit goal (chevron); a second group with Pause/Resume and Archive… (Finish joins this group at ≥ 100% in Phase 11).
-   - Free-limit explanation as one footnote line, not a notice.
+   - `ProgressBar` (ten milestone segments, fill colored by range: honey, olive, soft green, strong green at 100%; D66), with the floored percent (`progressTextTone`) on the left and "{remaining} to go" on the right, or "{amount} over target" when overfunded (125% stays numeric, the scene stops at 10).
+   - Next-milestone callout on `accentSurface` with the `milestone` icon: "Next milestone: {n}%" and "{amount} more to reach {n}%" (Phase 08; "Next: {stage name}" once the Phase 09 manifest supplies names); at stage 10 "All 10 milestones unlocked".
+   - Deadline card (Phase 08, D72, `src/features/goals/presentation/deadline-card.tsx`): one grouped card with the calendar tile, "Deadline", the date and "30 days left"/"Today" (or an Overdue / Reached badge), then "€23.34 per week" and "€100.00 per month" side by side (wrapping at large text). The calculation is behind an info button (native alert), not printed. Overdue: "€75.00 still to go · choose a new date in Edit goal". Reached: "Nothing more to save by this date". No deadline: an "Add a deadline" row that opens Edit goal.
+   - One primary action: **"+ Add savings"** as a floating pill at the bottom trailing corner (`FloatingActionButton` through the layout's `floatingAction` slot; D72-D73). Above text scale 1.35 only the + shows, with the same spoken name. History uses the same button.
 3. **Settings** is a gear `HeaderIconButton` in Home's navigation bar.
 
-Phase 07.5 already applies everything above except the scene, the next-milestone callout and the estimates, which need Phase 08/09 data.
+Phase 08 completed this composition (DECISIONS D70-D73); Phase 09 replaces the temporary scene and adds stage names.
+
+### World-first direction (owner, D73)
+
+Saving Worlds should feel like a small game, not a finance app: the world first, the numbers second. Home holds only the world, progress, the next milestone, the deadline and "+ Add savings"; goal administration lives in the ⋯ menu (or a later goal detail screen). Phase 09 makes the real Island the star of the scene region and then reviews Home with the owner, expecting less text and fewer cards. Phase 10's milestone unlock moment (count-up, bar, stage reveal, new object, in-world "New milestone unlocked!", one haptic) is the app's signature moment. Do not polish cards before the Island exists.
 
 ### Shared look for later screens
 

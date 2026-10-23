@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, userEvent } from '@testing-library/react-native';
-import { Dimensions, Text, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { LayoutLab } from '@/dev/layout-lab';
@@ -148,7 +148,48 @@ describe('AdaptiveGoalLayout fallback composition', () => {
     expect(sceneHeight()).toBe(270);
 
     await layout('goal-layout', 390, 300);
-    expect(sceneHeight()).toBe(135);
+    expect(sceneHeight()).toBe(120);
+  });
+
+  it('floats the primary action at the bottom trailing corner, above the tab bar', async () => {
+    await render(
+      <AdaptiveGoalLayout
+        testID="goal-layout"
+        arrangement="fallback"
+        sceneAspectRatio={4 / 3}
+        scene={<Text>Scene</Text>}
+        controls={<Text>Controls</Text>}
+        floatingAction={<Text>Add</Text>}
+      />,
+    );
+    const slot = screen.getByTestId('floating-action-slot');
+    expect(slot).toHaveTextContent('Add');
+    // Outside the scroll view; the bottom edge adds the tab bar / home indicator inset.
+    expect(screen.getByTestId('goal-layout')).not.toContainElement(screen.getByText('Add'));
+    expect(slot.props.edges).toEqual({ top: 'off', bottom: 'additive', left: 'maximum', right: 'maximum' });
+    expect(slot).toHaveStyle({ position: 'absolute', left: 0, right: 0, bottom: 0, alignItems: 'flex-end' });
+    expect(scrollViews()).toHaveLength(1);
+    // The scroll view keeps its frame; once the button is measured, its content gets room for it.
+    expect(scrollProps().contentInset).toBeUndefined();
+    await fireEvent(slot.children[0] as never, 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 56, height: 56 } } });
+    expect(scrollProps()).toMatchObject({ contentInset: { bottom: 80 }, scrollIndicatorInsets: { bottom: 80 } });
+    // The wrapper only lays out (no background), so Fabric flattens it and UIKit still finds the
+    // scroll view for the large title.
+    const [wrapper] = findAll(screen.toJSON() as unknown as Node, (node) =>
+      Boolean(node.children?.some((child) => child.props?.testID === 'floating-action-slot')),
+    );
+    expect(wrapper?.children?.[0]?.type).toBe('RCTScrollView');
+    expect(StyleSheet.flatten(wrapper?.props?.style as object)).toEqual({ flex: 1 });
+  });
+
+  it('Screen takes the same floating action', async () => {
+    await render(
+      <Screen floatingAction={<Text>Add</Text>}>
+        <Text>Rows</Text>
+      </Screen>,
+    );
+    expect(screen.getByTestId('floating-action-slot')).toHaveTextContent('Add');
+    expect(scrollViews()).toHaveLength(1);
   });
 });
 
@@ -189,6 +230,16 @@ describe('AdaptiveGoalLayout native arrangement (iOS 27.1+)', () => {
     expect(scrollProps()).toMatchObject({ automaticallyAdjustKeyboardInsets: true, contentInsetAdjustmentBehavior: 'never' });
     const [safeArea] = findAll(screen.toJSON() as unknown as Node, (node) => node.type === 'RNCSafeAreaView');
     expect(safeArea?.props?.edges).toEqual({ top: 'off', right: 'off', bottom: 'off', left: 'off' });
+  });
+
+  it('floats the primary action over the controls region without adding safe-area insets', async () => {
+    await render(
+      <AdaptiveGoalLayout sceneAspectRatio={4 / 3} scene={<View testID="scene" />} controls={<Text>Controls</Text>} floatingAction={<Text>Add</Text>} />,
+    );
+    const slot = screen.getByTestId('floating-action-slot');
+    expect(screen.getByTestId('adaptive-controls-region')).toContainElement(slot);
+    // The native host already keeps the region inside the safe area.
+    expect(slot.props.edges).toEqual({ top: 'off', right: 'off', bottom: 'off', left: 'off' });
   });
 
   it('switches to the stacked composition when the system collapses to the scene, and back on a window change', async () => {

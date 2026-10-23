@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 
 import { refreshAppData, useAppDataStore } from '@/bootstrap/app-data';
 import { DatabaseGate } from '@/bootstrap/database-gate';
+import { useForegroundReconciliation } from '@/bootstrap/foreground';
 import { StorageFailureScreen } from '@/bootstrap/storage-failure-screen';
 import { stackScreenOptions } from '@/shared/theme';
 import { Toaster } from '@/shared/ui/toast';
@@ -33,6 +34,7 @@ export default function RootLayout() {
 
 function AppNavigator() {
   const state = useAppDataStore((store) => store.state);
+  useForegroundReconciliation();
 
   useEffect(() => {
     if (state.status === 'idle') {
@@ -40,13 +42,15 @@ function AppNavigator() {
     }
   }, [state.status]);
 
-  if (state.status === 'failed') {
+  // A failed first read has nothing to show. A read that fails later keeps the navigator and the
+  // current screen; Home and the other screens show their own retry (Phase 08).
+  if (state.status === 'failed' && state.onboarded === null) {
     return <StorageFailureScreen code="unknown" retrying={false} onRetry={() => void refreshAppData()} />;
   }
-  if (state.status !== 'ready') {
+  if (state.status !== 'ready' && state.status !== 'failed') {
     return null;
   }
-  const onboarded = state.data.currency.currency.status !== 'missing';
+  const onboarded = state.status === 'ready' ? state.data.currency.currency.status !== 'missing' : state.onboarded === true;
   return (
     <Stack screenOptions={stackScreenOptions}>
       {/* A guarded deep link redirects to the first available route in file order; the (onboarding)

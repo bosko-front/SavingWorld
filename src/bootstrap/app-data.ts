@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { create } from 'zustand';
 
 import { capabilitiesFor, DEFAULT_ACCESS_LEVEL, type Capabilities } from '@/core/access';
-import { systemClock } from '@/core/calendar';
+import { systemClock, today, type CivilDate, type Clock } from '@/core/calendar';
 import { uuidGenerator } from '@/data/ids';
 import type { GoalCommandDeps } from '@/features/goals/application/goal-commands';
 import { readGoalsOverview, type GoalsOverview } from '@/features/goals/application/goal-queries';
@@ -19,13 +19,31 @@ import { getAppDatabase } from './database-readiness';
 // command caller invalidates the snapshot with `refreshAppData()` after its commit. A screen never
 // shows an uncommitted value.
 
-export type AppData = { currency: CurrencyOverview; goals: GoalsOverview };
+// `today` is the device's civil date when the snapshot was read (Phase 08). Screens derive
+// date-dependent values such as the deadline pace from it instead of reading the clock while
+// rendering, so one snapshot never mixes two dates.
+export type AppData = { currency: CurrencyOverview; goals: GoalsOverview; today: CivilDate };
 
 export type AppDataState =
   | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'ready'; data: AppData }
-  | { status: 'failed' };
+  // `onboarded` remembers the last ready snapshot, so a read that fails after the app has opened
+  // keeps the navigator (and the screen the person is on) and lets that screen offer a retry.
+  // null when no snapshot was ever read.
+  | { status: 'failed'; onboarded: boolean | null };
+
+// The clock every screen, snapshot and command dependency uses. The device clock in the app;
+// tests replace it to move across midnight, week and month boundaries.
+let clock: Clock = systemClock;
+
+export function appClock(): Clock {
+  return clock;
+}
+
+export function setAppClockForTests(testClock: Clock): void {
+  clock = testClock;
+}
 
 type AppDataStore = {
   state: AppDataState;
@@ -39,25 +57,48 @@ export const useAppDataStore = create<AppDataStore>()((set, get) => ({
   state: { status: 'idle' },
   version: 0,
   refresh: async () => {
-    if (get().state.status !== 'ready') {
+    const previous = get().state;
+    // A retry after a later failed read stays in `failed` until it succeeds, so the navigator and
+    // the current screen stay mounted.
+    if (previous.status === 'idle' || (previous.status === 'failed' && previous.onboarded === null)) {
       set({ state: { status: 'loading' } });
     }
     try {
       const db = getAppDatabase();
+      const todayDate = today(clock);
       const [currency, goals] = await Promise.all([readCurrencyOverview(db), readGoalsOverview(db)]);
-      set({ state: { status: 'ready', data: { currency, goals } }, version: get().version + 1 });
+      set({ state: { status: 'ready', data: { currency, goals, today: todayDate } }, version: get().version + 1 });
     } catch (error) {
       if (__DEV__) {
         // Development diagnostics only; messages come from SQLite or row decoders, never user data.
         console.warn(`[app-data] read failed: ${error instanceof Error ? error.message : String(error)}`);
       }
-      set({ state: { status: 'failed' } });
+      set({ state: { status: 'failed', onboarded: onboardedBefore(previous) } });
     }
   },
 }));
 
+function onboardedBefore(previous: AppDataState): boolean | null {
+  if (previous.status === 'ready') {
+    return previous.data.currency.currency.status !== 'missing';
+  }
+  return previous.status === 'failed' ? previous.onboarded : null;
+}
+
 export function refreshAppData(): Promise<void> {
   return useAppDataStore.getState().refresh();
+}
+
+// Foreground reconciliation (docs/ARCHITECTURE.md "Startup and offline behavior"): when the app
+// returns to the foreground, re-read the civil date and time zone. Only a different date re-reads
+// the committed data, once; nothing recomputes on a timer. Returns whether a refresh ran.
+export async function reconcileCivilDate(): Promise<boolean> {
+  const { state } = useAppDataStore.getState();
+  if (state.status !== 'ready' || state.data.today === today(clock)) {
+    return false;
+  }
+  await refreshAppData();
+  return true;
 }
 
 export type CommittedRead<T> = { status: 'loading' } | { status: 'ready'; value: T } | { status: 'failed' };
@@ -103,13 +144,13 @@ export function currentCapabilities(): Capabilities {
 }
 
 export function goalCommandDeps(): GoalCommandDeps {
-  return { db: getAppDatabase(), clock: systemClock, ids: uuidGenerator, capabilities: currentCapabilities() };
+  return { db: getAppDatabase(), clock, ids: uuidGenerator, capabilities: currentCapabilities() };
 }
 
 export function ledgerCommandDeps(): LedgerCommandDeps {
-  return { db: getAppDatabase(), clock: systemClock, ids: uuidGenerator };
+  return { db: getAppDatabase(), clock, ids: uuidGenerator };
 }
 
 export function currencyCommandDeps(): CurrencyCommandDeps {
-  return { db: getAppDatabase(), clock: systemClock };
+  return { db: getAppDatabase(), clock };
 }

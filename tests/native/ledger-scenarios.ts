@@ -1,7 +1,7 @@
 import { DEFAULT_SEPARATORS, getCurrency, separatorsForLocale, type CurrencyMetadata, type NumberSeparators } from '@/core/money';
 import { getGoal } from '@/data/repositories/goal-repository';
 import { getEntry } from '@/data/repositories/ledger-repository';
-import { archiveGoal, pauseGoal, reopenGoal, type LifecycleInput } from '@/features/goals/application/goal-commands';
+import { finishGoal, pauseGoal, reopenGoal, type LifecycleInput } from '@/features/goals/application/goal-commands';
 import {
   correctEntry,
   createEntry,
@@ -322,7 +322,7 @@ export const LEDGER_SCENARIOS: Scenario[] = [
   },
   {
     id: 'L08',
-    title: 'Paused goals take entries, corrections and deletions and stay paused; closed goals are read-only until Reopen',
+    title: 'Paused goals take entries, corrections and deletions and stay paused; completed goals are read-only until Reopen',
     run: (context) =>
       withSession(context, async (s) => {
         const h = await s.harness('l08');
@@ -335,15 +335,18 @@ export const LEDGER_SCENARIOS: Scenario[] = [
         const paused = await goalState(h);
         equal([paused.status, paused.revision], ['paused', pausedRevision], 'still paused, goal row untouched');
 
-        check((await archiveGoal(h.deps, await lifecycle(h))).ok, 'archive');
-        expectError(await add(h, draft('deposit', '1', TODAY)), 'goal_closed', 'create on archived');
-        expectError(await edit(h, kept.entryId, draft('deposit', '31', '2026-10-20')), 'goal_closed', 'correct on archived');
-        expectError(await remove(h, kept.entryId), 'goal_closed', 'delete on archived');
-        equal(await balanceOf(h), 3_000, 'archived history unchanged');
+        // Fund the goal (target 1,000.00) and finish it: a completed goal is read-only.
+        const funding = await mustAdd(h, draft('deposit', '970', TODAY));
+        check((await finishGoal(h.deps, await lifecycle(h))).ok, 'finish');
+        expectError(await add(h, draft('deposit', '1', TODAY)), 'goal_closed', 'create on completed');
+        expectError(await edit(h, kept.entryId, draft('deposit', '31', '2026-10-20')), 'goal_closed', 'correct on completed');
+        expectError(await remove(h, kept.entryId), 'goal_closed', 'delete on completed');
+        equal(await balanceOf(h), 100_000, 'completed history unchanged');
         check((await reopenGoal(h.deps, await lifecycle(h))).ok, 'reopen');
         check((await edit(h, kept.entryId, draft('deposit', '31', '2026-10-20'))).ok, 'reopened goal is editable');
         equal((await goalState(h)).status, 'active', 'reopen sets active');
-        equal(await balanceOf(h), 3_100, 'balance after the correction');
+        equal(await balanceOf(h), 100_100, 'balance after the correction');
+        check(funding.entryId.length > 0, 'funding entry kept');
       }),
   },
 ];

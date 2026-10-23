@@ -38,8 +38,8 @@ export function useGoalAction() {
     await refreshAppData();
     setPending(null);
     if (!result.ok) {
-      if (result.error.code === 'open_goal_limit') {
-        // Reopen refused by the Free slot rule: one warning with the explanation (DESIGN_SYSTEM
+      if (result.error.code === 'goal_limit') {
+        // Reopen refused by the goal limit: one warning with the explanation (DESIGN_SYSTEM
         // "Haptics").
         haptics.warning();
       }

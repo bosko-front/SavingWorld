@@ -1,4 +1,4 @@
-import { capabilitiesFor, canUseTheme, hasOpenGoalSlot, type Capabilities } from '@/core/access';
+import { capabilitiesFor, canUseTheme, hasGoalSlot, withinGoalLimit, type Capabilities } from '@/core/access';
 import { parseCivilDate, today, utcTimestamp, validateNewDeadline, type CivilDate, type Clock } from '@/core/calendar';
 import { isPositiveMinorAmount, sumMinor } from '@/core/money';
 import { isThemeId, type ThemeId } from '@/core/progression';
@@ -8,8 +8,10 @@ import { checkOperationId, executeCommand, reject, type CommandFailure, type Ope
 import type { AppDatabase } from '@/data/db/database';
 import type { SqlExecutor } from '@/data/db/sql';
 import { isEntityId, type IdGenerator } from '@/data/ids';
+import { deleteCollectiblesForGoal } from '@/data/repositories/collectible-repository';
 import {
-  countOpenGoals,
+  countGoals,
+  deleteGoalRow,
   getGoal,
   insertGoal,
   isOpenStatus,
@@ -18,11 +20,11 @@ import {
   type GoalRecord,
   type GoalStatus,
 } from '@/data/repositories/goal-repository';
-import { listEntriesForGoal } from '@/data/repositories/ledger-repository';
+import { deleteEntriesForGoal, listEntriesForGoal } from '@/data/repositories/ledger-repository';
 import { insertReceipt, lookupReceipt, requestHash } from '@/data/repositories/receipt-repository';
 import { readCurrency } from '@/data/repositories/settings-repository';
 
-import { lifecycleTarget, needsFunding, needsOpenSlot, type LifecycleAction } from '../domain/goal-lifecycle';
+import { lifecycleTarget, needsFunding, needsGoalLimit, type LifecycleAction } from '../domain/goal-lifecycle';
 
 // Goal commands (v1.2 sections 2-3, docs/DATA_MODEL.md "goals"). Each one validates its input, then
 // runs on the single serialized exclusive write path with a stable operation ID, a row revision
@@ -30,12 +32,15 @@ import { lifecycleTarget, needsFunding, needsOpenSlot, type LifecycleAction } fr
 //
 // - Create Goal: free title, target > 0, optional deadline today or later, an available theme. No
 //   currency field: the goal uses the global Settings currency, which must exist. Every goal starts
-//   at zero (no opening balance) as active, after the open-slot check in the same transaction.
+//   at zero (no opening balance) as active, after the goal-limit check (Free: one goal in any
+//   status, D74) in the same transaction.
 // - Edit Goal: the same fields on an open (active or paused) goal only. A changed deadline must be
 //   today or later; an unchanged one may already have passed. Changing the theme of an open goal
 //   is a Pro capability (Phase 17 adds Garden).
-// - Lifecycle: Pause, Resume, Archive, Finish (only when B ≥ T) and Reopen (only with an open slot,
-//   and never an automatic Finish). No command deletes a goal.
+// - Lifecycle: Pause, Resume, Finish (only when B ≥ T) and Reopen (within the goal limit, never an
+//   automatic Finish). Archive was removed (D74).
+// - Delete Goal (D74): any goal, after the screen's confirmation; removes its entries, its souvenir
+//   and the goal in one transaction. Nothing keeps a copy.
 
 export const TITLE_MAX_LENGTH = 100;
 
@@ -44,10 +49,10 @@ export const GOAL_COMMAND_KINDS = {
   edit: 'goal.edit',
   pause: 'goal.pause',
   resume: 'goal.resume',
-  archive: 'goal.archive',
   finish: 'goal.finish',
   reopen: 'goal.reopen',
-} as const satisfies Record<'create' | 'edit' | LifecycleAction, string>;
+  delete: 'goal.delete',
+} as const satisfies Record<'create' | 'edit' | 'delete' | LifecycleAction, string>;
 
 export type GoalCommandDeps = {
   db: AppDatabase;
@@ -94,7 +99,7 @@ export type CreateGoalError = CommandFailure<
   | { code: 'operation_conflict' }
   | { code: 'currency_missing' }
   | { code: 'currency_invalid' }
-  | { code: 'open_goal_limit' }
+  | { code: 'goal_limit' }
 >;
 
 export type ExistingGoalError =
@@ -116,9 +121,13 @@ export type LifecycleError = CommandFailure<
   | OperationIdError
   | ExistingGoalError
   | { code: 'invalid_transition'; status: GoalStatus }
-  | { code: 'open_goal_limit' }
+  | { code: 'goal_limit' }
   | { code: 'not_funded' }
 >;
+
+export type DeleteGoalInput = LifecycleInput;
+
+export type DeleteGoalError = CommandFailure<OperationIdError | ExistingGoalError>;
 
 export type GoalCommandResult = { operationId: string; replayed: boolean; goalId: string; revision: number };
 
@@ -230,8 +239,8 @@ export async function createGoal(
       return replay;
     }
     await requireCurrency(tx);
-    if (!hasOpenGoalSlot(capabilities, await countOpenGoals(tx))) {
-      reject({ code: 'open_goal_limit' });
+    if (!hasGoalSlot(capabilities, await countGoals(tx))) {
+      reject({ code: 'goal_limit' });
     }
     const nowUtc = utcTimestamp(deps.clock);
     const goal: GoalRecord = {
@@ -313,9 +322,8 @@ export async function editGoal(
   });
 }
 
-// One revision-checked status transition. The Free slot (Reopen) and the funding rule (Finish) are
-// checked against current data inside the same exclusive transaction, so two concurrent Reopen or
-// Create commands can never both take the last slot.
+// One revision-checked status transition. The goal limit (Reopen) and the funding rule (Finish) are
+// checked against current data inside the same exclusive transaction.
 export async function changeGoalStatus(
   deps: GoalCommandDeps,
   action: LifecycleAction,
@@ -342,8 +350,8 @@ export async function changeGoalStatus(
     if (next === null) {
       reject({ code: 'invalid_transition', status: goal.status });
     }
-    if (needsOpenSlot(action) && !hasOpenGoalSlot(capabilities, await countOpenGoals(tx))) {
-      reject({ code: 'open_goal_limit' });
+    if (needsGoalLimit(action) && !withinGoalLimit(capabilities, await countGoals(tx))) {
+      reject({ code: 'goal_limit' });
     }
     if (needsFunding(action) && (await goalBalance(tx, goal.id)) < BigInt(goal.targetMinor)) {
       reject({ code: 'not_funded' });
@@ -360,7 +368,49 @@ export async function changeGoalStatus(
 
 export const pauseGoal = (deps: GoalCommandDeps, input: LifecycleInput) => changeGoalStatus(deps, 'pause', input);
 export const resumeGoal = (deps: GoalCommandDeps, input: LifecycleInput) => changeGoalStatus(deps, 'resume', input);
-export const archiveGoal = (deps: GoalCommandDeps, input: LifecycleInput) => changeGoalStatus(deps, 'archive', input);
 // Guarded Finish for Phase 11: open goal with B >= T. Phase 11 adds its UI and haptic.
 export const finishGoal = (deps: GoalCommandDeps, input: LifecycleInput) => changeGoalStatus(deps, 'finish', input);
 export const reopenGoal = (deps: GoalCommandDeps, input: LifecycleInput) => changeGoalStatus(deps, 'reopen', input);
+
+// Deletes a goal with all of its entries and its souvenir (owner decision D74), after the screen's
+// native confirmation. Revision-checked, so a goal that changed after the person confirmed is not
+// deleted; a retry with the same operation ID replays the receipt. Schema 1's triggers refuse ledger
+// changes on a completed goal, so a completed goal is first set back to paused in this same
+// transaction: the whole deletion commits together or not at all.
+export async function deleteGoal(
+  deps: Pick<GoalCommandDeps, 'db' | 'clock'>,
+  input: DeleteGoalInput,
+): Promise<Result<GoalCommandResult, DeleteGoalError>> {
+  const operationError = checkOperationId(input.operationId);
+  if (operationError) {
+    return err(operationError);
+  }
+  if (!isEntityId(input.goalId) || !isRevision(input.expectedRevision)) {
+    return err({ code: 'invalid_reference' });
+  }
+  const kind = GOAL_COMMAND_KINDS.delete;
+  const hash = requestHash(kind, [input.goalId, input.expectedRevision]);
+  return executeCommand(deps.db, async (tx) => {
+    const replay = await replayGoalReceipt(tx, input.operationId, kind, hash);
+    if (replay) {
+      return replay;
+    }
+    const goal = await requireCurrentGoal(tx, input.goalId, input.expectedRevision);
+    const nowUtc = utcTimestamp(deps.clock);
+    let revision = goal.revision;
+    if (!isOpenStatus(goal.status)) {
+      if (!(await updateGoalStatus(tx, goal.id, 'paused', revision, nowUtc))) {
+        reject({ code: 'stale_goal', currentRevision: goal.revision });
+      }
+      revision += 1;
+    }
+    await deleteEntriesForGoal(tx, goal.id);
+    await deleteCollectiblesForGoal(tx, goal.id);
+    if (!(await deleteGoalRow(tx, goal.id, revision))) {
+      reject({ code: 'stale_goal', currentRevision: goal.revision });
+    }
+    const stored: StoredGoalResult = { goalId: goal.id, revision: input.expectedRevision };
+    await insertReceipt(tx, input.operationId, kind, hash, stored, nowUtc);
+    return { operationId: input.operationId, replayed: false, ...stored };
+  });
+}

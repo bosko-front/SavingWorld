@@ -9,12 +9,13 @@ import { getAppDatabase } from '@/bootstrap/database-readiness';
 import { fixedClock, systemClock, today } from '@/core/calendar';
 import { randomUuid, uuidGenerator } from '@/data/ids';
 import { listGoals } from '@/data/repositories/goal-repository';
-import { createGoal } from '@/features/goals/application/goal-commands';
+import { createGoal, finishGoal } from '@/features/goals/application/goal-commands';
 import { createEntry } from '@/features/ledger/application/ledger-commands';
 import { readCurrencyOverview } from '@/features/settings/application/settings-queries';
 
 import { APP_DIR, chooseCurrency, freshAppDatabase, resetApp } from '../support/app-fixture';
 import { playedHaptics } from '../support/expo-haptics-fake';
+import { chooseGoalOption, goalOptionLabels } from '../support/goal-menu';
 import { liveToasts } from '../support/sonner-native-fake';
 
 // Phase 06 screens on the real routes (Jest, host SQLite): onboarding, Create/Edit Goal, Home
@@ -230,69 +231,90 @@ describe('Create and Edit Goal', () => {
   });
 });
 
-describe('Home lifecycle, Free slot and Collection Reopen', () => {
+describe('Home lifecycle, Free goal limit and Collection', () => {
   beforeEach(async () => {
     await freshAppDatabase('lifecycle-ui');
     await chooseCurrency('EUR');
   });
 
-  it('pause keeps the slot, archive frees it, reopen at the limit is refused inline', async () => {
+  it('pause keeps the one Free goal, New goal explains Pro, Delete frees the place (D74)', async () => {
     await renderRouter(APP_DIR, { initialUrl: '/' });
     await createGoalThroughForm('Laptop', '900');
-    expect(screen.getByTestId('home-slot-notice')).toBeOnTheScreen();
+    // Goal administration lives in the ⋯ menu, not on Home (D73); Archive is gone (D74).
+    expect(goalOptionLabels()).toEqual(['History', 'Edit goal', 'Pause goal', 'New goal', 'Delete goal…']);
     expect(screen.queryByTestId('home-new-goal')).not.toBeOnTheScreen();
+    // New goal while Free's one goal exists explains Pro and deleting instead of opening a form.
+    const limit = jest.spyOn(Alert, 'alert').mockImplementationOnce(() => undefined);
+    await chooseGoalOption('New goal');
+    expect(limit).toHaveBeenCalledWith('Build another world', expect.stringMatching(/^You’ve already created your free savings goal\./));
+    expect(screen).toHavePathname('/');
 
-    await userEvent.press(screen.getByTestId('home-pause-resume'));
+    await chooseGoalOption('Pause goal');
     await waitFor(() => expect(screen.getByTestId('home-paused')).toBeOnTheScreen());
     expect(toastTitles()).toEqual(['Goal paused']);
     // Goal created, then Goal paused: one success haptic per committed write with a success toast (D68).
     expect(hapticTypes()).toEqual(['success', 'success']);
-    expect(screen.getByTestId('home-slot-notice')).toBeOnTheScreen();
-    expect(screen.getByRole('button', { name: 'Resume goal' })).toBeOnTheScreen();
+    expect(goalOptionLabels()).toContain('Resume goal');
     // A paused goal stays editable.
-    await userEvent.press(screen.getByTestId('home-edit'));
+    await chooseGoalOption('Edit goal');
     expect(screen).toHavePathname('/goal-form');
     expect(screen.getByTestId('goal-title')).toHaveDisplayValue('Laptop');
     await userEvent.press(screen.getByTestId('goal-cancel'));
 
-    answerNextAlert('Archive');
-    await userEvent.press(screen.getByTestId('home-archive'));
-    await waitFor(() => expect(screen.getByText('Start a new goal')).toBeOnTheScreen());
-    expect(toastTitles()).toEqual(['Goal archived']);
+    // Delete asks first; Cancel keeps everything.
+    answerNextAlert('Cancel');
+    await chooseGoalOption('Delete goal…');
+    expect(await goals()).toHaveLength(1);
+    const confirm = jest.spyOn(Alert, 'alert');
+    answerNextAlert('Delete');
+    await chooseGoalOption('Delete goal…');
+    expect(confirm.mock.calls.at(-1)?.slice(0, 2)).toEqual([
+      'Delete “Laptop”?',
+      'This permanently deletes the goal and its savings history. This action cannot be undone.',
+    ]);
+    await waitFor(() => expect(screen.getByText('Start your first goal')).toBeOnTheScreen());
+    expect(toastTitles()).toEqual(['Goal deleted']);
     expect(hapticTypes()).toEqual(['success', 'success', 'success']);
-    expect(screen.getByTestId('home-closed-hint')).toBeOnTheScreen();
+    expect(await goals()).toEqual([]);
 
-    // The freed slot takes a new goal; the archived one can no longer be reopened under Free.
+    // The place is free again.
     await createGoalThroughForm('Phone', '400');
-    await act(async () => {
-      router.navigate('/collection');
-    });
-    const laptop = (await goals()).find((goal) => goal.title === 'Laptop');
-    await userEvent.press(screen.getByTestId(`reopen-${laptop?.id}`));
-    // The refusal is an error toast (D66) that replaced the "Goal created" confirmation.
-    await waitFor(() => expect(toastTitles()).toEqual(['Goal not reopened']));
-    expect(String((liveToasts()[0]?.jsx.props as { message?: string }).message)).toMatch(/Archive your open goal first, then reopen this one./);
-    expect((await goals()).find((goal) => goal.title === 'Laptop')?.status).toBe('archived');
-    // The refusal plays a warning, never a success.
-    expect(hapticTypes().slice(-1)).toEqual(['warning']);
+    expect((await goals()).map((goal) => goal.title)).toEqual(['Phone']);
   });
 
-  it('reopen sets active and selects the goal on Home', async () => {
+  it('a completed goal in Collection: Reopen sets it active; Delete warns about the finished world', async () => {
+    const created = await createGoal(
+      { db: getAppDatabase(), clock: systemClock, ids: uuidGenerator },
+      { operationId: randomUuid(), title: 'Camera', targetMinor: 25_000, deadlineDate: null, themeId: 'island' },
+    );
+    if (!created.ok) {
+      throw new Error('setup');
+    }
+    const goalId = created.value.goalId;
+    const ledgerDeps = { db: getAppDatabase(), clock: systemClock, ids: uuidGenerator };
+    expect((await createEntry(ledgerDeps, { operationId: randomUuid(), goalId, kind: 'deposit', amountMinor: 25_000, entryDate: today(systemClock), note: null })).ok).toBe(true);
+    expect((await finishGoal(ledgerDeps, { operationId: randomUuid(), goalId, expectedRevision: 1 })).ok).toBe(true);
+
     await renderRouter(APP_DIR, { initialUrl: '/' });
-    await createGoalThroughForm('Camera', '250');
-    answerNextAlert('Archive');
-    await userEvent.press(screen.getByTestId('home-archive'));
-    await waitFor(() => expect(screen.getByText('Start a new goal')).toBeOnTheScreen());
+    // Free's one goal is finished: Home explains the two ways forward instead of a Create button.
+    expect(screen.getByTestId('home-closed-hint')).toHaveTextContent(/Unlock Pro to build another world, or delete it there to start over\./);
+    expect(screen.queryByTestId('home-new-goal')).not.toBeOnTheScreen();
 
     await act(async () => {
       router.navigate('/collection');
     });
-    const camera = (await goals())[0];
-    expect(screen.getByText('Archived')).toBeOnTheScreen();
-    await userEvent.press(screen.getByTestId(`reopen-${camera?.id}`));
+    expect(screen.getByText('Completed')).toBeOnTheScreen();
+    const confirm = jest.spyOn(Alert, 'alert');
+    answerNextAlert('Cancel');
+    await userEvent.press(screen.getByTestId(`delete-${goalId}`));
+    expect(confirm.mock.calls.at(-1)?.slice(0, 2)).toEqual([
+      'Delete completed goal?',
+      'This will permanently delete your savings history and the completed world from your Collection. This action cannot be undone.',
+    ]);
+    expect(await goals()).toHaveLength(1);
+
+    await userEvent.press(screen.getByTestId(`reopen-${goalId}`));
     await waitFor(() => expect(toastTitles()).toEqual(['Goal reopened']));
-    // Goal created, Goal archived, Goal reopened.
-    expect(hapticTypes()).toEqual(['success', 'success', 'success']);
     expect((await goals())[0]?.status).toBe('active');
     await act(async () => {
       router.navigate('/');
@@ -300,6 +322,7 @@ describe('Home lifecycle, Free slot and Collection Reopen', () => {
     expect(screen.getByTestId('home-goal-title')).toHaveTextContent('Camera');
   });
 });
+
 
 describe('Settings currency', () => {
   beforeEach(async () => {
@@ -351,7 +374,7 @@ describe('Settings currency', () => {
 });
 
 describe('route surface', () => {
-  it('has no goal-delete route or command', () => {
+  it('deletes goals only through the confirmed deleteGoal command, never a route (D74)', () => {
     const files: string[] = [];
     const walk = (dir: string) => {
       for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -367,6 +390,6 @@ describe('route surface', () => {
     expect(files.filter((file) => /delete|remove/i.test(file))).toEqual([]);
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const commands = Object.keys(require('@/features/goals/application/goal-commands') as object);
-    expect(commands.filter((name) => /delete|remove/i.test(name))).toEqual([]);
+    expect(commands.filter((name) => /delete|remove/i.test(name))).toEqual(['deleteGoal']);
   });
 });

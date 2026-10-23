@@ -61,7 +61,7 @@ it('renders nothing until the database is migrated, then the app', async () => {
   release();
   expect(await screen.findByText('App content')).toBeOnTheScreen();
   const { state } = useDatabaseStore.getState();
-  expect(state.status === 'ready' && state.db.migration.applied).toEqual([1]);
+  expect(state.status === 'ready' && state.db.migration.applied).toEqual([1, 2]);
 });
 
 it('shows a retryable failure when opening fails, and opens on retry', async () => {
@@ -94,7 +94,8 @@ it('refuses a newer schema without changing the file', async () => {
   const seeded = new DatabaseSync(file);
   seeded.exec(`CREATE TABLE migrations (version INTEGER PRIMARY KEY, name TEXT, checksum TEXT, applied_at_utc TEXT);
     INSERT INTO migrations VALUES (1, 'initial_ledger', 'f060530662e52157', '2026-10-23T08:00:00.000Z');
-    INSERT INTO migrations VALUES (2, 'future', 'ffff', '2027-01-01T00:00:00.000Z');
+    INSERT INTO migrations VALUES (2, 'goal_deletion', '02eb49969587883c', '2026-10-23T08:00:00.000Z');
+    INSERT INTO migrations VALUES (3, 'future', 'ffff', '2027-01-01T00:00:00.000Z');
     CREATE TABLE ledger_entries (id TEXT, signed_amount_minor INTEGER);
     INSERT INTO ledger_entries VALUES ('kept', 1234);`);
   const schemaBefore = seeded.prepare('SELECT type, name, sql FROM sqlite_schema ORDER BY name').all();
@@ -107,7 +108,7 @@ it('refuses a newer schema without changing the file', async () => {
 
   const reread = new DatabaseSync(file);
   expect(reread.prepare('SELECT id, signed_amount_minor FROM ledger_entries').all()).toEqual([{ id: 'kept', signed_amount_minor: 1234 }]);
-  expect(reread.prepare('SELECT max(version) AS v FROM migrations').get()).toEqual({ v: 2 });
+  expect(reread.prepare('SELECT max(version) AS v FROM migrations').get()).toEqual({ v: 3 });
   // Only the WAL journal-mode header flag may differ: opening configures the connection before it
   // reads the migration history. Schema and rows are unchanged.
   expect(reread.prepare('SELECT type, name, sql FROM sqlite_schema ORDER BY name').all()).toEqual(schemaBefore);

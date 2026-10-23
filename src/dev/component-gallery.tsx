@@ -112,13 +112,13 @@ export function ComponentGallery() {
         <View style={styles.group}>
           <StatusBadge label="Paused" tone="info" icon="pause" />
           <StatusBadge label="Completed" tone="success" icon="finish" />
-          <StatusBadge label="Archived" icon="archive" />
+          <StatusBadge label="Completed" icon="finish" tone="success" />
         </View>
         <SectionHeader title="Section header" caption="One short caption line for context." />
         <ListGroup>
           <ListRow title="History" icon="history" iconColor="blue" value="2 entries" chevron onPress={noop} />
           <ListRow title="Pause goal" icon="pause" loading onPress={noop} />
-          <ListRow title="Archive goal…" icon="archive" detail={LONG_TEXT} onPress={noop} />
+          <ListRow title="Delete goal…" icon="delete" tone="destructive" detail={LONG_TEXT} onPress={noop} />
           <ListRow title="Delete something" icon="error" tone="destructive" onPress={noop} />
           <ListRow title="Static row" detail="Not pressable" />
         </ListGroup>
@@ -149,7 +149,7 @@ export function ComponentGallery() {
             showToast({
               tone: 'error',
               title: 'Goal not reopened',
-              message: 'Free includes one open goal (active or paused). Archive your open goal first, then reopen this one.',
+              message: 'Free includes one goal. Delete your current goal to start over, or unlock Pro for more goals.',
             })
           }
         />

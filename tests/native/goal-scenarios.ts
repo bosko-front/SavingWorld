@@ -6,8 +6,8 @@ import { AppDatabase } from '@/data/db/database';
 import { MIGRATIONS } from '@/data/db/migrations';
 import { getGoal } from '@/data/repositories/goal-repository';
 import {
-  archiveGoal,
   createGoal,
+  deleteGoal,
   editGoal,
   finishGoal,
   pauseGoal,
@@ -30,13 +30,15 @@ import {
   deposit,
   expectError,
   mustCreate,
+  steppingClock,
   withSession,
   type Harness,
 } from './database-scenarios';
 import { check, equal, type Scenario } from './scenario-harness';
 
-// Phase 06 scenarios: goal lifecycle, Free slot, closed/paused edit guards, global currency lock
-// and Home selection (docs/TEST_PLAN.md T07, T27). Same dual use as database-scenarios.ts: the iOS
+// Phase 06 scenarios: goal lifecycle, Free goal limit, closed/paused edit guards, global currency
+// lock and Home selection (docs/TEST_PLAN.md T07, T27), changed in Phase 08 by owner decision D74:
+// no Archive, Free keeps one goal in any status, goals can be deleted (G07), schema 2 (G08). Same dual use as database-scenarios.ts: the iOS
 // simulator through real Expo SQLite (`npm run test:db`, the evidence) and Jest on host SQLite.
 
 const JPY = getCurrency('JPY') as CurrencyMetadata;
@@ -74,9 +76,8 @@ function goalFields(title: string, targetMinor: number, deadlineDate: string | n
   return { title, targetMinor, deadlineDate, themeId: 'island' as ThemeId };
 }
 
-async function openCount(h: Harness): Promise<number> {
-  const row = await h.db.read((r) => r.get<{ n: number }>("SELECT count(*) AS n FROM goals WHERE status IN ('active', 'paused')"));
-  return Number(row?.n);
+async function goalCount(h: Harness): Promise<number> {
+  return h.db.read((r) => count(r, 'goals'));
 }
 
 // Phase 11 owns the real collectibles table; until then a test database gets the planned shape so
@@ -103,17 +104,18 @@ async function addCollectibleFixture(h: Harness, goalId: string): Promise<void> 
 export const GOAL_SCENARIOS: Scenario[] = [
   {
     id: 'G01',
-    title: 'Lifecycle: paused takes the Free slot, Archive frees it, Reopen checks it and never auto-finishes',
+    title: 'Lifecycle: Free keeps one goal in any status, Finish and Reopen follow the rules, no Archive (D74)',
     run: (context) =>
       withSession(context, async (s) => {
         const h = await s.harness('lifecycle');
         const deps = h.deps;
+        const pro = { ...deps, capabilities: PRO };
         const create = (title: string) =>
           createGoal(deps, { operationId: h.op(), ...goalFields(title, 10_000) });
 
         check((await pauseGoal(deps, await lifecycle(h, h.goalId))).ok, 'pause');
         equal(await statusOf(h, h.goalId), 'paused', 'paused');
-        expectError(await create('Second'), 'open_goal_limit', 'paused goal still takes the Free slot');
+        expectError(await create('Second'), 'goal_limit', 'paused goal counts');
         expectError(await pauseGoal(deps, await lifecycle(h, h.goalId)), 'invalid_transition', 'pause twice');
         check((await resumeGoal(deps, await lifecycle(h, h.goalId))).ok, 'resume');
         equal(await statusOf(h, h.goalId), 'active', 'resumed');
@@ -126,15 +128,14 @@ export const GOAL_SCENARIOS: Scenario[] = [
         equal(await statusOf(h, h.goalId), 'completed', 'completed');
         expectError(await deposit(h, 1, '2026-10-22'), 'goal_closed', 'completed goal is read-only');
 
-        // Finish released the slot; a new goal takes it, so Reopen is refused.
-        const second = await create('Second');
-        check(second.ok, 'finish frees the slot');
-        expectError(await reopenGoal(deps, await lifecycle(h, h.goalId)), 'open_goal_limit', 'reopen at the limit');
+        // A finished goal still counts toward Free's one goal; Pro may add more.
+        expectError(await create('Second'), 'goal_limit', 'completed goal still counts');
+        const second = await mustCreateGoal(h, pro, 'Second');
+        // With two goals (as after losing Pro) Free cannot reopen; within the limit it can.
+        expectError(await reopenGoal(deps, await lifecycle(h, h.goalId)), 'goal_limit', 'reopen over the limit');
         equal(await statusOf(h, h.goalId), 'completed', 'refused reopen changes nothing');
-
-        // Archive frees it again; Reopen at >= 100% sets active and stays active.
-        check((await archiveGoal(deps, await lifecycle(h, second.value.goalId))).ok, 'archive second');
-        expectError(await archiveGoal(deps, await lifecycle(h, second.value.goalId)), 'invalid_transition', 'archive twice');
+        check((await deleteGoal(deps, await lifecycle(h, second))).ok, 'delete the second goal');
+        equal(await goalCount(h), 1, 'one goal left');
         check((await reopenGoal(deps, await lifecycle(h, h.goalId))).ok, 'reopen funded goal');
         equal(await statusOf(h, h.goalId), 'active', 'reopened at 100% stays active');
         check((await deposit(h, 1, '2026-10-22')).ok, 'reopened goal accepts entries');
@@ -150,40 +151,38 @@ export const GOAL_SCENARIOS: Scenario[] = [
         const again = await pauseGoal(deps, input);
         check(first.ok && !first.value.replayed && again.ok && again.value.replayed, 'same operation ID replays');
         equal(again.ok && again.value.revision, first.ok && first.value.revision, 'replay returns the same revision');
-        expectError(await archiveGoal(deps, input), 'operation_conflict', 'same ID for another command');
+        expectError(await finishGoal(deps, input), 'operation_conflict', 'same ID for another command');
         const ledger = await h.db.read((r) => count(r, 'ledger_entries'));
         equal(ledger, 2, 'lifecycle commands never touch the ledger');
       }),
   },
   {
     id: 'G02',
-    title: 'Concurrent Create and Reopen take the last Free slot at most once',
+    title: 'Concurrent creates take Free\'s one goal at most once; concurrent deletes delete once',
     run: (context) =>
       withSession(context, async (s) => {
         const h = await s.harness('concurrent');
         const deps = h.deps;
-        const pro = { ...deps, capabilities: PRO };
-        const other = await mustCreateGoal(h, pro, 'Pro-created second');
-        check((await archiveGoal(deps, await lifecycle(h, h.goalId))).ok, 'archive first');
-        check((await archiveGoal(deps, await lifecycle(h, other))).ok, 'archive second');
-        equal(await openCount(h), 0, 'no open goal');
+        check((await deleteGoal(deps, await lifecycle(h, h.goalId))).ok, 'start with no goal');
+        equal(await goalCount(h), 0, 'no goal');
 
-        const results = await Promise.all([
-          createGoal(deps, { operationId: h.op(), ...goalFields('Racer A', 1_000) }),
-          reopenGoal(deps, await lifecycle(h, h.goalId)),
-          createGoal(deps, { operationId: h.op(), ...goalFields('Racer B', 1_000) }),
-          reopenGoal(deps, await lifecycle(h, other)),
-        ]);
+        const results = await Promise.all(
+          ['Racer A', 'Racer B', 'Racer C', 'Racer D'].map((title) => createGoal(deps, { operationId: h.op(), ...goalFields(title, 1_000) })),
+        );
         const winners = results.filter((result) => result.ok).length;
-        const limited = results.filter((result) => !result.ok && (result.error as { code: string }).code === 'open_goal_limit').length;
-        equal([winners, limited], [1, 3], 'one winner, three refused by the slot');
-        equal(await openCount(h), 1, 'exactly one open goal');
+        const limited = results.filter((result) => !result.ok && (result.error as { code: string }).code === 'goal_limit').length;
+        equal([winners, limited], [1, 3], 'one winner, three refused by the limit');
+        equal(await goalCount(h), 1, 'exactly one goal');
 
+        const [winner] = await h.db.read((r) => r.all<{ id: string }>('SELECT id FROM goals'));
+        check(winner, 'winner exists');
+        const input = await lifecycle(h, winner.id);
         const pair = await Promise.all([
-          reopenGoal(deps, await lifecycle(h, h.goalId)),
-          reopenGoal(deps, await lifecycle(h, other)),
+          deleteGoal(deps, input),
+          deleteGoal(deps, { ...input, operationId: h.op() }),
         ]);
-        equal(pair.filter((result) => result.ok).length, 0, 'no reopen while the slot is taken');
+        equal(pair.filter((result) => result.ok).length, 1, 'one of two concurrent deletes succeeds');
+        equal(await goalCount(h), 0, 'goal deleted once');
         return { winners, limited };
       }),
   },
@@ -223,11 +222,13 @@ export const GOAL_SCENARIOS: Scenario[] = [
         const staleEdit = await editGoal(deps, { operationId: h.op(), goalId: h.goalId, expectedRevision: 1, ...goalFields('Old', 1_000) });
         expectError(staleEdit, 'stale_goal', 'stale edit');
 
-        check((await archiveGoal(deps, await lifecycle(h, h.goalId))).ok, 'archive');
-        expectError(await edit(goalFields('Archived edit', 1_000)), 'goal_closed', 'archived goal is read-only');
-        expectError(await deposit(h, 1, '2026-11-02'), 'goal_closed', 'no entries on an archived goal');
+        // Lower the target to the balance, finish, and the goal is read-only.
+        check((await edit({ ...goalFields('Kotor', 500, '2026-11-02'), themeId: 'garden' })).ok, 'target down to the balance');
+        check((await finishGoal(deps, await lifecycle(h, h.goalId))).ok, 'finish');
+        expectError(await edit({ ...goalFields('Finished edit', 1_000), themeId: 'garden' }), 'goal_closed', 'completed goal is read-only');
+        expectError(await deposit(h, 1, '2026-11-02'), 'goal_closed', 'no entries on a completed goal');
         const entries = await h.db.read((r) => count(r, 'ledger_entries'));
-        equal(entries, 1, 'archive keeps the history');
+        equal(entries, 1, 'finishing keeps the history');
       }),
   },
   {
@@ -245,11 +246,11 @@ export const GOAL_SCENARIOS: Scenario[] = [
         const h = await s.harness('currency');
         const deps = h.deps;
         const pro = { ...deps, capabilities: PRO };
-        const archived = await mustCreateGoal(h, pro, 'Archived empty goal', 2_500);
-        check((await archiveGoal(deps, await lifecycle(h, archived))).ok, 'archive the second goal');
+        const second = await mustCreateGoal(h, pro, 'Paused empty goal', 2_500);
+        check((await pauseGoal(deps, await lifecycle(h, second))).ok, 'pause the second goal');
         const set = (code: string) => setGlobalCurrency(deps, { operationId: h.op(), currencyCode: code });
         const targets = async () =>
-          h.db.read(async (r) => [(await getGoal(r, h.goalId))?.targetMinor, (await getGoal(r, archived))?.targetMinor]);
+          h.db.read(async (r) => [(await getGoal(r, h.goalId))?.targetMinor, (await getGoal(r, second))?.targetMinor]);
 
         // 1,000.00 EUR and 25.00 EUR keep their written amounts in JPY and KWD.
         const toJpy = await set('JPY');
@@ -283,7 +284,7 @@ export const GOAL_SCENARIOS: Scenario[] = [
         check((await set('USD')).ok, 'unlocked after the last transaction is deleted');
 
         // A souvenir alone keeps it locked (boundary fixture until Phase 11 adds real storage).
-        await addCollectibleFixture(h, archived);
+        await addCollectibleFixture(h, second);
         const souvenir = await set('EUR');
         equal(!souvenir.ok && souvenir.error, { code: 'currency_locked', transactionCount: 0, souvenirCount: 1 }, 'souvenir locks');
 
@@ -328,9 +329,9 @@ export const GOAL_SCENARIOS: Scenario[] = [
 
         const deps = { ...pro, db: reopened };
         const rev = (await reopened.read((r) => getGoal(r, third)))?.revision ?? 0;
-        check((await archiveGoal(deps, { operationId: h.op(), goalId: third, expectedRevision: rev })).ok, 'archive the selected goal');
-        equal((await readGoalsOverview(reopened)).selectedGoalId, h.goalId, 'closed selection falls back to the oldest open goal');
-        expectError(await selectGoal(deps, third), 'goal_closed', 'cannot select a closed goal');
+        check((await deleteGoal(deps, { operationId: h.op(), goalId: third, expectedRevision: rev })).ok, 'delete the selected goal');
+        equal((await readGoalsOverview(reopened)).selectedGoalId, h.goalId, 'deleted selection falls back to the oldest open goal');
+        expectError(await selectGoal(deps, third), 'goal_not_found', 'cannot select a deleted goal');
         expectError(await selectGoal(deps, 'missing-goal'), 'goal_not_found', 'unknown goal');
         check((await selectGoal(deps, second)).ok, 'select second');
         equal((await readGoalsOverview(reopened)).selectedGoalId, second, 'second selected');
@@ -339,7 +340,7 @@ export const GOAL_SCENARIOS: Scenario[] = [
   },
   {
     id: 'G06',
-    title: 'Currency and a zero-balance goal survive a restart; the schema still refuses goal deletion',
+    title: 'Currency and a zero-balance goal survive a restart; the goal can then be deleted (D74)',
     run: (context) =>
       withSession(context, async (s) => {
         const h = await s.harness('zero-goal', { currency: false });
@@ -357,16 +358,82 @@ export const GOAL_SCENARIOS: Scenario[] = [
             'zero-balance goal after restart',
           );
           equal(goals.selectedGoalId, goalId, 'selected after restart');
-          let refused = false;
-          try {
-            await reopened.write((tx) => tx.run('DELETE FROM goals WHERE id = ?', [goalId]));
-          } catch {
-            refused = true;
-          }
-          check(refused, 'goal deletion is refused by the schema');
+          const removed = await deleteGoal({ db: reopened, clock: h.clock }, { operationId: h.op(), goalId, expectedRevision: 1 });
+          check(removed.ok, 'delete after restart');
+          equal((await readGoalsOverview(reopened)).selectedGoalId, null, 'no goal left to show');
         } finally {
           await reopened.close();
         }
+      }),
+  },
+  {
+    id: 'G07',
+    title: 'Delete Goal removes a completed goal with its entries and souvenir in one transaction (D74)',
+    run: (context) =>
+      withSession(context, async (s) => {
+        const h = await s.harness('delete');
+        const deps = h.deps;
+        await mustCreate(h, 'deposit', 60_000, '2026-10-20');
+        await mustCreate(h, 'deposit', 40_000, '2026-10-21');
+        check((await finishGoal(deps, await lifecycle(h, h.goalId))).ok, 'finish');
+        await addCollectibleFixture(h, h.goalId);
+        const totals = () =>
+          h.db.read(async (r) => [await count(r, 'goals'), await count(r, 'ledger_entries'), await count(r, 'collectibles')]);
+
+        expectError(await deleteGoal(deps, { operationId: h.op(), goalId: h.goalId, expectedRevision: 1 }), 'stale_goal', 'stale delete');
+        equal(await totals(), [1, 2, 1], 'a refused delete changes nothing');
+        expectError(await deleteGoal(deps, { operationId: '', goalId: h.goalId, expectedRevision: 2 }), 'invalid_operation_id', 'no operation ID');
+
+        const input = await lifecycle(h, h.goalId);
+        const first = await deleteGoal(deps, input);
+        check(first.ok && !first.value.replayed, 'delete the completed goal');
+        equal(await totals(), [0, 0, 0], 'goal, entries and souvenir are gone');
+        const again = await deleteGoal(deps, input);
+        check(again.ok && again.value.replayed, 'the same operation ID replays');
+        expectError(await deleteGoal(deps, { ...input, operationId: h.op() }), 'goal_not_found', 'already deleted');
+        equal((await h.db.read((r) => r.all('PRAGMA foreign_key_check'))).length, 0, 'foreign_key_check clean');
+
+        // Nothing locks the currency any more.
+        check((await setGlobalCurrency(deps, { operationId: h.op(), currencyCode: 'JPY' })).ok, 'currency unlocked');
+
+        // A failure before COMMIT leaves everything in place.
+        const kept = await s.harness('delete-fail');
+        await mustCreate(kept, 'deposit', 1_000, '2026-10-22');
+        kept.hooks.failBeforeCommit = true;
+        const failed = await deleteGoal(kept.deps, await lifecycle(kept, kept.goalId));
+        expectError(failed, 'storage_failure', 'injected failure');
+        kept.hooks.failBeforeCommit = false;
+        equal(await kept.db.read(async (r) => [await count(r, 'goals'), await count(r, 'ledger_entries')]), [1, 1], 'rolled back');
+      }),
+  },
+  {
+    id: 'G08',
+    title: 'Schema 1 → 2: archived goals become paused with their records; goals become deletable',
+    run: (context) =>
+      withSession(context, async (s) => {
+        const name = s.name('upgrade');
+        const old = await s.openDb(name, MIGRATIONS.slice(0, 1));
+        equal(old.migration, { fromVersion: 0, toVersion: 1, applied: [1] }, 'schema 1');
+        await old.write(async (tx) => {
+          await tx.run("INSERT INTO settings VALUES ('currency', ?, ?)", ['{"code":"EUR","exponent":2,"registryVersion":1}', START]);
+          await tx.run('INSERT INTO goals VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', ['legacy-1', 'Old car', 500_000, null, 'island', 'active', START, START, 1]);
+          await tx.run('INSERT INTO ledger_entries VALUES (?, ?, ?, ?, ?, ?, ?, ?)', ['legacy-e1', 'legacy-1', 12_345, '2026-10-01', 'kept', START, START, 1]);
+          await tx.run("UPDATE goals SET status = 'archived', revision = revision + 1 WHERE id = 'legacy-1'");
+        });
+        await old.close();
+
+        const db = await s.openDb(name);
+        equal(db.migration, { fromVersion: 1, toVersion: 2, applied: [2] }, 'upgrade to schema 2');
+        const state = await db.read(async (r) => ({
+          goal: await r.get('SELECT status, revision FROM goals WHERE id = ?', ['legacy-1']),
+          entries: await r.all('SELECT id, signed_amount_minor, note FROM ledger_entries'),
+          trigger: await r.get("SELECT name FROM sqlite_schema WHERE type = 'trigger' AND name = 'goals_no_delete'"),
+        }));
+        equal(state.goal, { status: 'paused', revision: 3 }, 'archived became paused');
+        equal(state.entries, [{ id: 'legacy-e1', signed_amount_minor: 12_345, note: 'kept' }], 'records kept');
+        equal(state.trigger, null, 'no-delete trigger dropped');
+        const removed = await deleteGoal({ db, clock: steppingClock() }, { operationId: 'op-upgrade-delete', goalId: 'legacy-1', expectedRevision: 3 });
+        check(removed.ok, 'upgraded goal can be deleted');
       }),
   },
 ];

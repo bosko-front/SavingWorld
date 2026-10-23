@@ -53,7 +53,7 @@ describe('showToast', () => {
   it('passes a tap-to-dismiss handler and an auto-close duration to the engine', async () => {
     await render(<ToasterInApp />);
     await act(async () => {
-      showToast({ tone: 'success', title: 'Goal archived' });
+      showToast({ tone: 'success', title: 'Goal deleted' });
     });
     const [item] = liveToasts();
     expect(item?.options).toMatchObject({ duration: 4000, dismissible: true });
@@ -96,7 +96,7 @@ describe('Icon', () => {
       calendar: 'calendar',
       pause: 'pause.circle',
       resume: 'play.circle',
-      archive: 'archivebox',
+      delete: 'trash',
       reopen: 'arrow.uturn.backward.circle',
       finish: 'flag.checkered',
       lock: 'lock.fill',
@@ -111,14 +111,15 @@ describe('Icon', () => {
       challenges: 'flag',
       currency: 'banknote',
       device: 'iphone',
+      add: 'plus',
     });
   });
 
   it('is hidden from VoiceOver by default and sized from the text role and font scale', async () => {
-    await render(<Icon name="archive" role="headline" testID="icon" />);
+    await render(<Icon name="delete" role="headline" testID="icon" />);
     const icon = screen.getByTestId('icon', { includeHiddenElements: true });
     expect(icon).toHaveProp('accessibilityElementsHidden', true);
-    expect(icon).toHaveProp('name', 'archivebox');
+    expect(icon).toHaveProp('name', 'trash');
     expect(iconSize('headline', 1)).toBe(17);
     expect(iconSize('headline', 1.5)).toBe(26);
   });
