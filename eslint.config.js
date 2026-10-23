@@ -85,4 +85,46 @@ module.exports = defineConfig([
     files: ['src/shared/theme/**/*.ts'],
     rules: { 'no-restricted-imports': 'off' },
   },
+  {
+    // Pure domain rules (docs/ARCHITECTURE.md): no React, database, native or app-layer imports,
+    // and no reading the real time except through the Clock boundary in calendar/clock.ts.
+    files: ['src/core/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['react', 'react-*', 'react-native', 'react-native-*', 'expo', 'expo-*', '@expo/*', 'zustand'],
+              message: 'src/core is pure TypeScript; React, native, database and store packages belong to features.',
+            },
+            {
+              group: ['@/*', '!@/core', '!@/core/*'],
+              message: 'src/core may import only other src/core modules.',
+            },
+          ],
+        },
+      ],
+      'no-restricted-syntax': [
+        'error',
+        ...styleGuardrails,
+        {
+          selector: "CallExpression[callee.object.name='Date'][callee.property.name='now']",
+          message: 'Take a Clock (src/core/calendar/clock.ts) instead of reading the real time.',
+        },
+        {
+          selector: "NewExpression[callee.name='Date'][arguments.length=0]",
+          message: 'Take a Clock (src/core/calendar/clock.ts) instead of reading the real time.',
+        },
+        {
+          selector: "CallExpression[callee.name='parseFloat']",
+          message: 'Money is parsed exactly with parseAmount; no float parsing.',
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/core/calendar/clock.ts'],
+    rules: { 'no-restricted-syntax': ['error', ...styleGuardrails] },
+  },
 ]);

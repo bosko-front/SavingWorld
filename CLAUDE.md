@@ -19,7 +19,7 @@ Q01–Q06 are **resolved** by v1.2. Do not ask for reapproval and do not restore
 4. Inspect actual files, scripts, lockfile, tests and working tree before changing anything. Verify evidence; a checked box or handoff label is not proof. Preserve unrelated owner work.
 5. Do only the current phase. Close the session by updating `docs/PROJECT_STATUS.md`, `docs/SESSION_HANDOFF.md`, `docs/evidence/PHASE_NN.md` and `docs/DECISIONS.md` (or state that no decision changed), and name the exact next prompt. A phase with a required check NOT RUN is not verified complete.
 
-## Project facts (Phases 01-03)
+## Project facts (Phases 01-04)
 
 - Expo SDK 58 (`expo` 58.0.17), React Native 0.88.0, React 19.3.0, Expo Router 58.0.25. One npm lockfile. Do not upgrade the SDK as a side effect; an upgrade is its own reviewed change.
 - Install native packages with `npx expo install <pkg>`. Feature packages (notifications, purchases, images, charts) are installed in their owning phases.
@@ -29,5 +29,6 @@ Q01–Q06 are **resolved** by v1.2. Do not ask for reapproval and do not restore
 - Checks: `npm run lint`, `npm run typecheck`, `npm test -- --runInBand`, `npm run deps:check`, `npm run doctor`. Jest mocks do not prove native SQLite, StoreKit, notifications or device behavior.
 - Styling (Phase 02): use semantic tokens from `@/shared/theme` and primitives in `src/shared/ui/` (AppText, Button, TextField, Card, AmountText, Notice); raw colors live only in `src/shared/theme/palette.ts`. ESLint blocks color literals, disabled font scaling and `Dimensions.get` in `src/`. The app ships one forced light appearance. Conventions and contrast results: `docs/DESIGN_SYSTEM.md`. Development-only component gallery: Settings → Component gallery (`/dev-gallery`). Toasts, haptics and icons (SF Symbols only) follow the DESIGN_SYSTEM rules through shared wrappers; UX packages are installed in the phase listed in the DESIGN_SYSTEM UX library plan.
 - Layout (Phase 03): screens use `Screen`, `FormScreen`, `ContentColumn` or `AdaptiveGoalLayout` from `@/shared/layout`, never their own ScrollView/safe-area code, window reads, device branches or scale functions. Inset ownership, the ArrangementView adapter (iOS 27.1+, explicit fallback) and the adoption contract are in `docs/ADAPTIVE_LAYOUT.md`. Development-only layout lab: Settings → Layout lab (`/dev-layout`). Inner split view on iPhone Duo is a physical-device release check (DECISIONS D48).
+- Domain (Phase 04): all money, date, stage and capability rules come from `@/core/money`, `@/core/calendar`, `@/core/progression` and `@/core/access` (pure TypeScript; ESLint blocks React/native/store imports and real-time reads there). Amounts are integer minor units (max 10^12) with BigInt sums; parse user text only with `parseAmount`, display only with `formatMoney`; take a `Clock`, never `Date.now()`. Currency registry: ISO 4217 List One 2026-09-17, version 1 (DECISIONS D50).
 - After moving or renaming route files, restart Metro with `npx expo start --dev-client --clear`; the route cache can otherwise serve the old tree.
 - No credentials, signing material, tokens or real financial data in the repository.

@@ -62,6 +62,7 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 - Repository-backed Create/Reopen concurrent slot checks and closed/paused edit guards; confirm no goal-delete route.
 - Currency fixtures: empty goals change globally, transaction blocks, deleting last transaction without collectible permits change, collectible alone blocks; use a boundary fixture before Phase 11 introduces real collectible storage.
 - UI cancel/invalid target/deadline/write-error tests; native cold restart/selection and VoiceOver/keyboard walkthrough; standard checks.
+- Carried from Phase 04 (evidence/PHASE_04.md): on a simulator dev build, observe the Hermes `Intl` output of `formatMoney` (EUR, JPY, KWD, IQD, including 9,999,999,999.99), `separatorsForLocale` for the device locale and `today(systemClock)` after changing the simulator time zone; Jest runs on Node ICU only.
 - Toast wrapper tests (announcement called once, a new toast replaces the current one, no toast on failed write) and a simulator check with VoiceOver, Reduce Motion and the largest text size.
 
 ## Definition of Done

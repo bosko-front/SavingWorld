@@ -46,7 +46,7 @@ StoreKit returns verified/unverified transaction results, and current entitlemen
 
 Local scheduling uses OS notification behavior. Check trigger support for the pinned SDK and test on a phone. See [Expo notifications](https://docs.expo.dev/versions/latest/sdk/notifications/). Avoid assuming delivery is guaranteed or that a task executes while the app is terminated.
 
-Currency metadata must come from a versioned official ISO 4217 source, with the supported subset and minor-unit exponents recorded in Phase 04. [SIX financial data standards](https://www.six-group.com/en/products-services/financial-information/market-reference-data/data-standards.html) is the reference starting point. Keep unsupported/fund/metal codes out of a user-facing savings-currency list unless deliberately supported.
+Currency metadata must come from a versioned official ISO 4217 source, with the supported subset and minor-unit exponents recorded in Phase 04. Phase 04 bundled ISO 4217 List One published 2026-09-17 as registry version 1 (155 codes, exponents 0/2/3) in `src/core/money/`; source, selection rule and regeneration steps are in [PHASE_04 evidence](evidence/PHASE_04.md#currency-registry-source) and DECISIONS D50. [SIX financial data standards](https://www.six-group.com/en/products-services/financial-information/market-reference-data/data-standards.html) is the reference starting point. Keep unsupported/fund/metal codes out of a user-facing savings-currency list unless deliberately supported.
 
 ## Initial package installation and ownership
 
