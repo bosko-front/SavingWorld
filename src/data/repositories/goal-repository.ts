@@ -116,3 +116,50 @@ export async function updateGoalStatus(
   );
   return result.changes === 1;
 }
+
+export type GoalDetails = {
+  title: string;
+  targetMinor: number;
+  deadlineDate: CivilDate | null;
+  themeId: ThemeId;
+};
+
+// Revision-checked Edit Goal write inside the caller's transaction. Returns false when the row is
+// missing or changed since `expectedRevision`. The command applies the open-goal guard first.
+export async function updateGoalDetails(
+  tx: SqlExecutor,
+  id: string,
+  details: GoalDetails,
+  expectedRevision: number,
+  nowUtc: string,
+): Promise<boolean> {
+  const result = await tx.run(
+    `UPDATE goals SET title = ?, target_minor = ?, deadline_date = ?, theme_id = ?, updated_at_utc = ?, revision = revision + 1
+      WHERE id = ? AND revision = ?`,
+    [details.title, details.targetMinor, details.deadlineDate, details.themeId, nowUtc, id, expectedRevision],
+  );
+  return result.changes === 1;
+}
+
+// Every goal row, oldest first (created_at, id).
+export async function listGoals(executor: SqlExecutor): Promise<GoalRecord[]> {
+  const rows = await executor.all(`SELECT ${GOAL_COLUMNS} FROM goals ORDER BY created_at_utc, id`);
+  return rows.map(decodeGoal);
+}
+
+// Target rewrite used only by the global currency change, which runs while no goal has a
+// transaction (docs/DATA_MODEL.md "Global currency lock"). Closed goals are included: the target
+// is reinterpreted for the new currency, not edited by the person.
+export async function updateGoalTarget(
+  tx: SqlExecutor,
+  id: string,
+  targetMinor: number,
+  expectedRevision: number,
+  nowUtc: string,
+): Promise<boolean> {
+  const result = await tx.run(
+    'UPDATE goals SET target_minor = ?, updated_at_utc = ?, revision = revision + 1 WHERE id = ? AND revision = ?',
+    [targetMinor, nowUtc, id, expectedRevision],
+  );
+  return result.changes === 1;
+}

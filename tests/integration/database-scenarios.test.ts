@@ -6,6 +6,8 @@ import {
   restartSeedScenario,
   restartVerifyScenario,
 } from '../native/database-scenarios';
+import { GOAL_SCENARIOS } from '../native/goal-scenarios';
+import { INTL_SCENARIOS } from '../native/intl-scenarios';
 import { runScenarios, type ScenarioContext } from '../native/scenario-harness';
 import { createNodeSqliteDriver, temporaryDirectory } from '../support/node-sqlite-driver';
 
@@ -25,7 +27,7 @@ const context: ScenarioContext = {
 };
 
 describe('database scenarios on host SQLite (Jest, additional to the native run)', () => {
-  it.each(DATABASE_SCENARIOS.map((scenario) => [scenario.id, scenario] as const))('%s', async (_id, scenario) => {
+  it.each([...DATABASE_SCENARIOS, ...GOAL_SCENARIOS, ...INTL_SCENARIOS].map((scenario) => [scenario.id, scenario] as const))('%s', async (_id, scenario) => {
     const [result] = await runScenarios([scenario], context, () => 0);
     expect(result?.error).toBeUndefined();
     expect(result?.status).toBe('pass');

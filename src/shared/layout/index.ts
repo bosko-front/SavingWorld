@@ -5,4 +5,5 @@ export { arrangementViewAvailable } from './arrangement-adapter';
 export { ContentColumn, type ColumnWidth } from './content-column';
 export { fitAspect, type Insets, type Size } from './metrics';
 export { FormScreen, Screen } from './screen';
+export { useFontScale } from './use-font-scale';
 export { useMeasuredSize } from './use-measured-size';

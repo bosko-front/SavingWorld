@@ -30,7 +30,8 @@ const styleGuardrails = [
 // Imports restricted across src/**. Window geometry and the native adaptive container belong to the
 // shared layout layer (docs/ADAPTIVE_LAYOUT.md); `layoutOwner` relaxes only those two entries.
 // SQLite belongs to the data layer (docs/ARCHITECTURE.md): only src/data/db talks to expo-sqlite.
-function restrictedImports({ layoutOwner, sqliteOwner = false }) {
+// The toast engine and SF Symbols each have one shared wrapper (docs/DESIGN_SYSTEM.md).
+function restrictedImports({ layoutOwner, sqliteOwner = false, toastOwner = false, iconOwner = false }) {
   return [
     'error',
     {
@@ -48,6 +49,22 @@ function restrictedImports({ layoutOwner, sqliteOwner = false }) {
               {
                 name: 'expo-sqlite',
                 message: 'Use repositories and commands from src/data and src/features; only src/data/db opens SQLite.',
+              },
+            ]),
+        ...(toastOwner
+          ? []
+          : [
+              {
+                name: 'sonner-native',
+                message: 'Use showToast from @/shared/ui/toast; screens never import the toast engine.',
+              },
+            ]),
+        ...(iconOwner
+          ? []
+          : [
+              {
+                name: 'expo-symbols',
+                message: 'Use Icon from @/shared/ui/icon with a semantic name.',
               },
             ]),
         ...(layoutOwner
@@ -88,6 +105,14 @@ module.exports = defineConfig([
     // development lab and gallery display those measurements.
     files: ['src/shared/layout/**/*.{ts,tsx}', 'src/dev/**/*.{ts,tsx}'],
     rules: { 'no-restricted-imports': restrictedImports({ layoutOwner: true }) },
+  },
+  {
+    files: ['src/shared/ui/toast.tsx'],
+    rules: { 'no-restricted-imports': restrictedImports({ layoutOwner: false, toastOwner: true }) },
+  },
+  {
+    files: ['src/shared/ui/icon.tsx'],
+    rules: { 'no-restricted-imports': restrictedImports({ layoutOwner: false, iconOwner: true }) },
   },
   {
     // The SQLite adapter is the one module that imports expo-sqlite.

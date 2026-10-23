@@ -7,8 +7,10 @@ import { AmountText } from '@/shared/ui/amount-text';
 import { AppText } from '@/shared/ui/app-text';
 import { Button, type ButtonVariant } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
+import { Icon, ICON_SYMBOLS, type IconName } from '@/shared/ui/icon';
 import { Notice } from '@/shared/ui/notice';
 import { TextField } from '@/shared/ui/text-field';
+import { showToast } from '@/shared/ui/toast';
 
 // Development/test-only catalog of shared controls and their states. Reached from Settings in
 // development builds via the guarded /dev-gallery route; never part of a release bundle.
@@ -96,6 +98,28 @@ export function ComponentGallery() {
         <Notice tone="info" title="Stored on this device" message={LONG_TEXT} />
       </Section>
 
+      <Section title="Toasts">
+        <AppText role="footnote" tone="secondary">
+          One at a time near the top; a new one replaces the current one. Each is announced once to VoiceOver. With Reduce
+          Motion it fades in instead of sliding. Swipe up or tap to dismiss.
+        </AppText>
+        <Button label="Show success toast" variant="secondary" icon="success" onPress={() => showToast({ tone: 'success', title: 'Goal created' })} />
+        <Button label="Show info toast" variant="secondary" icon="info" onPress={() => showToast({ tone: 'info', title: 'Currency changed to JPY' })} />
+        <Button label="Show long toast" variant="secondary" onPress={() => showToast({ tone: 'success', title: LONG_LABEL })} />
+      </Section>
+
+      <Section title="Icons">
+        <AppText role="footnote" tone="secondary">
+          SF Symbols by semantic name. Sizes follow the text role and the current text size; icons are hidden from VoiceOver.
+        </AppText>
+        {(Object.keys(ICON_SYMBOLS) as IconName[]).map((name) => (
+          <View key={name} style={styles.iconRow}>
+            <Icon name={name} role="body" tone="action" />
+            <AppText>{`${name} · ${ICON_SYMBOLS[name]}`}</AppText>
+          </View>
+        ))}
+      </Section>
+
       <Section title="Semantic colors">
         {SWATCHES.map((token) => (
           <View key={token} style={styles.swatchRow}>
@@ -173,6 +197,11 @@ function capitalize(value: string) {
 function noop() {}
 
 const styles = StyleSheet.create({
+  iconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
   section: {
     gap: spacing.md,
     paddingTop: spacing.lg,

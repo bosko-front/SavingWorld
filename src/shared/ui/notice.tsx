@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { borders, colors, radii, spacing } from '@/shared/theme';
 
 import { AppText } from './app-text';
+import { Icon } from './icon';
 
 export type NoticeTone = 'error' | 'success' | 'info';
 
@@ -31,9 +32,12 @@ export function Notice({ tone, title, message, testID }: NoticeProps) {
       accessibilityRole={tone === 'error' ? 'alert' : 'text'}
       accessibilityLabel={message ? `${title}. ${message}` : title}
       style={[styles.container, { backgroundColor: toneColors.surface, borderLeftColor: toneColors.accent }]}>
-      <AppText role="headline" tone={toneColors.titleTone}>
-        {title}
-      </AppText>
+      <View style={styles.titleRow}>
+        <Icon name={tone} role="headline" tone={toneColors.titleTone} />
+        <AppText role="headline" tone={toneColors.titleTone} style={styles.title}>
+          {title}
+        </AppText>
+      </View>
       {message ? <AppText role="callout">{message}</AppText> : null}
     </View>
   );
@@ -46,5 +50,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     borderRadius: radii.md,
     borderLeftWidth: borders.emphasis * 2,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  title: {
+    flexShrink: 1,
   },
 });

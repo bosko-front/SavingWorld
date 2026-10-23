@@ -43,7 +43,7 @@ Product authority is [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx). Q01-Q06 
 ## Usability and performance
 
 - [ ] Onboarding explicitly explains manual tracking and absence of actual money transfers.
-- [ ] VoiceOver, Dynamic Type, contrast, touch sizes, Reduce Motion, chart text alternatives and keyboard/focus behavior pass on supported devices.
+- [ ] VoiceOver, Dynamic Type, contrast, touch sizes, Reduce Motion, chart text alternatives and keyboard/focus behavior pass on supported devices. Includes the Phase 06 VoiceOver walkthrough on a **physical iPhone**: onboarding, Create/Edit Goal errors, lifecycle and currency toasts announced once without moving focus, Settings currency lock (DECISIONS D60).
 - [ ] English catalog is complete; currency/date formatting and longer/RTL-ready layouts are verified without claiming untranslated language support.
 - [ ] Airplane-mode core journeys and already verified Pro features work without an app login.
 - [ ] Release build launch/query/frame/memory measurements meet the documented device budgets or a reviewed adjustment.

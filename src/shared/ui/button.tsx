@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, StyleSheet, View, type GestureResponderEv
 import { borders, colors, layout, radii, spacing } from '@/shared/theme';
 
 import { AppText, type TextTone } from './app-text';
+import { Icon, type IconName } from './icon';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'plain';
 
@@ -55,6 +56,8 @@ type ButtonProps = {
   disabled?: boolean;
   // Shows a spinner, keeps the label visible and ignores presses until the work finishes.
   loading?: boolean;
+  // Optional SF Symbol before the label, in the label's color; the label still states the action.
+  icon?: IconName;
   accessibilityHint?: string;
   testID?: string;
 };
@@ -67,6 +70,7 @@ export function Button({
   variant = 'primary',
   disabled = false,
   loading = false,
+  icon,
   accessibilityHint,
   testID,
 }: ButtonProps) {
@@ -101,6 +105,7 @@ export function Button({
       ]}>
       <View style={styles.content}>
         {loading ? <ActivityIndicator color={spinnerColor} accessibilityElementsHidden /> : null}
+        {icon && !loading ? <Icon name={icon} role="headline" tone={labelTone} weight="semibold" /> : null}
         <AppText role="headline" tone={labelTone} style={styles.label} accessible={false}>
           {label}
         </AppText>

@@ -61,6 +61,7 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 - Native DB scenarios for chronological order, equal-date createdAt/id ties, edit moving a withdrawal earlier, deleting funding entry, zero/future/overflow input.
 - Kill after commit before acknowledgment, failed write/retry/double tap and stale form revision checks.
 - History/form VoiceOver, keyboard and resize-preserved draft checks; standard checks.
+- Carried from Phase 06 (evidence/PHASE_06.md, DECISIONS D56-D58): reuse what exists instead of parallel paths. Screens read committed data from `useAppDataStore` and call `refreshAppData()` after a commit; command dependencies come from `goalCommandDeps()` in `src/bootstrap/app-data.ts`. Feedback goes through `showToast` and `Icon` (`deposit`, `withdrawal`, `history`, `calendar`); the deadline picker in `src/features/goals/presentation/deadline-field.tsx` and `src/shared/i18n/local-date.ts` show the `@expo/ui` DatePicker bridge for the entry date. The Free-limit Create rejection that gets `haptics.warning()` is in `goal-form-screen.tsx` (`open_goal_limit`); Reopen at the limit is in `use-goal-action.ts`. Add Savings belongs on the basic Home in `src/features/goals/presentation/home-screen.tsx`. Add the new ledger scenarios to `tests/native/` and the runner as Phase 06 did (`GOAL_SCENARIOS`), and re-run `npm run test:db`.
 
 ## Definition of Done
 

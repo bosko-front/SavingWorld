@@ -4,6 +4,7 @@ import { StyleSheet, TextInput, View, type TextInputInstance, type TextInputProp
 import { borders, colors, layout, radii, spacing, typography } from '@/shared/theme';
 
 import { AppText } from './app-text';
+import { Icon } from './icon';
 
 // Outline colors by state; tests/unit/contrast.test.ts checks each against the field surface.
 export const fieldColors = {
@@ -88,10 +89,13 @@ export function TextField({
         ]}
       />
       {error ? (
-        // The warning glyph and thicker outline mark the error without relying on color.
-        <AppText role="footnote" tone="error" accessibilityLabel={errorLabel}>
-          {`${WARNING_GLYPH} ${error}`}
-        </AppText>
+        // The error icon and thicker outline mark the error without relying on color.
+        <View style={styles.errorRow} accessible accessibilityLabel={errorLabel}>
+          <Icon name="error" role="footnote" tone="error" />
+          <AppText role="footnote" tone="error" style={styles.errorText}>
+            {error}
+          </AppText>
+        </View>
       ) : hint ? (
         <AppText role="footnote" tone="secondary">
           {hint}
@@ -102,12 +106,18 @@ export function TextField({
 }
 
 const INPUT_PADDING = spacing.md;
-// U+26A0 with the text-style variation selector, so it renders in the error color, not as emoji.
-const WARNING_GLYPH = '⚠︎';
 
 const styles = StyleSheet.create({
   container: {
     gap: spacing.xs,
+  },
+  errorRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.xs,
+  },
+  errorText: {
+    flexShrink: 1,
   },
   input: {
     minHeight: layout.minTouchTarget,

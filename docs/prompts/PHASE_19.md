@@ -58,6 +58,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 - Repeat the shared Duo matrix with actual forms, both themes, charts and native sheets; record focused-draft preservation and four-edge safe-area results.
 
 - Manual iPhone VoiceOver/text-size/Reduce Motion checklist with screen-by-screen evidence.
+- Carried from Phase 06 (DECISIONS D60): on a physical iPhone, run the VoiceOver walkthrough of onboarding, Create/Edit Goal (inline errors read with the field), Home Pause/Resume/Archive, Collection Reopen and the Settings currency lock; each confirmation toast is announced once and never takes focus.
 - Formatting tests for at least two numeric/date locales, currency exponents and all user-facing catalog keys.
 - Contrast/touch/layout review, relevant interaction regressions and standard checks.
 

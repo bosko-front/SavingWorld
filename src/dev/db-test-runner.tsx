@@ -12,6 +12,8 @@ import { Card } from '@/shared/ui/card';
 import { Notice } from '@/shared/ui/notice';
 
 import { DATABASE_SCENARIOS, restartSeedScenario, restartVerifyScenario } from '../../tests/native/database-scenarios';
+import { GOAL_SCENARIOS } from '../../tests/native/goal-scenarios';
+import { INTL_SCENARIOS } from '../../tests/native/intl-scenarios';
 import { runScenarios, type Scenario, type ScenarioContext, type ScenarioResult } from '../../tests/native/scenario-harness';
 
 // Development/test-only native database runner (docs/TEST_PLAN.md "Real iOS Expo SQLite suite").
@@ -51,7 +53,8 @@ function scenariosFor(suite: DbTestSuite, runId: string, seedId: string | null, 
   if (suite === 'restart-verify') {
     return seedId ? [restartVerifyScenario(seedId)] : [];
   }
-  return linked ? [...DATABASE_SCENARIOS, restartSeedScenario(runId)] : [...DATABASE_SCENARIOS];
+  const all = [...DATABASE_SCENARIOS, ...GOAL_SCENARIOS, ...INTL_SCENARIOS];
+  return linked ? [...all, restartSeedScenario(runId)] : all;
 }
 
 export function DbTestRunner({ runId, suite, seedId }: { runId: string | null; suite: DbTestSuite; seedId: string | null }) {
@@ -124,7 +127,7 @@ export function DbTestRunner({ runId, suite, seedId }: { runId: string | null; s
         Database tests
       </AppText>
       <AppText tone="secondary">
-        Runs the Phase 05 scenarios on this device through expo-sqlite, in separate test databases. Your app data is not
+        Runs the database, goal and Intl scenarios on this device through expo-sqlite, in separate test databases. Your app data is not
         touched.
       </AppText>
       {state.status === 'idle' ? (

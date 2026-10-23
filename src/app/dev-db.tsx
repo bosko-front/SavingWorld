@@ -1,8 +1,9 @@
 import { useLocalSearchParams } from 'expo-router';
 
-// Development/test-only native database runner (docs/TEST_PLAN.md, `npm run test:db`). Guarded by
-// Stack.Protected in the Home stack; the module (and the tests/native scenarios it bundles) is
-// required only inside `if (__DEV__)`, so release bundles omit it.
+// Development/test-only native database runner (docs/TEST_PLAN.md, `npm run test:db`). A root-stack
+// route guarded only by Stack.Protected `__DEV__`, so it also opens on a fresh install before
+// onboarding; the module (and the tests/native scenarios it bundles) is required only inside
+// `if (__DEV__)`, so release bundles omit it. It never touches the app database's data.
 // `?run=<id>` starts a run once per ID; `suite=restart-verify&seed=<id>` checks a restart seed.
 export default function DevDatabaseTestsRoute() {
   const { run, suite, seed } = useLocalSearchParams<{ run?: string; suite?: string; seed?: string }>();

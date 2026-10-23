@@ -10,6 +10,8 @@ import { updateGoalStatus } from '@/data/repositories/goal-repository';
 import { getEntry } from '@/data/repositories/ledger-repository';
 import { writeCurrency } from '@/data/repositories/settings-repository';
 import { createGoal, type GoalCommandDeps } from '@/features/goals/application/goal-commands';
+import { readGoalsOverview } from '@/features/goals/application/goal-queries';
+import { selectGoal } from '@/features/goals/application/goal-selection';
 import {
   correctEntry,
   createEntry,
@@ -26,22 +28,22 @@ import { check, equal, rejects, type Scenario, type ScenarioContext } from './sc
 // Jest on host SQLite (additional only). Every scenario uses its own `dbtest-` database and deletes
 // it afterwards; none touches the app database.
 
-const EUR = getCurrency('EUR') as CurrencyMetadata;
-const START = '2026-10-23T08:00:00.000Z';
-const ZONE = 'Europe/Belgrade';
+export const EUR = getCurrency('EUR') as CurrencyMetadata;
+export const START = '2026-10-23T08:00:00.000Z';
+export const ZONE = 'Europe/Belgrade';
 
 // A clock that advances one second per reading, so createdAt is strictly increasing.
-function steppingClock(startIso = START, timeZone = ZONE): Clock {
+export function steppingClock(startIso = START, timeZone = ZONE): Clock {
   let t = Date.parse(startIso);
   return { nowMs: () => (t += 1000), timeZone: () => timeZone };
 }
 
-function sequentialIds(prefix: string): IdGenerator {
+export function sequentialIds(prefix: string): IdGenerator {
   let n = 0;
   return { newId: () => `${prefix}-${String((n += 1)).padStart(4, '0')}` };
 }
 
-type Harness = {
+export type Harness = {
   db: AppDatabase;
   clock: Clock;
   deps: LedgerCommandDeps & GoalCommandDeps;
@@ -53,7 +55,7 @@ type Harness = {
 
 type SetupOptions = { currency?: boolean; goal?: boolean; clock?: Clock; ids?: IdGenerator };
 
-class Session {
+export class Session {
   private readonly open: AppDatabase[] = [];
   private readonly names = new Set<string>();
 
@@ -118,7 +120,7 @@ class Session {
   }
 }
 
-async function withSession<T>(context: ScenarioContext, body: (session: Session) => Promise<T>): Promise<T> {
+export async function withSession<T>(context: ScenarioContext, body: (session: Session) => Promise<T>): Promise<T> {
   const session = new Session(context);
   try {
     return await body(session);
@@ -127,17 +129,17 @@ async function withSession<T>(context: ScenarioContext, body: (session: Session)
   }
 }
 
-function values(kind: EntryValuesInput['kind'], amountMinor: number, entryDate: string, note: string | null = null) {
+export function values(kind: EntryValuesInput['kind'], amountMinor: number, entryDate: string, note: string | null = null) {
   return { kind, amountMinor, entryDate, note };
 }
 
-async function balanceOf(h: Harness): Promise<number> {
+export async function balanceOf(h: Harness): Promise<number> {
   const ledger = await readGoalLedger(h.db, h.goalId);
   check(ledger, 'goal ledger missing');
   return ledger.balanceMinor;
 }
 
-async function count(executor: SqlExecutor, table: string): Promise<number> {
+export async function count(executor: SqlExecutor, table: string): Promise<number> {
   const row = await executor.get<{ n: number }>(`SELECT count(*) AS n FROM ${table}`);
   return Number(row?.n);
 }
@@ -149,13 +151,13 @@ async function tableNames(executor: SqlExecutor): Promise<string[]> {
   return rows.map((row) => row.name);
 }
 
-function expectError(result: { ok: boolean; error?: unknown }, code: string, label: string): void {
+export function expectError(result: { ok: boolean; error?: unknown }, code: string, label: string): void {
   check(!result.ok, `${label}: expected ${code}, got success`);
   const actual = (result.error as { code?: string } | undefined)?.code;
   equal(actual, code, label);
 }
 
-async function deposit(h: Harness, amount: number, date: string, note: string | null = null) {
+export async function deposit(h: Harness, amount: number, date: string, note: string | null = null) {
   return createEntry(h.deps, { operationId: h.op(), goalId: h.goalId, ...values('deposit', amount, date, note) });
 }
 
@@ -163,7 +165,7 @@ async function withdraw(h: Harness, amount: number, date: string) {
   return createEntry(h.deps, { operationId: h.op(), goalId: h.goalId, ...values('withdrawal', amount, date) });
 }
 
-async function mustCreate(h: Harness, kind: EntryValuesInput['kind'], amount: number, date: string, note: string | null = null) {
+export async function mustCreate(h: Harness, kind: EntryValuesInput['kind'], amount: number, date: string, note: string | null = null) {
   const result = await createEntry(h.deps, { operationId: h.op(), goalId: h.goalId, ...values(kind, amount, date, note) });
   check(result.ok, `create ${kind} ${amount} ${date} failed: ${JSON.stringify(result)}`);
   return result.value;
@@ -686,6 +688,10 @@ export function restartSeedScenario(seedId: string): Scenario {
       check(a.ok && b.ok, 'entries');
       const c = await correctEntry(deps, { operationId: 'op-r-3', entryId: b.value.entryId, expectedRevision: 1, ...values('withdrawal', 2_000, '2026-10-03') });
       check(c.ok, 'correction');
+      // Phase 06: a second, zero-balance goal (Pro capabilities allow two open goals) selected on Home.
+      const empty = await createGoal({ ...deps, capabilities: capabilitiesFor('pro') }, { operationId: 'op-r-goal-2', title: 'Zero balance goal', targetMinor: 7_500, deadlineDate: '2026-12-31', themeId: 'island' });
+      check(empty.ok, 'zero-balance goal');
+      check((await selectGoal(deps, empty.value.goalId)).ok, 'select zero-balance goal');
       await db.close();
       return { database: restartDatabaseName(seedId), goalId, balanceMinor: 10_000 };
     },
@@ -704,12 +710,22 @@ export function restartVerifyScenario(seedId: string): Scenario {
         equal(db.migration, { fromVersion: 1, toVersion: 1, applied: [] }, 'no re-migration');
         const state = await db.read(async (r) => ({
           currency: (await r.get<{ value_json: string }>("SELECT value_json FROM settings WHERE key = 'currency'"))?.value_json,
-          goals: await r.all('SELECT id, title, target_minor, status, revision FROM goals'),
+          goals: await r.all('SELECT id, title, target_minor, status, revision FROM goals ORDER BY created_at_utc, id'),
           entries: await r.all('SELECT signed_amount_minor, entry_date, note, revision FROM ledger_entries ORDER BY entry_date, created_at_utc, id'),
           receipts: await count(r, 'operation_receipts'),
         }));
         equal(state.currency, '{"code":"EUR","exponent":2,"registryVersion":1}', 'global currency');
-        equal(state.goals, [{ id: 'restart-0001', title: 'Restart goal', target_minor: 50_000, status: 'active', revision: 1 }], 'goal');
+        equal(
+          state.goals,
+          [
+            { id: 'restart-0001', title: 'Restart goal', target_minor: 50_000, status: 'active', revision: 1 },
+            { id: 'restart-0004', title: 'Zero balance goal', target_minor: 7_500, status: 'active', revision: 1 },
+          ],
+          'goals',
+        );
+        const overview = await readGoalsOverview(db);
+        equal(overview.selectedGoalId, 'restart-0004', 'Home selection');
+        equal(overview.goals.map((g) => g.balanceMinor), [10_000, 0], 'balances, including the zero-balance goal');
         equal(
           state.entries,
           [
@@ -718,7 +734,7 @@ export function restartVerifyScenario(seedId: string): Scenario {
           ],
           'entries',
         );
-        equal(state.receipts, 4, 'receipts');
+        equal(state.receipts, 5, 'receipts');
         const replay = await createEntry({ db, clock, ids: sequentialIds('after') }, { operationId: 'op-r-1', goalId: 'restart-0001', ...values('deposit', 12_000, '2026-10-01', RESTART_NOTE) });
         check(replay.ok && replay.value.replayed && replay.value.balanceMinor === 10_000, 'receipt replays after restart');
         return { balanceMinor: 10_000 };

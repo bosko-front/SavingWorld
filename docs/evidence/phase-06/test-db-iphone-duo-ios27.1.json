@@ -1,0 +1,342 @@
+{
+  "tool": "npm run test:db",
+  "device": {
+    "name": "SW iPhone Duo iOS 27.1",
+    "udid": "E273F5F5-A352-4903-8891-1457DE5E96DC",
+    "runtime": "",
+    "state": "Booted"
+  },
+  "freshInstall": false,
+  "launches": [
+    {
+      "runId": "rmvl2t4hwa",
+      "suite": "all",
+      "seedId": null,
+      "startedAtUtc": "2026-10-23T14:39:41.270Z",
+      "finishedAtUtc": "2026-10-23T14:39:42.097Z",
+      "driver": "expo-sqlite",
+      "platform": {
+        "os": "ios",
+        "version": "27.1"
+      },
+      "hermes": true,
+      "uuidSource": "Math.random",
+      "appDatabase": {
+        "name": "saving-worlds.db",
+        "driver": "expo-sqlite",
+        "migrationAtThisLaunch": {
+          "fromVersion": 1,
+          "toVersion": 1,
+          "applied": []
+        }
+      },
+      "summary": {
+        "total": 27,
+        "passed": 27,
+        "failed": 0
+      },
+      "results": [
+        {
+          "id": "S01",
+          "title": "Fresh database: schema 1, WAL, foreign keys on both connections, integrity checks",
+          "status": "pass",
+          "durationMs": 36,
+          "facts": {
+            "driver": "expo-sqlite",
+            "sqliteVersion": "3.53.3",
+            "history": [
+              {
+                "version": 1,
+                "name": "initial_ledger",
+                "checksum": "f060530662e52157"
+              }
+            ],
+            "goalColumns": [
+              "id",
+              "title",
+              "target_minor",
+              "deadline_date",
+              "theme_id",
+              "status",
+              "created_at_utc",
+              "updated_at_utc",
+              "revision"
+            ],
+            "entryColumns": [
+              "id",
+              "goal_id",
+              "signed_amount_minor",
+              "entry_date",
+              "note",
+              "created_at_utc",
+              "updated_at_utc",
+              "revision"
+            ],
+            "pragmas": {
+              "writer": {
+                "journalMode": "wal",
+                "foreignKeys": true,
+                "synchronous": 2
+              },
+              "reader": {
+                "journalMode": "wal",
+                "foreignKeys": true,
+                "synchronous": 2
+              }
+            }
+          }
+        },
+        {
+          "id": "S02",
+          "title": "Repeated startup keeps schema and data without re-running or resetting",
+          "status": "pass",
+          "durationMs": 42
+        },
+        {
+          "id": "S03",
+          "title": "Failed migration rolls back completely; prior data intact; later upgrade applies",
+          "status": "pass",
+          "durationMs": 28
+        },
+        {
+          "id": "S04",
+          "title": "Unknown newer schema, edited migration and foreign database fail safely without changes",
+          "status": "pass",
+          "durationMs": 29
+        },
+        {
+          "id": "S05",
+          "title": "Foreign keys, CHECK constraints and triggers defend the command invariants",
+          "status": "pass",
+          "durationMs": 20
+        },
+        {
+          "id": "S06",
+          "title": "v1.2 example: 0 + 50 − 20 = 30, withdrawal 31 rejected atomically",
+          "status": "pass",
+          "durationMs": 22
+        },
+        {
+          "id": "S07",
+          "title": "Withdrawal dated before the first deposit is rejected even when the final total is positive",
+          "status": "pass",
+          "durationMs": 23
+        },
+        {
+          "id": "S08",
+          "title": "Deleting a deposit needed by a later withdrawal is rejected despite a later positive total",
+          "status": "pass",
+          "durationMs": 41
+        },
+        {
+          "id": "S09",
+          "title": "Corrections overwrite current values, keep createdAt, step the revision and revalidate history",
+          "status": "pass",
+          "durationMs": 29
+        },
+        {
+          "id": "S10",
+          "title": "Future entry dates are rejected on create and correction, using the device-local date",
+          "status": "pass",
+          "durationMs": 29
+        },
+        {
+          "id": "S11",
+          "title": "Stable operation IDs replay without duplicating; a changed payload is a conflict",
+          "status": "pass",
+          "durationMs": 22
+        },
+        {
+          "id": "S12",
+          "title": "Stale revisions and missing rows fail clearly",
+          "status": "pass",
+          "durationMs": 21
+        },
+        {
+          "id": "S13",
+          "title": "Concurrent deposits, withdrawals and corrections serialize to an exact result",
+          "status": "pass",
+          "durationMs": 51
+        },
+        {
+          "id": "S14",
+          "title": "Unicode and SQL-special notes round-trip exactly; invalid notes are rejected",
+          "status": "pass",
+          "durationMs": 37
+        },
+        {
+          "id": "S15",
+          "title": "Forced mid-write failure rolls back entry and receipt; the same operation ID then succeeds",
+          "status": "pass",
+          "durationMs": 23
+        },
+        {
+          "id": "S16",
+          "title": "Readers see only committed data while a write transaction is open",
+          "status": "pass",
+          "durationMs": 18
+        },
+        {
+          "id": "S17",
+          "title": "Closed goals reject ledger changes; currency and goal rules gate creation",
+          "status": "pass",
+          "durationMs": 35
+        },
+        {
+          "id": "S18",
+          "title": "Exact minor units at the 10^12 ceiling survive storage; the ceiling is enforced",
+          "status": "pass",
+          "durationMs": 22
+        },
+        {
+          "id": "S19",
+          "title": "Same-date, same-createdAt entries are ordered by id",
+          "status": "pass",
+          "durationMs": 18
+        },
+        {
+          "id": "G01",
+          "title": "Lifecycle: paused takes the Free slot, Archive frees it, Reopen checks it and never auto-finishes",
+          "status": "pass",
+          "durationMs": 35
+        },
+        {
+          "id": "G02",
+          "title": "Concurrent Create and Reopen take the last Free slot at most once",
+          "status": "pass",
+          "durationMs": 24,
+          "facts": {
+            "winners": 1,
+            "limited": 3
+          }
+        },
+        {
+          "id": "G03",
+          "title": "Edit Goal: paused is editable, closed is read-only, deadlines and theme follow the rules",
+          "status": "pass",
+          "durationMs": 36
+        },
+        {
+          "id": "G04",
+          "title": "Global currency: empty goals change without conversion; a transaction or souvenir locks it",
+          "status": "pass",
+          "durationMs": 49,
+          "facts": {
+            "raceOrder": "currency first",
+            "kwd": 3
+          }
+        },
+        {
+          "id": "G05",
+          "title": "Home selection persists across a restart and falls back to the oldest open goal",
+          "status": "pass",
+          "durationMs": 29
+        },
+        {
+          "id": "G06",
+          "title": "Currency and a zero-balance goal survive a restart; the schema still refuses goal deletion",
+          "status": "pass",
+          "durationMs": 24
+        },
+        {
+          "id": "I01",
+          "title": "Intl output of formatMoney, separatorsForLocale and today() on this engine",
+          "status": "pass",
+          "durationMs": 57,
+          "facts": {
+            "samples": {
+              "eurMax": "€9,999,999,999.99",
+              "eurDe": "9.999.999.999,99 €",
+              "jpy": "¥1,235",
+              "kwd": "KWD 1.250",
+              "iqd": "IQD 1,250.000",
+              "eurSigned": "-€5.00"
+            },
+            "engineLocale": "en-US",
+            "separators": {
+              "decimal": ".",
+              "group": ",",
+              "grouping": "thousands"
+            },
+            "deviceLanguageTag": "en-US",
+            "deviceTagSeparators": {
+              "decimal": ".",
+              "group": ",",
+              "grouping": "thousands"
+            },
+            "deviceTypingSeparators": {
+              "decimal": ",",
+              "group": ".",
+              "grouping": "thousands"
+            },
+            "deviceFormatted": "€1,234.50",
+            "deDe": {
+              "decimal": ",",
+              "group": ".",
+              "grouping": "thousands"
+            },
+            "enIn": {
+              "decimal": ".",
+              "group": ",",
+              "grouping": "indian"
+            },
+            "timeZone": "Europe/Belgrade",
+            "today": "2026-10-23",
+            "utcNow": "2026-10-23T14:39:42.071Z"
+          }
+        },
+        {
+          "id": "R1",
+          "title": "Restart seed: write goal, entries and a correction, then leave the database closed",
+          "status": "pass",
+          "durationMs": 26,
+          "facts": {
+            "database": "dbtest-restart-rmvl2t4hwa.db",
+            "goalId": "restart-0001",
+            "balanceMinor": 10000
+          }
+        }
+      ]
+    },
+    {
+      "runId": "rmvl2t4hwb",
+      "suite": "restart-verify",
+      "seedId": "rmvl2t4hwa",
+      "startedAtUtc": "2026-10-23T14:39:47.521Z",
+      "finishedAtUtc": "2026-10-23T14:39:47.559Z",
+      "driver": "expo-sqlite",
+      "platform": {
+        "os": "ios",
+        "version": "27.1"
+      },
+      "hermes": true,
+      "uuidSource": "Math.random",
+      "appDatabase": {
+        "name": "saving-worlds.db",
+        "driver": "expo-sqlite",
+        "migrationAtThisLaunch": {
+          "fromVersion": 1,
+          "toVersion": 1,
+          "applied": []
+        }
+      },
+      "summary": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0
+      },
+      "results": [
+        {
+          "id": "R2",
+          "title": "Restart verify: a new app process reads the same exact state without migrating again",
+          "status": "pass",
+          "durationMs": 37,
+          "facts": {
+            "balanceMinor": 10000
+          }
+        }
+      ]
+    }
+  ],
+  "passed": true
+}

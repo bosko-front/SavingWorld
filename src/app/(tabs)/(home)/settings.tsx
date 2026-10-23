@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { describeBuildInfo } from '@/bootstrap/build-info';
 import { readBuildInfo } from '@/bootstrap/read-build-info';
+import { CurrencySettings } from '@/features/settings/presentation/currency-settings';
 import { Screen } from '@/shared/layout';
 import { spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
@@ -16,7 +17,8 @@ export default function SettingsScreen() {
       <AppText role="title" accessibilityRole="header">
         Settings
       </AppText>
-      <AppText tone="secondary">Currency, reminder and local-data settings will appear here.</AppText>
+      <CurrencySettings />
+      <AppText tone="secondary">Reminder and local-data settings will appear here.</AppText>
       <Card>
         {rows.map((row) => (
           <View key={row.label} style={styles.row} accessible>

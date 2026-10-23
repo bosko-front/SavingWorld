@@ -55,7 +55,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 
 ## Tests and verification
 
-- Run ordinary-iPhone and Duo resize/fold/split-view scenarios from ADAPTIVE_LAYOUT against the release candidate, including physical-only gaps carried from Phase 03: inner split view with the app on both sides on a physical iPhone Duo (DECISIONS D48), plus the closed-display collapse fallback and focus behavior (D47).
+- Run ordinary-iPhone and Duo resize/fold/split-view scenarios from ADAPTIVE_LAYOUT against the release candidate, including physical-only gaps carried from Phase 03: inner split view with the app on both sides on a physical iPhone Duo (DECISIONS D48), plus the closed-display collapse fallback and focus behavior (D47). Repeat the Phase 06 VoiceOver walkthrough on a physical iPhone if Phase 19 did not already record it (D60).
 
 - Run standard checks, actual test:db suite and established test:e2e critical flows on iOS.
 - Run interruption/rollback/migration scenarios and device memory/launch/frame profiling; record build identifier and fixture size.

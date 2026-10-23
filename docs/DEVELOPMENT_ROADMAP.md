@@ -462,6 +462,7 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 - Native DB scenarios for chronological order, equal-date createdAt/id ties, edit moving a withdrawal earlier, deleting funding entry, zero/future/overflow input.
 - Kill after commit before acknowledgment, failed write/retry/double tap and stale form revision checks.
 - History/form VoiceOver, keyboard and resize-preserved draft checks; standard checks.
+- Carried from Phase 06 (evidence/PHASE_06.md, DECISIONS D56-D58): reuse what exists instead of parallel paths. Screens read committed data from `useAppDataStore` and call `refreshAppData()` after a commit; command dependencies come from `goalCommandDeps()` in `src/bootstrap/app-data.ts`. Feedback goes through `showToast` and `Icon` (`deposit`, `withdrawal`, `history`, `calendar`); the deadline picker in `src/features/goals/presentation/deadline-field.tsx` and `src/shared/i18n/local-date.ts` show the `@expo/ui` DatePicker bridge for the entry date. The Free-limit Create rejection that gets `haptics.warning()` is in `goal-form-screen.tsx` (`open_goal_limit`); Reopen at the limit is in `use-goal-action.ts`. Add Savings belongs on the basic Home in `src/features/goals/presentation/home-screen.tsx`. Add the new ledger scenarios to `tests/native/` and the runner as Phase 06 did (`GOAL_SCENARIOS`), and re-run `npm run test:db`.
 
 ## Definition of Done
 
@@ -1223,6 +1224,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 - Repeat the shared Duo matrix with actual forms, both themes, charts and native sheets; record focused-draft preservation and four-edge safe-area results.
 
 - Manual iPhone VoiceOver/text-size/Reduce Motion checklist with screen-by-screen evidence.
+- Carried from Phase 06 (DECISIONS D60): on a physical iPhone, run the VoiceOver walkthrough of onboarding, Create/Edit Goal (inline errors read with the field), Home Pause/Resume/Archive, Collection Reopen and the Settings currency lock; each confirmation toast is announced once and never takes focus.
 - Formatting tests for at least two numeric/date locales, currency exponents and all user-facing catalog keys.
 - Contrast/touch/layout review, relevant interaction regressions and standard checks.
 
@@ -1345,7 +1347,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 
 ## Tests and verification
 
-- Run ordinary-iPhone and Duo resize/fold/split-view scenarios from ADAPTIVE_LAYOUT against the release candidate, including physical-only gaps carried from Phase 03: inner split view with the app on both sides on a physical iPhone Duo (DECISIONS D48), plus the closed-display collapse fallback and focus behavior (D47).
+- Run ordinary-iPhone and Duo resize/fold/split-view scenarios from ADAPTIVE_LAYOUT against the release candidate, including physical-only gaps carried from Phase 03: inner split view with the app on both sides on a physical iPhone Duo (DECISIONS D48), plus the closed-display collapse fallback and focus behavior (D47). Repeat the Phase 06 VoiceOver walkthrough on a physical iPhone if Phase 19 did not already record it (D60).
 
 - Run standard checks, actual test:db suite and established test:e2e critical flows on iOS.
 - Run interruption/rollback/migration scenarios and device memory/launch/frame profiling; record build identifier and fixture size.

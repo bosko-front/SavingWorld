@@ -20,6 +20,8 @@ Every create/correct/delete transaction command computes the candidate history o
 
 Choose currency during onboarding before creating a goal. A later Settings-only change is allowed iff the database contains zero transactions and zero collectibles across all goals, including closed ones. Recheck this inside the same serialized write boundary as financial mutations. It is not a lifetime lock after a deleted transaction. A retained collectible still locks it. Apply a permitted choice to all existing empty goals; explain and confirm that no amounts are converted. Validate any newly interpreted target against the selected metadata without inventing FX behavior.
 
+Implemented in Phase 06 (DECISIONS D56): `setGlobalCurrency` serves onboarding and Settings, counts ledger entries and souvenirs inside its exclusive transaction, and rewrites each empty goal's target to the same written amount in the new exponent (1,000.00 EUR → 1,000 JPY). A target the new currency cannot show exactly, or one above 10^12, refuses the change instead of rounding. Until Phase 11 creates `collectibles`, the souvenir count is 0 when the table is absent.
+
 ## Exact deadline estimate
 
 For an unexpired deadline D=count of calendar days from today through deadline inclusive, D>=1. Weekly=min(R,ceil(R*7/D)); monthly=min(R,ceil(R*30/D)), ceil in minor units. These are alternative approximate paces, not calendar contribution schedules. R=10000 minor, D=30 gives weekly 2334 and monthly 10000. Deadline today gives R for both. No deadline means no estimate. Past deadline with R>0 shows Overdue and R without estimates; R=0 yields zero and no Overdue. No anchored month-end opportunity-count formula.
@@ -32,13 +34,13 @@ version INTEGER PRIMARY KEY, name, checksum, applied_at_utc. Ordered immutable m
 
 ### settings (Phase 05; global currency UI in 06)
 
-key TEXT PRIMARY KEY, value_json TEXT NOT NULL, updated_at_utc. Typed keys: `currency` = {code, exponent, registryVersion} (implemented Phase 05; the global currencyCode with versioned exponent metadata), onboardingCompleted, selectedGoalId, weeklyReminderEnabled and optional additional reduce-motion preference. UI is English with locale-aware numeric/date formatting. No preferred-new-goal currency or purchase override. Missing/invalid currency gates goal creation; no silent default reinterpretation of financial data.
+key TEXT PRIMARY KEY, value_json TEXT NOT NULL, updated_at_utc. Typed keys: `currency` = {code, exponent, registryVersion} (implemented Phase 05; the global currencyCode with versioned exponent metadata), `selectedGoalId` = a JSON string (implemented Phase 06; a hint that falls back to the oldest open goal), weeklyReminderEnabled and optional additional reduce-motion preference. Onboarding is complete once a valid `currency` exists; no separate onboardingCompleted key is stored (D56). UI is English with locale-aware numeric/date formatting. No preferred-new-goal currency or purchase override. Missing/invalid currency gates goal creation; no silent default reinterpretation of financial data.
 
 ### goals (Phase 05; lifecycle in 06, Finish integration in 11)
 
 id TEXT PRIMARY KEY, title TEXT NOT NULL, target_minor INTEGER CHECK(target_minor>0 AND target_minor<=1000000000000), deadline_date TEXT NULL, theme_id TEXT NOT NULL, status TEXT CHECK(status IN ('active','paused','completed','archived')), created_at_utc, updated_at_utc, revision INTEGER CHECK(revision>=1).
 
-Start at zero; no currency/exponent/balance column. Index status/updated time. active and paused are open and count against Free's one slot; Pro has no open-goal limit. paused permits editing and transactions without resuming reminder eligibility. Archive preserves all records. No whole-goal deletion command or UI. completed/archived are read-only until Reopen passes the current Free limit and sets active. Finish requires open goal and B>=T, sets completed and releases a slot. Reopen at >=100% never auto-finishes. Target/theme/deadline/ledger edits share the closed-goal guard.
+Start at zero; no currency/exponent/balance column. Index status/updated time. active and paused are open and count against Free's one slot; Pro has no open-goal limit. paused permits editing and transactions without resuming reminder eligibility. Archive preserves all records. No whole-goal deletion command or UI. completed/archived are read-only until Reopen passes the current Free limit and sets active. Finish requires open goal and B>=T, sets completed and releases a slot. Reopen at >=100% never auto-finishes. Target/theme/deadline/ledger edits share the closed-goal guard. Phase 06 implements Edit, Pause, Resume, Archive, Finish (command only; UI in Phase 11) and Reopen with revision checks and receipts (DECISIONS D57); Archive and Finish start from an open goal, and an unchanged expired deadline may be kept on edit.
 
 ### ledger_entries (Phase 05; UI in 07)
 
@@ -51,6 +53,8 @@ Index (goal_id,entry_date,created_at_utc,id). Currency comes only from AppSettin
 operation_id TEXT PRIMARY KEY, command_kind, request_hash, result_json, created_at_utc. Same transaction as the effect. Same ID/payload returns the prior minimal result; changed payload fails. Receipts retain identifiers/outcome needed for safe retry, not previous financial entry versions or a correction journal. Never log note/amount payloads. Serialized writes and stale-row checks remain implementation safeguards.
 
 ### collectibles (Phase 11)
+
+The Phase 06 currency lock already reads this table through `src/data/repositories/collectible-repository.ts` when it exists; keep the name `collectibles`.
 
 goal_id TEXT PRIMARY KEY REFERENCES goals(id), theme_id TEXT NOT NULL, theme_version INTEGER NOT NULL, earned_at_utc TEXT NOT NULL. Optional immutable display snapshots of title/target at award may be retained for honest Collection captions; they are not an entry audit or an authoritative financial total. Currency is global; a collectible locks Settings currency changes.
 
