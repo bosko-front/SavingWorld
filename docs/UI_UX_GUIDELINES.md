@@ -32,7 +32,7 @@ When Free tries to create a second goal (D74), the paywall entry shows title "Bu
 
 Goal deletion (D74) always asks first with a native destructive confirmation; there is no undo. For a completed goal: title "Delete completed goal?", message "This will permanently delete your savings history and the completed world from your Collection. This action cannot be undone." For an open goal: title "Delete “{title}”?", message "This permanently deletes the goal and its savings history. This action cannot be undone." There is no Archive and no Close goal.
 
-After a verified loss of Pro with several goals (D74), the person chooses one goal to keep using; the other goals stay visible with a clear read-only state and no entry or edit actions until Pro returns or they are deleted. A Garden goal keeps its world as it is; saving on it again requires switching it to Island, explained in plain words.
+After a verified loss of Pro with several goals (D74), the person chooses one goal to keep using; the other goals stay visible with a clear read-only state and no entry or edit actions until Pro returns or they are deleted. A Garden goal keeps its world as it is, shown as locked for further progress; saving on it again requires the person to switch it to Island themselves, explained in plain words and confirmed (D75). If Pro returns they can choose Garden again, and the scene shows the goal's current progress. Nothing is switched, changed or deleted without the person's confirmed action.
 
 ## Visual language and scene behavior
 

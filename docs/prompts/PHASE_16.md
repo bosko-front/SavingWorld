@@ -51,7 +51,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 
 - Free and Pro feature matrix matches R05/R14/R15/R18/R19/R20 across cold restart and deep-link entry.
 - Restore/error/cancellation states are understandable and do not trap the user.
-- Verified revocation deletes or changes nothing; with several goals the person chooses one goal to keep using; the other goals stay visible but read-only (no new entries or edits) until Pro returns or they are deleted; Garden souvenirs stay. Unknown offline state does not revoke.
+- No automatic data loss (D75): neither a lost entitlement nor any other automatic process deletes or changes goals, entries, souvenirs or theme choices; deletion happens only as the person's own confirmed action. Verified revocation deletes or changes nothing; with several goals the person chooses one goal to keep using; the other goals stay visible but read-only (no new entries or edits) until Pro returns or they are deleted; Garden souvenirs stay. Unknown offline state does not revoke.
 - A Free second Create shows the "Build another world" paywall entry with the exact D74 copy; buying Pro returns to Create.
 
 ## Tests and verification

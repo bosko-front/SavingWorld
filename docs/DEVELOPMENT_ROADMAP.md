@@ -1050,7 +1050,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 
 - Free and Pro feature matrix matches R05/R14/R15/R18/R19/R20 across cold restart and deep-link entry.
 - Restore/error/cancellation states are understandable and do not trap the user.
-- Verified revocation deletes or changes nothing; with several goals the person chooses one goal to keep using; the other goals stay visible but read-only (no new entries or edits) until Pro returns or they are deleted; Garden souvenirs stay. Unknown offline state does not revoke.
+- No automatic data loss (D75): neither a lost entitlement nor any other automatic process deletes or changes goals, entries, souvenirs or theme choices; deletion happens only as the person's own confirmed action. Verified revocation deletes or changes nothing; with several goals the person chooses one goal to keep using; the other goals stay visible but read-only (no new entries or edits) until Pro returns or they are deleted; Garden souvenirs stay. Unknown offline state does not revoke.
 - A Free second Create shows the "Build another world" paywall entry with the exact D74 copy; buying Pro returns to Create.
 
 ## Tests and verification
@@ -1087,7 +1087,7 @@ Approved Garden art and provenance plus verified implementation of v1.2 Q03 and 
 - Allow verified Pro users to select Island/Garden when creating a goal and change an existing open active/paused goal theme later; completed goals require Reopen before any edit.
 - Persist theme changes as metadata through a capability-checked command while preserving target, currency, ledger, challenge evidence and current milestone.
 - Keep completion snapshots on their historical theme/version; switching an open live goal already at100% does not rewrite its souvenir or award another.
-- Use a brief bounded transition and accessible confirmation; verify all Garden states offline and implement the D74 verified-loss Garden rule: a Garden goal is never deleted or changed and its world stays visible as it is, but without Pro it cannot progress further in Garden; to continue saving the person switches that goal to Island (ledger, target and souvenir kept). Garden souvenirs stay.
+- Use a brief bounded transition and accessible confirmation; verify all Garden states offline and implement the D74 verified-loss Garden rule: a Garden goal is never deleted or changed and its world stays visible as it is, but without Pro it cannot progress further in Garden; to continue saving the person switches that goal to Island (ledger, target and souvenir kept). Garden souvenirs stay. Nothing switches the theme automatically (D75): without Pro the only theme change allowed is the person's own choice of Island for a Garden goal, after a confirmation; if Pro returns they may choose Garden again, and the Garden scene is computed from the goal's current balance and target with the shared stage function.
 - Call `haptics.selection()` when the user picks Island or Garden in a custom theme picker; the theme change confirmation uses the shared toast.
 
 ## Expected files and modules

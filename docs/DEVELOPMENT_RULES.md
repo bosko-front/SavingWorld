@@ -23,6 +23,7 @@ If the phase is already complete, verify and report the evidence without duplica
 - Use shared accessible controls and English catalog keys, explicit loading/error/empty states and motion preferences. Do not put implementation details in ordinary product copy.
 - Use static local asset references and registry manifests. No remote artwork or copied theme-specific financial code. Stop offscreen animation; profile before adding Skia/Lottie.
 - One npm lockfile. Use Expo-compatible native install commands. Do not install/upgrade unrelated packages while fixing a feature. Record compatibility evidence for native changes.
+- No automatic data loss (D75): neither a lost entitlement nor any other automatic process deletes or changes goals, entries, souvenirs or theme choices; deletion happens only as the person's own confirmed action. A theme is never switched automatically.
 - Do not commit credentials, signing keys, store API keys, receipts or real financial notes. Logs contain redacted codes, never money/history payloads. No analytics/crash service by default.
 
 ## Styling layout and package rules
