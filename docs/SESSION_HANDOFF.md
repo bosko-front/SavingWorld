@@ -25,7 +25,7 @@ lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (20 suites, 532 tests)
 ## Incomplete work and blockers
 
 1. VoiceOver walkthrough NOT RUN (the iOS Simulator has no VoiceOver); by owner decision D60 it is a physical-device check in Phase 19 and Phase 21 / RELEASE_CHECKLIST.
-2. Phase 06 is not committed. Nothing pushed.
+2. Phase 06 is committed on `main` (a1f356b). Nothing pushed.
 3. Metro was started (`npx expo start --dev-client --clear`) for the native runs and stopped at session end.
 
 ## Exact next session
