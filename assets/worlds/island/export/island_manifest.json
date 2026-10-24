@@ -1,0 +1,625 @@
+{
+  "themeId": "island",
+  "version": 1,
+  "canvas": {
+    "width": 2048,
+    "height": 1536,
+    "aspectRatio": "4:3"
+  },
+  "sizes": {
+    "2048": {
+      "scale": 1.0,
+      "directory": "2048"
+    },
+    "1536": {
+      "scale": 0.75,
+      "directory": "1536"
+    }
+  },
+  "base": {
+    "id": "empty_island",
+    "name": "Empty island",
+    "description": "An empty floating island with grassy terraces, a stream and a waterfall.",
+    "file": "island_base.png",
+    "x": 232,
+    "y": 236,
+    "width": 1436,
+    "height": 1168
+  },
+  "unlocks": [
+    {
+      "milestone": 1,
+      "thresholdPercent": 10,
+      "id": "first_tree",
+      "name": "First tree",
+      "description": "A large leafy tree now grows on the upper terrace.",
+      "layers": [
+        {
+          "id": "first_tree_1",
+          "file": "island_s01_p1.png",
+          "x": 684,
+          "y": 44,
+          "width": 676,
+          "height": 456,
+          "anchor": {
+            "x": 993,
+            "y": 492
+          },
+          "incidental": false
+        },
+        {
+          "id": "first_tree_2",
+          "file": "island_s01_p2.png",
+          "x": 964,
+          "y": 600,
+          "width": 112,
+          "height": 64,
+          "anchor": {
+            "x": 1030,
+            "y": 659
+          },
+          "incidental": false
+        }
+      ],
+      "hides": []
+    },
+    {
+      "milestone": 2,
+      "thresholdPercent": 20,
+      "id": "path",
+      "name": "Path",
+      "description": "A stone path with steps climbs from the island's edge to the top terrace.",
+      "layers": [
+        {
+          "id": "path_1",
+          "file": "island_s02_p1.png",
+          "x": 456,
+          "y": 428,
+          "width": 600,
+          "height": 464,
+          "anchor": {
+            "x": 763,
+            "y": 887
+          },
+          "incidental": false
+        }
+      ],
+      "hides": []
+    },
+    {
+      "milestone": 3,
+      "thresholdPercent": 30,
+      "id": "flowers_bushes",
+      "name": "Flowers and bushes",
+      "description": "Flowering bushes and flowers bloom along the path and the stream.",
+      "layers": [
+        {
+          "id": "flowers_bushes_1",
+          "file": "island_s03_p1.png",
+          "x": 644,
+          "y": 292,
+          "width": 304,
+          "height": 432,
+          "anchor": {
+            "x": 802,
+            "y": 718
+          },
+          "incidental": false
+        },
+        {
+          "id": "flowers_bushes_2",
+          "file": "island_s03_p2.png",
+          "x": 988,
+          "y": 540,
+          "width": 88,
+          "height": 48,
+          "anchor": {
+            "x": 1032,
+            "y": 581
+          },
+          "incidental": false
+        },
+        {
+          "id": "flowers_bushes_3",
+          "file": "island_s03_p3.png",
+          "x": 1168,
+          "y": 560,
+          "width": 96,
+          "height": 60,
+          "anchor": {
+            "x": 1215,
+            "y": 612
+          },
+          "incidental": false
+        },
+        {
+          "id": "flowers_bushes_4",
+          "file": "island_s03_p4.png",
+          "x": 1388,
+          "y": 576,
+          "width": 84,
+          "height": 60,
+          "anchor": {
+            "x": 1430,
+            "y": 629
+          },
+          "incidental": false
+        },
+        {
+          "id": "flowers_bushes_5",
+          "file": "island_s03_p5.png",
+          "x": 1000,
+          "y": 656,
+          "width": 96,
+          "height": 68,
+          "anchor": {
+            "x": 1045,
+            "y": 718
+          },
+          "incidental": false
+        },
+        {
+          "id": "flowers_bushes_6",
+          "file": "island_s03_p6.png",
+          "x": 392,
+          "y": 664,
+          "width": 336,
+          "height": 224,
+          "anchor": {
+            "x": 528,
+            "y": 883
+          },
+          "incidental": false
+        },
+        {
+          "id": "flowers_bushes_7",
+          "file": "island_s03_p7.png",
+          "x": 1316,
+          "y": 776,
+          "width": 144,
+          "height": 104,
+          "anchor": {
+            "x": 1384,
+            "y": 873
+          },
+          "incidental": false
+        },
+        {
+          "id": "flowers_bushes_8",
+          "file": "island_s03_p8.png",
+          "x": 720,
+          "y": 940,
+          "width": 84,
+          "height": 60,
+          "anchor": {
+            "x": 759,
+            "y": 992
+          },
+          "incidental": false
+        }
+      ],
+      "hides": []
+    },
+    {
+      "milestone": 4,
+      "thresholdPercent": 40,
+      "id": "small_house",
+      "name": "Small house",
+      "description": "A small wooden cabin stands on the upper terrace.",
+      "layers": [
+        {
+          "id": "small_house_1",
+          "file": "island_s04_p1.png",
+          "x": 776,
+          "y": 244,
+          "width": 400,
+          "height": 244,
+          "anchor": {
+            "x": 969,
+            "y": 482
+          },
+          "incidental": false
+        },
+        {
+          "id": "small_house_2",
+          "file": "island_s04_p2.png",
+          "x": 624,
+          "y": 1048,
+          "width": 24,
+          "height": 24,
+          "anchor": {
+            "x": 634,
+            "y": 1065
+          },
+          "incidental": true
+        }
+      ],
+      "hides": [],
+      "hiddenFromMilestone": 8
+    },
+    {
+      "milestone": 5,
+      "thresholdPercent": 50,
+      "id": "bridge",
+      "name": "Bridge",
+      "description": "An arched wooden bridge crosses the stream.",
+      "layers": [
+        {
+          "id": "bridge_1",
+          "file": "island_s05_p1.png",
+          "x": 584,
+          "y": 736,
+          "width": 412,
+          "height": 176,
+          "anchor": {
+            "x": 807,
+            "y": 907
+          },
+          "incidental": false
+        }
+      ],
+      "hides": []
+    },
+    {
+      "milestone": 6,
+      "thresholdPercent": 60,
+      "id": "pond",
+      "name": "Pond",
+      "description": "A pond with lily pads appears, with a path and flowers around it.",
+      "layers": [
+        {
+          "id": "pond_1",
+          "file": "island_s06_p1.png",
+          "x": 800,
+          "y": 748,
+          "width": 508,
+          "height": 296,
+          "anchor": {
+            "x": 1055,
+            "y": 1038
+          },
+          "incidental": false
+        }
+      ],
+      "hides": []
+    },
+    {
+      "milestone": 7,
+      "thresholdPercent": 70,
+      "id": "more_trees",
+      "name": "Additional trees",
+      "description": "More pine and leafy trees grow around the island.",
+      "layers": [
+        {
+          "id": "more_trees_1",
+          "file": "island_s07_p1.png",
+          "x": 436,
+          "y": 232,
+          "width": 508,
+          "height": 432,
+          "anchor": {
+            "x": 658,
+            "y": 659
+          },
+          "incidental": false
+        },
+        {
+          "id": "more_trees_2",
+          "file": "island_s07_p2.png",
+          "x": 1028,
+          "y": 188,
+          "width": 640,
+          "height": 832,
+          "anchor": {
+            "x": 1354,
+            "y": 1012
+          },
+          "incidental": false
+        },
+        {
+          "id": "more_trees_3",
+          "file": "island_s07_p3.png",
+          "x": 852,
+          "y": 876,
+          "width": 304,
+          "height": 216,
+          "anchor": {
+            "x": 973,
+            "y": 1086
+          },
+          "incidental": false
+        }
+      ],
+      "hides": []
+    },
+    {
+      "milestone": 8,
+      "thresholdPercent": 80,
+      "id": "larger_house",
+      "name": "Larger house and details",
+      "description": "A cottage with a red tiled roof and lit windows replaces the small cabin.",
+      "layers": [
+        {
+          "id": "larger_house_1",
+          "file": "island_s08_p1.png",
+          "x": 776,
+          "y": 152,
+          "width": 508,
+          "height": 424,
+          "anchor": {
+            "x": 994,
+            "y": 571
+          },
+          "incidental": false
+        },
+        {
+          "id": "larger_house_2",
+          "file": "island_s08_p2.png",
+          "x": 908,
+          "y": 588,
+          "width": 160,
+          "height": 112,
+          "anchor": {
+            "x": 990,
+            "y": 694
+          },
+          "incidental": false
+        },
+        {
+          "id": "larger_house_3",
+          "file": "island_s08_p3.png",
+          "x": 980,
+          "y": 908,
+          "width": 76,
+          "height": 52,
+          "anchor": {
+            "x": 1015,
+            "y": 952
+          },
+          "incidental": true
+        },
+        {
+          "id": "larger_house_4",
+          "file": "island_s08_p4.png",
+          "x": 624,
+          "y": 1048,
+          "width": 24,
+          "height": 24,
+          "anchor": {
+            "x": 634,
+            "y": 1065
+          },
+          "incidental": true
+        }
+      ],
+      "hides": [
+        "small_house"
+      ]
+    },
+    {
+      "milestone": 9,
+      "thresholdPercent": 90,
+      "id": "final_decorations",
+      "name": "Final decorations",
+      "description": "Fences, lanterns, a bench and barrels decorate the island.",
+      "layers": [
+        {
+          "id": "final_decorations_1",
+          "file": "island_s09_p1.png",
+          "x": 648,
+          "y": 376,
+          "width": 24,
+          "height": 24,
+          "anchor": {
+            "x": 660,
+            "y": 394
+          },
+          "incidental": true
+        },
+        {
+          "id": "final_decorations_2",
+          "file": "island_s09_p2.png",
+          "x": 572,
+          "y": 352,
+          "width": 600,
+          "height": 680,
+          "anchor": {
+            "x": 845,
+            "y": 1025
+          },
+          "incidental": false
+        },
+        {
+          "id": "final_decorations_3",
+          "file": "island_s09_p3.png",
+          "x": 372,
+          "y": 668,
+          "width": 152,
+          "height": 152,
+          "anchor": {
+            "x": 444,
+            "y": 815
+          },
+          "incidental": false
+        }
+      ],
+      "hides": []
+    },
+    {
+      "milestone": 10,
+      "thresholdPercent": 100,
+      "id": "completed_island",
+      "name": "Completed island",
+      "description": "The island is complete: a vegetable garden, a dock with a rowing boat and small floating islets.",
+      "layers": [
+        {
+          "id": "completed_island_1",
+          "file": "island_s10_p1.png",
+          "x": 1176,
+          "y": 428,
+          "width": 68,
+          "height": 60,
+          "anchor": {
+            "x": 1208,
+            "y": 480
+          },
+          "incidental": false
+        },
+        {
+          "id": "completed_island_2",
+          "file": "island_s10_p2.png",
+          "x": 208,
+          "y": 560,
+          "width": 140,
+          "height": 164,
+          "anchor": {
+            "x": 280,
+            "y": 719
+          },
+          "incidental": false
+        },
+        {
+          "id": "completed_island_3",
+          "file": "island_s10_p3.png",
+          "x": 484,
+          "y": 620,
+          "width": 68,
+          "height": 40,
+          "anchor": {
+            "x": 518,
+            "y": 653
+          },
+          "incidental": false
+        },
+        {
+          "id": "completed_island_4",
+          "file": "island_s10_p4.png",
+          "x": 1724,
+          "y": 564,
+          "width": 124,
+          "height": 204,
+          "anchor": {
+            "x": 1788,
+            "y": 762
+          },
+          "incidental": false
+        },
+        {
+          "id": "completed_island_5",
+          "file": "island_s10_p5.png",
+          "x": 1168,
+          "y": 596,
+          "width": 368,
+          "height": 240,
+          "anchor": {
+            "x": 1347,
+            "y": 830
+          },
+          "incidental": false
+        },
+        {
+          "id": "completed_island_6",
+          "file": "island_s10_p6.png",
+          "x": 980,
+          "y": 760,
+          "width": 260,
+          "height": 236,
+          "anchor": {
+            "x": 1110,
+            "y": 990
+          },
+          "incidental": false
+        },
+        {
+          "id": "completed_island_7",
+          "file": "island_s10_p7.png",
+          "x": 1428,
+          "y": 1132,
+          "width": 136,
+          "height": 152,
+          "anchor": {
+            "x": 1496,
+            "y": 1277
+          },
+          "incidental": false
+        }
+      ],
+      "hides": []
+    }
+  ],
+  "provenance": {
+    "source": "assets/worlds/island (Blender 5.2.3 LTS, procedural, no third-party assets)",
+    "decision": "D76",
+    "approved": "2026-10-24, owner approved all eleven states",
+    "renders": "Cycles 256 samples + swi/stylize.py storybook pass, 2048x1536",
+    "sourceBlendSha256": "90f6e62fac34136f",
+    "rebuildErrorPer255": [
+      {
+        "stage": 1,
+        "mean": 0.177,
+        "p999": 10.0,
+        "max": 65.8
+      },
+      {
+        "stage": 2,
+        "mean": 0.185,
+        "p999": 10.0,
+        "max": 65.8
+      },
+      {
+        "stage": 3,
+        "mean": 0.239,
+        "p999": 10.6,
+        "max": 65.8
+      },
+      {
+        "stage": 4,
+        "mean": 0.355,
+        "p999": 14.0,
+        "max": 98.8
+      },
+      {
+        "stage": 5,
+        "mean": 0.378,
+        "p999": 14.0,
+        "max": 98.8
+      },
+      {
+        "stage": 6,
+        "mean": 0.385,
+        "p999": 14.0,
+        "max": 98.8
+      },
+      {
+        "stage": 7,
+        "mean": 0.472,
+        "p999": 16.0,
+        "max": 98.8
+      },
+      {
+        "stage": 8,
+        "mean": 0.518,
+        "p999": 17.0,
+        "max": 112.2
+      },
+      {
+        "stage": 9,
+        "mean": 0.497,
+        "p999": 15.9,
+        "max": 112.2
+      },
+      {
+        "stage": 10,
+        "mean": 0.501,
+        "p999": 16.0,
+        "max": 112.2
+      }
+    ],
+    "stackRule": "Draw base, then the layers of milestones 1..n in order. A milestone with hiddenFromMilestone may be hidden from that milestone on; the later layer already covers it. Positions are top-left in the 2048x1536 canvas; scale them for other sizes. anchor is the ground point to grow a part from; incidental parts are side effects (shadow or outline shifts) to show without animation.",
+    "knownDifference": "The thin Freestyle outline along the island's back rim is redrawn slightly differently in every render; the layers keep the stage 0 rim line, so the rim never flickers between stages. This is the max-error figure below; visually the stacked image matches."
+  },
+  "decodedBytesAllLayers": {
+    "2048": 18211264,
+    "1536": 10243836
+  }
+}

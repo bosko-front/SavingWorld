@@ -2,6 +2,8 @@
 
 Session date: 23 October 2026. Session kind: Phase 08 (Free dashboard and deadline estimates). Result: **Phase 08 VERIFIED COMPLETE**. Next prompt: [PHASE_09](prompts/PHASE_09.md).
 
+**Art session addendum (24 October 2026, before Phase 09, not a numbered phase).** The Island art is done: generated in Blender 5.2.3 from the reproducible workspace `assets/worlds/island/` (README there: rebuild, render and export commands, stage-to-collection map, provenance; decision D76). The owner approved all eleven states. The Phase 09 input is `assets/worlds/island/export/`: `island_base.png` and per-object milestone parts in `2048/` and `1536/`, `island_manifest.json` (positions, anchors, names, thresholds, draft descriptions, stage 8 replacement, memory) and `island_layers_review.png`. Checks: `scripts/verify_stages.py` (identical rig/terrain, unlock order, no floating pieces) and `scripts/milestone_report.py` (every step visibly changes) PASS; the export's rebuild check matches every render (mean error ≤ 0.5/255). PHASE_09/PHASE_10 prompts and roadmap gained art notes (scope unchanged). App code and requirements unchanged; committed on `main` ("Island art: reproducible Blender source, milestone renders and layer export (D76)"), nothing pushed.
+
 The previous handoff (Phase 07.5) is superseded; its record remains in [PHASE_07_5 evidence](evidence/PHASE_07_5.md).
 
 ## Completed
@@ -36,4 +38,4 @@ lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (25 suites, 654 tests)
 
 ## Exact next session
 
-1. In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_09.md` (Island theme assets and static world renderer). Replace the inside of `src/features/worlds/world-scene.tsx`, keeping its props, `WORLD_SCENE_ASPECT` and accessibility label, and supply stage names for Home's callout from the manifest. Respect D74 (no Archive; deletion exists; Free one goal in total). Follow D73: the Island is the star of Home (game feel, world first), then review Home with the owner and remove text/cards that are no longer needed; do not polish cards before that. Licensed Island art is the phase's external dependency.
+1. In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_09.md` (Island theme assets and static world renderer). Replace the inside of `src/features/worlds/world-scene.tsx`, keeping its props, `WORLD_SCENE_ASPECT` and accessibility label, and supply stage names for Home's callout from the manifest. Respect D74 (no Archive; deletion exists; Free one goal in total). Follow D73: the Island is the star of Home (game feel, world first), then review Home with the owner and remove text/cards that are no longer needed; do not polish cards before that. Island art is approved and exported in `assets/worlds/island/export/` (D76); copy it to `assets/themes/island/` and build the manifest and renderer from `island_manifest.json`.
