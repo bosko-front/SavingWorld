@@ -21,3 +21,12 @@ export {
 } from './civil-date';
 export { civilDateAt, fixedClock, systemClock, today, utcTimestamp, type Clock } from './clock';
 export { deadlineEstimate, type DeadlineEstimate, type DeadlineEstimateInput } from './deadline-estimate';
+export {
+  deadlineTiming,
+  MIN_PACE_PERIODS,
+  savingsPlan,
+  type DeadlineTiming,
+  type PacePeriod,
+  type SavingsPlan,
+  type SuggestedPace,
+} from './savings-plan';

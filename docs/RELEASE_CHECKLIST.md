@@ -46,7 +46,8 @@ Product authority is [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx). Q01-Q06 
 - [ ] VoiceOver, Dynamic Type, contrast, touch sizes, Reduce Motion, chart text alternatives and keyboard/focus behavior pass on supported devices. Includes the Phase 06 VoiceOver walkthrough on a **physical iPhone**: onboarding, Create/Edit Goal errors, lifecycle and currency toasts announced once without moving focus, Settings currency lock (DECISIONS D60). Also the Phase 07 VoiceOver walkthrough of the Add/Edit Entry form and History: labels and inline errors, kind and date controls, History row labels, the delete confirmation and each ledger toast announced once without moving focus; ledger haptics felt once per commit/rule rejection (DECISIONS D63).
 - [ ] English catalog is complete; currency/date formatting and longer/RTL-ready layouts are verified without claiming untranslated language support.
 - [ ] Airplane-mode core journeys and already verified Pro features work without an app login.
-- [ ] Release build launch/query/frame/memory measurements meet the documented device budgets or a reviewed adjustment.
+- [ ] Release build launch/query/frame/memory measurements meet the documented device budgets or a reviewed adjustment. Includes the Phase 09 Island scene on a **physical iPhone**: decoded image memory and frames from stage 0 to complete, stage changes and the full-bleed Home scroll (deferred by D83 to Phase 21; simulator figures only so far).
+- [ ] VoiceOver of the world scene on a **physical iPhone** (Phase 09, deferred by D83 to Phase 19 and repeated in Phase 21): one labelled image with stage and description, silent layers, hidden empty-state illustration, fallback and the "Your island is complete!" card.
 - [ ] Empty/error/complete/overfunded/paused/read-only-after-loss/offline/store-unavailable states are present and tested.
 
 ## EAS Build and OTA delivery

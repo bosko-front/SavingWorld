@@ -1,6 +1,6 @@
 # Latest session handoff
 
-Session date: 25 October 2026. Session kind: Phase 09 (Island theme assets and static world renderer), first session. Result: **Phase 09 IN PROGRESS**, code complete; owner Home review and physical-iPhone checks pending. Next prompt: [PHASE_09](prompts/PHASE_09.md) (continuation).
+Session date: 25 October 2026. Session kind: Phase 09 (Island theme assets and static world renderer) with the owner's Home review. Result: **Phase 09 VERIFIED COMPLETE** (D83: Home approved; physical-iPhone memory/frames deferred to Phase 21 and VoiceOver to Phase 19/21, mandatory before release, not passed). Next prompt: [PHASE_10](prompts/PHASE_10.md). Not started.
 
 The previous handoff (Phase 08 and the 24 October art addendum) is superseded; its record remains in [PHASE_08 evidence](evidence/PHASE_08.md), DECISIONS D76 and `assets/worlds/island/README.md`.
 
@@ -38,22 +38,31 @@ The previous handoff (Phase 08 and the 24 October art addendum) is superseded; i
 
 - Home hides its scroll indicator; a pull-down shows sky above the Island instead of the canvas. 701 tests PASS; SE mid-pull screenshot `d82-se-pull-down.jpg`.
 
+## Owner approval and final changes (D83)
+
+- Owner approved the Home direction. Removed the "Add a deadline" row from Home (deadline set in Edit goal); a compact deadline line (`deadline-indicator.tsx`, replacing `deadline-card.tsx`) shows only when a deadline exists, with the same values, labels and info alert; the milestone card at ≥ 100% reads "Your island is complete!" / "You’ve unlocked every part of your world." via `worldCompleteCopy(themeId)` (Garden: "Your garden is complete!").
+- Deferred by the owner, not passed, mandatory before release: physical-iPhone memory/frames of the Island → Phase 21; physical-iPhone VoiceOver of the scene → Phase 19 (repeated in 21). Added to both prompts, the roadmap and RELEASE_CHECKLIST.
+- 702 tests PASS; simulator: SE (no deadline, overdue line), 17 Pro Max (pace line), iPhone 17 (island complete at 120%), Duo closed landscape; screenshots `d83-*`.
+
+## Follow-up: savings plan cards (D84)
+
+- The owner replaced the compact deadline line with a "Savings plan" section: Deadline card (date, "29 days left"/"Tomorrow"/"Today"/"Deadline passed") and Savings needed card (remaining amount, one honest per-period amount from 14 days / 60 days, or Target reached; passed deadline points to Edit goal). Logic in `src/core/calendar/savings-plan.ts` and `savingsPlanCopy`; UI `savings-plan-cards.tsx` (replaces `deadline-indicator.tsx`). 710 tests PASS; SE default/largest text and 17 Pro Max checked (`d84-*`).
+
 ## Decisions
 
-D82 (owner): no scroll indicator, sky on pull-down. D81 (owner): Add savings in the content, not floating. D80 (owner): full-bleed sky, largest Island. D79 (owner): sky gradient backdrop. D78 (owner): larger Island via viewport framing, no piecewise loading, no Home title. D77 (engineering): expo-image with display-size decoding; one app resolution 1536; manifest/export mapping (English names, hides → removes, z numbering, base anchor, preview = stage 10); scene-only fallback; "Next: {name}"; stage-0 empty-state illustration; backdrop tokens with cream as default pending the owner; World inspector. No product rule changed.
+D84 (owner): savings plan KPI cards with honest per-period amounts. D83 (owner): Home approved, compact deadline line, theme-worded completion card, device checks deferred to Phases 19/21. D82 (owner): no scroll indicator, sky on pull-down. D81 (owner): Add savings in the content, not floating. D80 (owner): full-bleed sky, largest Island. D79 (owner): sky gradient backdrop. D78 (owner): larger Island via viewport framing, no piecewise loading, no Home title. D77 (engineering): expo-image with display-size decoding; one app resolution 1536; manifest/export mapping (English names, hides → removes, z numbering, base anchor, preview = stage 10); scene-only fallback; "Next: {name}"; stage-0 empty-state illustration; backdrop tokens with cream as default pending the owner; World inspector. No product rule changed.
 
 ## Checks
 
-lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (27 suites, 701 tests after D80). `npm run test:db` PASS on SE iOS 18.5, 17 Pro Max iOS 26.1, Duo iOS 27.1 (37/37 + restart) with build 405064a9. Release export PASS (no inspector code, 33 Island PNGs). `deps:check`/`doctor` FAIL 19/20: six installed packages have newer SDK 58 patch releases since Phase 08 (`@expo/ui`, `expo`, `expo-dev-client`, `expo-font`, `expo-router`, `expo-sqlite`); not caused by this phase, not upgraded. Physical-iPhone memory/frames and VoiceOver: NOT RUN (no device build).
+lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (28 suites, 710 tests after D84). `npm run test:db` PASS on SE iOS 18.5, 17 Pro Max iOS 26.1, Duo iOS 27.1 (37/37 + restart) with build 405064a9. Release export PASS after D83 (no inspector code, 33 Island PNGs). `deps:check`/`doctor` FAIL 19/20: six installed packages have newer SDK 58 patch releases since Phase 08 (`@expo/ui`, `expo`, `expo-dev-client`, `expo-font`, `expo-router`, `expo-sqlite`); not caused by this phase, not upgraded. Physical-iPhone memory/frames and VoiceOver: DEFERRED by D83 (Phase 21 / Phase 19 and 21), not passed.
 
 ## Incomplete work and blockers
 
-1. **Rest of the owner Home review (D73; parts done as D78-D82)**: which text/cards can go. Apply in `src/features/worlds/`, Home or `src/shared/layout/`.
-2. **Physical iPhone:** decoded memory and frames base → complete, and VoiceOver of the scene label/value and fallback. Needs a physical-device development build (owner's Apple Developer credentials and device registration) or an owner decision moving it to the Phase 19/21 device gate (as D60/D63).
-3. Optional: an SDK 58 patch update for the six packages as its own reviewed change with a new build.
-4. The Phase 09 work so far (renderer, art, D77-D82, evidence) is committed on `main` ("Phase 09: Island renderer and Home review D77-D82 (in progress)"). Nothing pushed.
-5. Simulator state: Metro runs from this folder via the preview tool (`.claude/launch.json` "metro"; the old Metro pid 46517 was stopped). The iPhone 17 (iOS 26.0) simulator got a fresh install (uninstalled first without checking for earlier test data) and now has RSD onboarding done and no goal. The SE's text size was returned to default. SE, 17 Pro Max and Duo kept their goals.
+1. No Phase 09 blocker. Carried, mandatory before release: physical-iPhone memory/frames (Phase 21) and VoiceOver of the scene (Phase 19, repeated in 21) (D83).
+2. Optional: an SDK 58 patch update for the six packages behind the `deps:check`/`doctor` failure, as its own reviewed change with a new build.
+3. Git: Phase 09 is committed on `main`: a1464ca (through D82) and "Phase 09: complete Home review D83-D84 and close the phase" (D83, D84, closing docs). Nothing pushed.
+4. Simulator state: Metro is the owner's own `expo start` from this folder (the session's preview-tool Metro was stopped). The iPhone 17 (iOS 26.0) simulator was reinstalled earlier in the session (any earlier test data removed) and now holds the owner's "summer" goal at 1,200/1,000 RSD. The Duo was last seen closed in landscape. SE text size is default; SE, 17 Pro Max and Duo kept their goals.
 
 ## Exact next session
 
-In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_09.md`. Verify the renderer and evidence above, then do only the remaining items: apply the owner's Home review decisions (D73) and record them, and run or formally defer the physical-iPhone memory/frame and VoiceOver checks. When both are settled, mark Phase 09 VERIFIED COMPLETE and name `docs/prompts/PHASE_10.md`.
+In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_10.md` (world transitions and progress feedback). Verify Phase 09 from this file and [PHASE_09 evidence](evidence/PHASE_09.md) first. Keep the approved Home direction (D78-D83) and animate from the Phase 09 manifest (layer anchors, stage 8 crossfade, stage-0 empty-state Island). Do not redo Phase 09.

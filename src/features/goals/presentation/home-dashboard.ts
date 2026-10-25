@@ -1,9 +1,10 @@
-import { deadlineEstimate, type CivilDate, type DeadlineEstimate } from '@/core/calendar';
+import { deadlineEstimate, savingsPlan, type CivilDate, type DeadlineEstimate, type SavingsPlan } from '@/core/calendar';
 import { formatMoney, type CurrencyMetadata } from '@/core/money';
 import { MILESTONE_COUNT, nextThresholdMinor, sceneFeedback, type Stage } from '@/core/progression';
 import type { GoalSummary } from '@/data/repositories/goal-repository';
 import { stageName } from '@/features/worlds/registry';
-import { deadlineCopy, type DeadlineCopy } from '@/shared/i18n/deadline-messages';
+import { worldCompleteCopy } from '@/features/worlds/world-copy';
+import { savingsPlanCopy, type SavingsPlanCopy } from '@/shared/i18n/deadline-messages';
 import { deviceLocale, formatCivilDate } from '@/shared/i18n/locale';
 
 import { goalAmounts, type GoalAmounts } from './goal-amounts';
@@ -16,8 +17,9 @@ export type NextMilestone =
   // The next of the ten unlocks: its percentage, its name from the theme manifest ("Small house";
   // null when the theme has no art) and the amount still needed to reach it.
   | { kind: 'next'; percent: number; name: string | null; toNext: string }
-  // All ten unlocked (B ≥ T). Overfunding never adds an eleventh.
-  | { kind: 'complete' };
+  // All ten unlocked (B ≥ T). Overfunding never adds an eleventh. The copy names the theme's world
+  // ("Your island is complete!", D83).
+  | { kind: 'complete'; title: string; detail: string };
 
 export type HomeDashboard = {
   amounts: GoalAmounts;
@@ -26,8 +28,10 @@ export type HomeDashboard = {
   // Visual position of the progress bar, from sceneFeedback(); never decides a value.
   fraction: number;
   next: NextMilestone;
+  // The v1.2 pace, and Home's savings plan built on it (D84): its numbers and its two cards' copy.
   estimate: DeadlineEstimate;
-  deadline: DeadlineCopy;
+  plan: SavingsPlan;
+  planCopy: SavingsPlanCopy;
 };
 
 export function homeDashboard(
@@ -41,14 +45,16 @@ export function homeDashboard(
   const feedback = sceneFeedback(balanceMinor, targetMinor);
   const amount = (minor: number) => formatMoney(minor, currency, { locale });
   const threshold = nextThresholdMinor(balanceMinor, targetMinor);
-  const estimate = deadlineEstimate({ balanceMinor, targetMinor, deadline: deadlineDate, today });
+  const deadlineInput = { balanceMinor, targetMinor, deadline: deadlineDate, today };
+  const estimate = deadlineEstimate(deadlineInput);
+  const plan = savingsPlan(deadlineInput);
   return {
     amounts: goalAmounts(summary, currency, locale),
     stage: feedback.stage,
     fraction: feedback.overall,
     next:
       threshold === null
-        ? { kind: 'complete' }
+        ? { kind: 'complete', ...worldCompleteCopy(summary.goal.themeId) }
         : {
             kind: 'next',
             percent: ((feedback.stage + 1) * 100) / MILESTONE_COUNT,
@@ -56,6 +62,7 @@ export function homeDashboard(
             toNext: amount(threshold - balanceMinor),
           },
     estimate,
-    deadline: deadlineCopy(estimate, deadlineDate, { amount, date: (date) => formatCivilDate(date, locale) }),
+    plan,
+    planCopy: savingsPlanCopy(plan, { amount, date: (date) => formatCivilDate(date, locale) }),
   };
 }

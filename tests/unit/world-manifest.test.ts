@@ -6,6 +6,7 @@ import { sceneDescription, sceneViewport, unlockAt, validateManifest, visibleLay
 import { stageName, themeManifest } from '@/features/worlds/registry';
 import { manifestFromExport } from '@/features/worlds/theme-export';
 import { ISLAND_ASSETS, islandManifestJson } from '@/features/worlds/themes/island-assets';
+import { worldCompleteCopy } from '@/features/worlds/world-copy';
 
 // Phase 09: the Island manifest contract (docs/ASSET_SPEC.md), the stage → layer mapping at every
 // threshold and the controlled refusal of broken exports. Rendering is in
@@ -174,6 +175,13 @@ describe('scene viewport (D78/D80: the art framed tightly, not the whole canvas)
 
   it('never exceeds the canvas: a huge margin gives the whole canvas', () => {
     expect(sceneViewport(island(), 1000)).toEqual({ x: 0, y: 0, width: 2048, height: 1536 });
+  });
+});
+
+describe('theme-aware completion copy (D83)', () => {
+  it('names the island or the garden', () => {
+    expect(worldCompleteCopy('island')).toEqual({ title: 'Your island is complete!', detail: 'You’ve unlocked every part of your world.' });
+    expect(worldCompleteCopy('garden').title).toBe('Your garden is complete!');
   });
 });
 

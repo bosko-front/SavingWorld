@@ -1,6 +1,6 @@
 # Phase 09 evidence: Island theme assets and static world renderer
 
-Session: 25 October 2026. Result: **IN PROGRESS** (code complete; owner Home review and the physical-iPhone memory/frame and VoiceOver checks are pending). Next prompt: [PHASE_09](../prompts/PHASE_09.md) (continuation).
+Session: 25 October 2026. Result: **VERIFIED COMPLETE** (owner decision D83: Home direction approved; physical-iPhone memory/frames deferred to Phase 21 and physical-iPhone VoiceOver to Phase 19/21, both mandatory before release and **not passed**). Next prompt: [PHASE_10](../prompts/PHASE_10.md). The first part of this record describes the state before the owner review; the review parts below change Home step by step.
 
 ## Context verified first
 
@@ -115,14 +115,50 @@ The owner did not want "Add savings" to float. It is now a full-width primary bu
 
 Home's scroll indicator is hidden, and pulling down past the top shows the sky's top color instead of the canvas. Test: the full-bleed scroll view has `showsVerticalScrollIndicator` false and an overscroll view (`bottom: 100%`, one visible height, sky top color). Simulator: SE held mid-pull about 90 pt, sky continuous above the Island, no indicator (`d82-se-pull-down.jpg`). Checks: lint PASS, typecheck PASS, 701 tests PASS.
 
-## Not run / pending
+## Owner approval and final changes (D83)
 
-| Check | Status | Reason and next action |
+The owner approved the Home direction and asked for final changes: keep Island, gradient, title, status, amount, progress, Add savings and ⋯ menu; remove "Add a deadline" from Home (deadlines stay in Edit goal); a compact deadline line instead of the card; the milestone card at ≥ 100% as "Your island is complete!" / "You’ve unlocked every part of your world.", worded by theme.
+
+| Change | Evidence |
+| --- | --- |
+| `deadline-indicator.tsx` replaces `deadline-card.tsx`; nothing on Home without a deadline | Integration: no deadline → no deadline element and no "Add a deadline" text, Edit goal reached through the ⋯ menu; deadline header, both paces (same spoken labels), info alert, Overdue, Reached and funded states unchanged. Release bundle: "Add a deadline" remains only in the Edit goal form's deadline field. Simulator: 17 Pro Max pace line (`d83-pro-max-deadline-line.jpg`), SE Overdue line (`d83-se-overdue-line.jpg`), SE with no deadline section (`d83-se-home.jpg`). |
+| `worldCompleteCopy(themeId)` in `src/features/worlds/world-copy.ts`; the view model's `complete` carries title and detail | Unit: island and garden wording; dashboard at 100% and 125%. Integration: callout spoken as "Your island is complete! You’ve unlocked every part of your world." Simulator: iPhone 17 at 120% (`d83-iphone17-island-complete.jpg`). |
+| Responsive layout kept | Duo closed in landscape (the owner had changed the pose): stacked full-bleed layout, the Island capped at half the height and centred, nothing cut off (`d83-duo-closed-landscape.jpg`); SE scrolled. |
+
+Final checks (after D83): `npm run lint` PASS, `npm run typecheck` PASS, `npm test -- --runInBand` PASS (27 suites, 702 tests), release export PASS (no inspector code, 56 PNG assets incl. all 33 Island layers). `npm run test:db` last ran with build 405064a9 on SE, 17 Pro Max and Duo (37/37 + restart); no persistence change since. `npm run deps:check`/`npm run doctor`: still 19/20, six newer SDK 58 patch releases of already-installed packages (not caused by this phase; not upgraded).
+
+## Follow-up: savings plan cards (D84)
+
+At the owner's request the compact deadline line became a "Savings plan" section with two KPI cards. Logic stays in the business layers: `savingsPlan`/`deadlineTiming` (`src/core/calendar/savings-plan.ts`, on the unchanged v1.2 `deadlineEstimate`) and `savingsPlanCopy` (`src/shared/i18n/deadline-messages.ts`); `savings-plan-cards.tsx` only lays out.
+
+| Check | Evidence |
+| --- | --- |
+| States: weekly from 14 days, monthly from 60, none below 14 days / today / passed, completed, no deadline; "Tomorrow"/"Today"/"Deadline passed"; spoken labels | Unit (`home-dashboard.test.ts`, 10 plan tests incl. the D = 13/14 boundary and calendar-day timing); component (`tests/integration/savings-plan.test.tsx`, 5); Home integration with the ledger (deposits, withdrawals, target/deadline edits, midnight → passed, funded after the deadline). |
+| Small iPhone and large text | SE default: two equal cards with wrapping text (`d84-se-savings-plan-passed.jpg`; first try overflowed the right card, fixed with explicit equal flex basis); SE largest text: cards stacked full width (`d84-se-largest-text-stacked.jpg`); 17 Pro Max: 6 days left, amount without a weekly suggestion (`d84-pro-max-savings-plan.jpg`). |
+
+Checks: lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (28 suites, 710 tests).
+
+## Acceptance criteria
+
+| Criterion | Result | Evidence |
 | --- | --- | --- |
-| Rest of the owner's Home review (D73): whether cards/text can go | **PENDING (owner)**; parts 1-4 done (D78 framing/loading/title, D79 sky backdrop, D80 full-bleed sky and largest Island, which also replaced the 40% cap with half the visible height for the art, D81 Add savings in the content instead of floating, D82 no scroll indicator and sky on pull-down) | Needs the owner on the device matrix; screenshots are in `phase-09/`. Default stays cream until decided. Phase 10 may not finish before it. |
-| Decoded memory and frame observations on a physical iPhone; VoiceOver of the scene label/value and the fallback | **NOT RUN** | No physical-device development build exists (needs the owner's Apple Developer credentials and device registration, as for D60/D63). The simulator has no VoiceOver; Jest checks label, value, role and hidden layers. Either a physical-device build or an owner decision to move these to the Phase 19/21 device gate. |
-| Duo fold/unfold/rotate with the scene | NOT RUN natively | Device Hub not scripted this session; Jest relayout keeps the stage; the scene only measures its own region. |
-| `deps:check`/`doctor` | FAIL (pre-existing drift) | Owner decision on a separate SDK 58 patch update with a new build. |
+| All thresholds show the agreed coherent Island state with correct persistence/regression on reload | PASS | One minor unit below/at/above every threshold (three targets), €2,000 examples, stage visibility and the stage 8 replacement (unit); deposit/withdrawal/reopen of the database and 125% on Home (integration); all eleven app states aligned with the approved renders at offset 0,0 (simulator); owner approved the art (D76) and Home (D83). |
+| Missing assets/invalid manifest produce a controlled fallback, not ledger loss or a crash | PASS | Refusal tests for each manifest defect; fallback for invalid manifest, failed image (Try again) and a throwing layer, with the numbers untouched (integration). |
+| Asset provenance and first device memory/frame observations recorded | PASS for provenance and first (simulator) observations; physical-device profiling **DEFERRED** | Provenance: D76, workspace README, `assets/themes/island/README.md`, byte-identity test. Simulator footprint stage 0 → 10 recorded above. Physical-iPhone memory/frames: Phase 21 (D83), mandatory before release. |
+| Manifest thresholds, IDs, references, replacement sets validated | PASS | `tests/unit/world-manifest.test.ts`. |
+| Contact sheet of all eleven states reviewed | PASS | `pro-max-stage00.jpg` … `pro-max-stage10.jpg`, SE inspector contact sheet; owner approval D76/D83. |
+| Small/large iPhone compositions | PASS | SE (default, largest text, scrolled), 17 Pro Max, iPhone 17, Duo open and closed landscape. |
+| VoiceOver descriptions | Jest PASS; physical-device VoiceOver **DEFERRED** | Label, value, role, hidden layers and illustration checked in Jest; spoken output on a physical iPhone: Phase 19 and Phase 21 (D83), mandatory before release. |
+| Standard checks | PASS (lint, typecheck, Jest, release export); `deps:check`/`doctor` FAIL on unrelated newer patch releases | See above. |
+
+## Deferred and not run
+
+| Check | Status | Where it is carried |
+| --- | --- | --- |
+| Decoded image memory and frames of the Island on a physical iPhone (stage 0 → complete, stage changes, full-bleed scroll) | **DEFERRED, NOT PASSED** (D83) | Phase 21 prompt and roadmap, RELEASE_CHECKLIST "Usability and performance"; mandatory before release. |
+| VoiceOver of the world scene, fallback and completion card on a physical iPhone | **DEFERRED, NOT PASSED** (D83) | Phase 19 (repeated in Phase 21) prompt and roadmap, RELEASE_CHECKLIST; mandatory before release. |
+| Duo fold/unfold/rotate while the scene is shown, driven natively | NOT RUN as an automated sequence | Jest relayout keeps the stage; Duo open portrait and closed landscape were both seen during the session. Phase 21 runs the Duo matrix. |
+| `deps:check`/`doctor` | FAIL (newer SDK 58 patches of installed packages) | A separate reviewed SDK patch update with a new build, when the owner wants it. |
 
 ## Limitations
 

@@ -276,7 +276,7 @@ describe('Home shows the ledger’s stage', () => {
     await entry(goalId, 'deposit', 137_500);
     await act(() => refreshAppData());
     expect(shownLayers()).toEqual(expectedLayers(10));
-    expect(callout()).toBe('All 10 milestones unlocked. Your world is complete.');
+    expect(callout()).toBe('Your island is complete! You’ve unlocked every part of your world.');
     expect(screen.getByTestId('home-remaining')).toHaveTextContent('€375.00 over target');
   });
 

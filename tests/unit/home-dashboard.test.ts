@@ -1,8 +1,8 @@
-import { civilDateAt, deadlineEstimate, fixedClock, today, type CivilDate } from '@/core/calendar';
+import { civilDateAt, deadlineTiming, fixedClock, savingsPlan, today, type CivilDate } from '@/core/calendar';
 import { getCurrency, type CurrencyMetadata } from '@/core/money';
 import type { GoalSummary } from '@/data/repositories/goal-repository';
 import { homeDashboard } from '@/features/goals/presentation/home-dashboard';
-import { deadlineCopy } from '@/shared/i18n/deadline-messages';
+import { savingsPlanCopy } from '@/shared/i18n/deadline-messages';
 
 // Home dashboard view model (Phase 08) with independently calculated expectations: saved, target,
 // remaining, floored percent, stage, next milestone and the v1.2 deadline pace with the inclusive
@@ -85,7 +85,7 @@ describe('dashboard numbers match the ledger balance', () => {
     expect(view.amounts).toMatchObject({ remaining: '€0.00', percent: 100, funded: true, over: null });
     expect(view.stage).toBe(10);
     expect(view.fraction).toBe(1);
-    expect(view.next).toEqual({ kind: 'complete' });
+    expect(view.next).toEqual({ kind: 'complete', title: 'Your island is complete!', detail: 'You’ve unlocked every part of your world.' });
   });
 
   it('overfunded: 125% and €375.00 over the target, the scene stays at its tenth unlock', () => {
@@ -93,7 +93,7 @@ describe('dashboard numbers match the ledger balance', () => {
     expect(view.amounts).toMatchObject({ saved: '€1,875.00', remaining: '€0.00', percent: 125, funded: true, over: '€375.00' });
     expect(view.stage).toBe(10);
     expect(view.fraction).toBe(1);
-    expect(view.next).toEqual({ kind: 'complete' });
+    expect(view.next).toEqual({ kind: 'complete', title: 'Your island is complete!', detail: 'You’ve unlocked every part of your world.' });
   });
 
   it('follows the v1.2 €2,000 example', () => {
@@ -124,79 +124,116 @@ describe('dashboard numbers match the ledger balance', () => {
   it('formats with an alternate number locale without changing a value', () => {
     const view = plainSpaces(homeDashboard(summary(33_000, 150_000, '2026-11-21'), EUR, TODAY, 'de-DE'));
     expect(view.amounts).toMatchObject({ saved: '330,00 €', target: '1.500,00 €', remaining: '1.170,00 €', percent: 22 });
-    // R = 117000, D = 30: weekly ceil(819000 / 30) = 27300; monthly min(R, 117000) = 117000.
-    expect(view.deadline).toMatchObject({ kind: 'pace', date: '21. Nov. 2026', timeLeft: '30 days left', weekly: '273,00 €', monthly: '1.170,00 €' });
+    // R = 117000, D = 30 (29 days left): weekly ceil(819000 / 30) = 27300.
+    expect(view.planCopy).toMatchObject({ kind: 'plan', date: '21. Nov. 2026', timeLeft: '29 days left', needed: { amount: '1.170,00 €', pace: '273,00 € a week' } });
   });
 });
 
-describe('deadline pace (v1.2 inclusive D)', () => {
-  it('R = 100.00 and D = 30 gives 23.34 a week and 100.00 a month, with the explanation', () => {
-    // 23 Oct through 21 Nov 2026, both included: 9 + 21 = 30 days.
+describe('savings plan (v1.2 pace, D84 cards)', () => {
+  it('R = 100.00 and D = 30 keeps the v1.2 paces and suggests 23.34 a week, with the explanation', () => {
+    // 23 Oct through 21 Nov 2026, both included: 9 + 21 = 30 days; 29 days from today.
     const view = dashboard(0, 10_000, '2026-11-21');
     expect(view.estimate).toEqual({ kind: 'pace', remainingMinor: 10_000, days: 30, weeklyMinor: 2_334, monthlyMinor: 10_000 });
-    expect(view.deadline).toEqual({
-      kind: 'pace',
+    expect(view.plan).toEqual({
+      kind: 'saving',
+      deadline: '2026-11-21',
+      timing: { kind: 'ahead', daysLeft: 29 },
+      remainingMinor: 10_000,
+      pace: { period: 'week', amountMinor: 2_334, days: 30 },
+    });
+    expect(view.planCopy).toEqual({
+      kind: 'plan',
       date: 'Nov 21, 2026',
-      timeLeft: '30 days left',
-      weekly: '€23.34',
-      monthly: '€100.00',
+      timeLeft: '29 days left',
+      passed: false,
+      deadlineLabel: 'Deadline Nov 21, 2026, 29 days left',
+      needed: { kind: 'saving', amount: '€100.00', pace: '€23.34 a week', note: null },
       explanation:
-        '€100.00 is still to go over 30 days, counting today and the deadline. Per week is €100.00 ÷ 30 × 7, per month is €100.00 ÷ 30 × 30, rounded up and never more than what is left. It is a guide, not a plan.',
+        '€100.00 is still to go over 30 days, counting today and the deadline. A week is €100.00 ÷ 30 × 7, rounded up and never more than what is left. It is a guide, not a plan.',
     });
   });
 
-  it('a deadline today gives the remaining amount for both paces, without dividing by zero', () => {
+  it('two months or more suggests a monthly amount instead', () => {
+    // 23 Oct through 22 Dec: 61 days; monthly ceil(600000 / 61) = 9837.
+    const view = dashboard(0, 20_000, '2026-12-22');
+    expect(view.plan).toMatchObject({ pace: { period: 'month', amountMinor: 9_837, days: 61 } });
+    expect(view.planCopy).toMatchObject({ timeLeft: '60 days left', needed: { pace: '€98.37 a month' } });
+  });
+
+  it('suggests no per-period amount with less than two weeks left: it would be the whole remainder', () => {
+    // D = 13 (12 days left): the v1.2 weekly pace is ceil(7500 × 7 / 13) = 4039, more than half of R.
+    const view = dashboard(2_500, 10_000, '2026-11-04');
+    expect(view.estimate).toMatchObject({ kind: 'pace', days: 13 });
+    expect(view.plan).toMatchObject({ kind: 'saving', remainingMinor: 7_500, pace: null });
+    expect(view.planCopy).toMatchObject({ timeLeft: '12 days left', needed: { amount: '€75.00', pace: null, note: null }, explanation: null });
+    // D = 14 is the first day with a weekly amount.
+    expect(dashboard(2_500, 10_000, '2026-11-05').plan).toMatchObject({ pace: { period: 'week', days: 14 } });
+  });
+
+  it('a deadline today: the remaining amount, no per-period amount, no division by zero', () => {
     const view = dashboard(2_500, 10_000, TODAY);
     expect(view.estimate).toEqual({ kind: 'pace', remainingMinor: 7_500, days: 1, weeklyMinor: 7_500, monthlyMinor: 7_500 });
-    expect(view.deadline).toEqual({
-      kind: 'pace',
+    expect(view.planCopy).toEqual({
+      kind: 'plan',
       date: 'Oct 23, 2026',
       timeLeft: 'Today',
-      weekly: '€75.00',
-      monthly: '€75.00',
-      explanation: 'The deadline is today, so both amounts are the full €75.00 still to go.',
+      passed: false,
+      deadlineLabel: 'Deadline Oct 23, 2026, today',
+      needed: { kind: 'saving', amount: '€75.00', pace: null, note: null },
+      explanation: null,
     });
+    expect(dashboard(2_500, 10_000, '2026-10-24').planCopy).toMatchObject({ timeLeft: 'Tomorrow' });
   });
 
-  it('an expired deadline with money to go shows Overdue and the remaining amount, no pace', () => {
+  it('a passed deadline with money to go: "Deadline passed", the remaining amount and how to move on', () => {
     const view = dashboard(2_500, 10_000, '2026-10-22');
     expect(view.estimate).toEqual({ kind: 'overdue', remainingMinor: 7_500 });
-    expect(view.deadline).toEqual({
-      kind: 'overdue',
+    expect(view.planCopy).toEqual({
+      kind: 'plan',
       date: 'Oct 22, 2026',
-      remaining: '€75.00',
+      timeLeft: 'Deadline passed',
+      passed: true,
+      deadlineLabel: 'Deadline Oct 22, 2026, passed',
+      needed: { kind: 'saving', amount: '€75.00', pace: null, note: 'Choose a new date in Edit goal' },
+      explanation: null,
     });
   });
 
-  it('nothing left to save gives zero paces and never Overdue, before or after the deadline', () => {
-    for (const deadline of ['2026-10-01', TODAY, '2027-06-30']) {
+  it('nothing left to save shows the completed state, before, on or after the deadline', () => {
+    for (const [deadline, timeLeft] of [['2026-10-01', 'Deadline passed'], [TODAY, 'Today'], ['2027-06-30', '250 days left']] as const) {
       const view = dashboard(10_000, 10_000, deadline);
       expect(view.estimate).toEqual({ kind: 'funded', weeklyMinor: 0, monthlyMinor: 0 });
-      expect(view.deadline.kind).toBe('funded');
+      expect(view.planCopy).toMatchObject({ kind: 'plan', timeLeft, needed: { kind: 'complete' }, explanation: null });
     }
-    expect(dashboard(12_000, 10_000, '2026-10-01').deadline.kind).toBe('funded');
+    expect(dashboard(12_000, 10_000, '2026-10-01').plan.kind).toBe('complete');
   });
 
-  it('no deadline means no estimate', () => {
+  it('no deadline means no plan', () => {
     const view = dashboard(2_500, 10_000, null);
     expect(view.estimate).toEqual({ kind: 'none' });
-    expect(view.deadline).toEqual({ kind: 'none' });
+    expect(view.plan).toEqual({ kind: 'none' });
+    expect(view.planCopy).toEqual({ kind: 'none' });
   });
 
-  it('target and deadline edits change both paces', () => {
-    // R = 100.00 over D = 30, then the target grows to 200.00, then the deadline moves to D = 61.
+  it('target and deadline edits change the v1.2 paces', () => {
     expect(dashboard(0, 10_000, '2026-11-21').estimate).toMatchObject({ weeklyMinor: 2_334, monthlyMinor: 10_000 });
     expect(dashboard(0, 20_000, '2026-11-21').estimate).toMatchObject({ weeklyMinor: 4_667, monthlyMinor: 20_000 });
-    // 23 Oct through 22 Dec: 9 + 30 + 22 = 61 days; weekly ceil(140000 / 61) = 2296, monthly ceil(600000 / 61) = 9837.
     expect(dashboard(0, 20_000, '2026-12-22').estimate).toMatchObject({ days: 61, weeklyMinor: 2_296, monthlyMinor: 9_837 });
   });
 
-  it('two days left reads "2 days left" (D = 2)', () => {
-    const copy = deadlineCopy(deadlineEstimate({ balanceMinor: 0, targetMinor: 100, deadline: '2026-10-24' as CivilDate, today: TODAY }), '2026-10-24' as CivilDate, {
-      amount: (minor) => String(minor),
-      date: (date) => date,
-    });
-    expect(copy).toMatchObject({ kind: 'pace', timeLeft: '2 days left' });
+  it('deadlineTiming counts calendar days from today', () => {
+    const t = (date: string) => deadlineTiming(date as CivilDate, TODAY);
+    expect([t('2026-10-22'), t(TODAY), t('2026-10-24'), t('2026-10-25')]).toEqual([
+      { kind: 'passed' },
+      { kind: 'today' },
+      { kind: 'ahead', daysLeft: 1 },
+      { kind: 'ahead', daysLeft: 2 },
+    ]);
+  });
+
+  it('wording of an explicit plan, independent of the dashboard', () => {
+    const plan = savingsPlan({ balanceMinor: 0, targetMinor: 100, deadline: '2026-10-25' as CivilDate, today: TODAY });
+    expect(savingsPlanCopy(plan, { amount: (minor) => String(minor), date: (date) => date })).toMatchObject({ timeLeft: '2 days left', needed: { amount: '100', pace: null } });
   });
 });
 
@@ -209,8 +246,8 @@ describe('clock boundaries', () => {
     const before = at('2026-10-23T21:59:59.999Z', 'Europe/Belgrade');
     const after = at('2026-10-23T22:00:00.000Z', 'Europe/Belgrade');
     expect([before, after]).toEqual(['2026-10-23', '2026-10-24']);
-    expect(dashboard(0, 10_000, '2026-10-23', before).deadline).toMatchObject({ kind: 'pace', timeLeft: 'Today' });
-    expect(dashboard(0, 10_000, '2026-10-23', after).deadline).toMatchObject({ kind: 'overdue', date: 'Oct 23, 2026' });
+    expect(dashboard(0, 10_000, '2026-10-23', before).planCopy).toMatchObject({ kind: 'plan', timeLeft: 'Today' });
+    expect(dashboard(0, 10_000, '2026-10-23', after).planCopy).toMatchObject({ kind: 'plan', timeLeft: 'Deadline passed', date: 'Oct 23, 2026' });
   });
 
   it('the same instant can be a different day in another zone', () => {

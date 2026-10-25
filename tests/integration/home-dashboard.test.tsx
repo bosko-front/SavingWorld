@@ -90,15 +90,14 @@ function home() {
     detail: text('home-remaining'),
     percent: screen.getByTestId('home-progress').props.accessibilityLabel as string,
     next: text('home-next-detail'),
-    // The deadline card's header as VoiceOver reads it, or 'none' when Home offers to add one.
-    deadline: screen.queryByTestId('home-deadline-header')
-      ? (screen.getByTestId('home-deadline-header').props.accessibilityLabel as string)
-      : screen.queryByTestId('home-add-deadline')
-        ? 'none'
-        : 'missing',
-    pace: screen.queryByTestId('home-pace-weekly')
-      ? `${String(screen.getByTestId('home-pace-weekly').props.accessibilityLabel)} ${String(screen.getByTestId('home-pace-monthly').props.accessibilityLabel)}`
-      : null,
+    // The savings plan cards as VoiceOver reads them (D84), or 'none' / null when the goal has no
+    // deadline and Home shows no plan.
+    deadline: screen.queryByTestId('home-plan-deadline') ? (screen.getByTestId('home-plan-deadline').props.accessibilityLabel as string) : 'none',
+    pace: screen.queryByTestId('home-plan-saving')
+      ? (screen.getByTestId('home-plan-saving').props.accessibilityLabel as string)
+      : screen.queryByTestId('home-plan-complete')
+        ? (screen.getByTestId('home-plan-complete').props.accessibilityLabel as string)
+        : null,
     // The world's spoken stage: "Island world, 2 of 10 milestones unlocked" → "2 of 10 …".
     world: (screen.getByTestId('world-scene').props.accessibilityLabel as string).replace(/^Island world, /, ''),
   };
@@ -139,17 +138,17 @@ describe('Home dashboard numbers', () => {
       detail: '€1,170.00 to go',
       percent: '22%, €1,170.00 to go',
       next: '€120.00 more to reach 30%',
-      deadline: 'Deadline Nov 21, 2026, 30 days left',
-      // R = 117000, D = 30: ceil(117000 × 7 / 30) = 27300; min(R, ceil(117000 × 30 / 30)) = R.
-      pace: '€273.00 per week or €1,170.00 per month',
+      deadline: 'Deadline Nov 21, 2026, 29 days left',
+      // R = 117000, D = 30 (29 days left): a week is ceil(117000 × 7 / 30) = 27300 (D84).
+      pace: 'Savings needed €1,170.00. €273.00 a week',
       world: '2 of 10 milestones unlocked',
     });
     // The explanation is one tap away on the info button, not printed on Home.
     const alert = jest.spyOn(Alert, 'alert').mockImplementationOnce(() => undefined);
-    await userEvent.press(screen.getByLabelText('How the pace is worked out'));
+    await userEvent.press(screen.getByLabelText('How the amount is worked out'));
     expect(alert).toHaveBeenCalledWith(
-      'How the pace is worked out',
-      '€1,170.00 is still to go over 30 days, counting today and the deadline. Per week is €1,170.00 ÷ 30 × 7, per month is €1,170.00 ÷ 30 × 30, rounded up and never more than what is left. It is a guide, not a plan.',
+      'How the amount is worked out',
+      '€1,170.00 is still to go over 30 days, counting today and the deadline. A week is €1,170.00 ÷ 30 × 7, rounded up and never more than what is left. It is a guide, not a plan.',
     );
     expect(screen.getByTestId('world-scene')).toHaveAccessibleName('Island world, 2 of 10 milestones unlocked');
     // Add savings is the one primary action, a button in the column right under the progress; nothing
@@ -196,13 +195,13 @@ describe('recalculation after financial edits', () => {
       saved: '€1,500.00',
       detail: '€0.00 to go',
       percent: '100%, €0.00 to go',
-      next: 'Your world is complete.',
-      deadline: 'Deadline Nov 21, 2026, target reached',
-      pace: null,
+      next: 'You’ve unlocked every part of your world.',
+      deadline: 'Deadline Nov 21, 2026, 29 days left',
+      pace: 'Savings needed: none, target reached',
       world: '10 of 10 milestones unlocked',
     });
     expect(screen.getByTestId('home-funded')).toHaveTextContent('Target reached');
-    expect(screen.queryByTestId('home-overdue')).toBeNull();
+    expect(screen.getByTestId('home-plan-complete')).toBeOnTheScreen();
 
     // Overfunded: 125%, the amount above the target, still ten unlocks.
     await addThroughForm('deposit', '375');
@@ -221,7 +220,7 @@ describe('recalculation after financial edits', () => {
       percent: '60%, €600.00 to go',
       next: '€150.00 more to reach 70%',
       // R = 60000, D = 30: weekly ceil(420000 / 30) = 14000.
-      pace: '€140.00 per week or €600.00 per month',
+      pace: 'Savings needed €600.00. €140.00 a week',
       world: '6 of 10 milestones unlocked',
     });
     expect(screen.queryByTestId('home-funded')).toBeNull();
@@ -242,7 +241,7 @@ describe('recalculation after financial edits', () => {
       saved: '€875.00',
       percent: '58%, €625.00 to go',
       // R = 62500, D = 30: weekly ceil(437500 / 30) = 14584.
-      pace: '€145.84 per week or €625.00 per month',
+      pace: 'Savings needed €625.00. €145.84 a week',
       world: '5 of 10 milestones unlocked',
     });
   });
@@ -252,7 +251,7 @@ describe('recalculation after financial edits', () => {
     await seedEntry(goalId, 'deposit', 2_500, '2026-10-23');
     await renderRouter(APP_DIR, { initialUrl: '/' });
     // R = 7500, D = 30: weekly ceil(52500 / 30) = 1750.
-    expect(home().pace).toBe('€17.50 per week or €75.00 per month');
+    expect(home().pace).toBe('Savings needed €75.00. €17.50 a week');
 
     await chooseGoalOption('Edit goal');
     await userEvent.clear(screen.getByTestId('goal-target'));
@@ -260,7 +259,7 @@ describe('recalculation after financial edits', () => {
     await userEvent.press(screen.getByTestId('goal-save'));
     await waitFor(() => expect(screen).toHavePathname('/'));
     // R = 17500, D = 30: weekly ceil(122500 / 30) = 4084; the target edit also moves the stage back.
-    expect(home()).toMatchObject({ percent: '12%, €175.00 to go', pace: '€40.84 per week or €175.00 per month', world: '1 of 10 milestones unlocked' });
+    expect(home()).toMatchObject({ percent: '12%, €175.00 to go', pace: 'Savings needed €175.00. €40.84 a week', world: '1 of 10 milestones unlocked' });
 
     await chooseGoalOption('Edit goal');
     // 23 Oct through 22 Dec 2026: 61 days. weekly ceil(122500 / 61) = 2009, monthly ceil(525000 / 61) = 8607.
@@ -269,27 +268,30 @@ describe('recalculation after financial edits', () => {
     });
     await userEvent.press(screen.getByTestId('goal-save'));
     await waitFor(() => expect(screen).toHavePathname('/'));
-    expect(home()).toMatchObject({ deadline: 'Deadline Dec 22, 2026, 61 days left', pace: '€20.09 per week or €86.07 per month' });
+    // D = 61 (60 days left): two months or more, so a monthly amount (D84).
+    expect(home()).toMatchObject({ deadline: 'Deadline Dec 22, 2026, 60 days left', pace: 'Savings needed €175.00. €86.07 a month' });
 
     await chooseGoalOption('Edit goal');
     await userEvent.press(screen.getByTestId('deadline-remove'));
     await userEvent.press(screen.getByTestId('goal-save'));
     await waitFor(() => expect(screen).toHavePathname('/'));
     expect(home()).toMatchObject({ deadline: 'none', pace: null });
-    // Without a deadline the card is a row that opens Edit goal to add one.
-    await userEvent.press(screen.getByTestId('home-add-deadline'));
+    // Without a deadline Home shows nothing for it; a deadline is added in Edit goal (D83).
+    expect(screen.queryByText('Add a deadline')).toBeNull();
+    await chooseGoalOption('Edit goal');
     expect(screen).toHavePathname('/goal-form');
   });
 });
 
 describe('civil date on returning to the foreground', () => {
-  it('a deadline today becomes Overdue after midnight, read once when the app is active again', async () => {
+  it('a deadline today becomes passed after midnight, read once when the app is active again', async () => {
     const goalId = await setupGoal(10_000, '2026-10-23');
     await seedEntry(goalId, 'deposit', 2_500, '2026-10-23');
     setLocalTime(2026, 10, 23, 23, 59);
     await renderRouter(APP_DIR, { initialUrl: '/' });
-    expect(home()).toMatchObject({ deadline: 'Deadline Oct 23, 2026, today', pace: '€75.00 per week or €75.00 per month' });
-    expect(screen.queryByTestId('home-overdue')).toBeNull();
+    // Today: the remaining amount, no per-period amount (D84).
+    expect(home()).toMatchObject({ deadline: 'Deadline Oct 23, 2026, today', pace: 'Savings needed €75.00' });
+    expect(screen.getByTestId('home-plan-time-left')).toHaveTextContent('Today');
 
     // Same date: returning to the foreground does not re-read anything.
     const version = useAppDataStore.getState().version;
@@ -306,20 +308,20 @@ describe('civil date on returning to the foreground', () => {
     await act(async () => {
       emitAppState('active');
     });
-    await waitFor(() => expect(screen.getByTestId('home-overdue')).toHaveTextContent('Overdue'));
+    await waitFor(() => expect(screen.getByTestId('home-plan-time-left')).toHaveTextContent('Deadline passed'));
     expect(useAppDataStore.getState().version).toBe(version + 1);
-    expect(home()).toMatchObject({ deadline: 'Deadline Oct 23, 2026, overdue', pace: null, saved: '€25.00' });
-    expect(screen.getByTestId('home-overdue-remaining')).toHaveAccessibleName('€75.00 still to go. Choose a new date in Edit goal.');
+    expect(home()).toMatchObject({ deadline: 'Deadline Oct 23, 2026, passed', pace: 'Savings needed €75.00. Choose a new date in Edit goal', saved: '€25.00' });
+    expect(screen.queryByTestId('home-plan-pace')).toBeNull();
   });
 
-  it('a funded goal past its deadline is never Overdue', async () => {
+  it('a funded goal past its deadline shows the completed state, never money still needed', async () => {
     const goalId = await setupGoal(10_000, '2026-10-23');
     await seedEntry(goalId, 'deposit', 10_000, '2026-10-23');
     setLocalTime(2026, 10, 30, 9, 0);
     await renderRouter(APP_DIR, { initialUrl: '/' });
-    expect(screen.queryByTestId('home-overdue')).toBeNull();
-    expect(home()).toMatchObject({ deadline: 'Deadline Oct 23, 2026, target reached', pace: null });
-    expect(screen.getByTestId('home-deadline-funded')).toHaveTextContent('Nothing more to save by this date.');
+    expect(home()).toMatchObject({ deadline: 'Deadline Oct 23, 2026, passed', pace: 'Savings needed: none, target reached' });
+    expect(screen.getByTestId('home-plan-complete')).toHaveTextContent(/Target reached.*Nothing more to save/);
+    expect(screen.queryByTestId('home-plan-saving')).toBeNull();
   });
 });
 

@@ -1241,6 +1241,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 - Manual iPhone VoiceOver/text-size/Reduce Motion checklist with screen-by-screen evidence.
 - Carried from Phase 06 (DECISIONS D60): on a physical iPhone, run the VoiceOver walkthrough of onboarding, Create/Edit Goal (inline errors read with the field), Home Pause/Resume and Delete goal (Archive was removed by D74), Collection Reopen and Delete and the Settings currency lock; each confirmation toast is announced once and never takes focus.
 - Carried from Phase 07 (DECISIONS D63): on a physical iPhone, run the VoiceOver walkthrough of the Add/Edit Entry form (`/entry-form`: amount/note labels and inline errors read with their field, the Deposit/Withdrawal control, the date picker, the delete confirmation) and History (`/history`: rows read as "Deposit/Withdrawal, signed amount, date, note", closed-goal read-only state); each ledger toast is announced once and never takes focus. Feel the haptics: one success after each committed write, one warning per rule rejection, none otherwise.
+- Carried from Phase 09 (DECISIONS D83): on a physical iPhone, VoiceOver of the world scene on Home: one image element read as "Island world, n of 10 milestones unlocked" with the stage description as its value, decorative layers silent, the empty-state Island hidden, the scene fallback ("Your world can’t be shown right now", Try again) and the milestone card at 100% ("Your island is complete!"). Mandatory before release; deferred from Phase 09, not passed.
 - Formatting tests for at least two numeric/date locales, currency exponents and all user-facing catalog keys.
 - Contrast/touch/layout review, relevant interaction regressions and standard checks.
 
@@ -1367,6 +1368,8 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 
 - Run standard checks, actual test:db suite and established test:e2e critical flows on iOS.
 - Run interruption/rollback/migration scenarios and device memory/launch/frame profiling; record build identifier and fixture size.
+- Carried from Phase 09 (DECISIONS D83): on a physical iPhone (oldest supported and one recent), decoded image memory and frame observations of the Island scene from stage 0 to the complete Island, stage changes on Home and the full-bleed scroll, against the ASSET_SPEC budgets (~32 MiB per world, 60 fps). Phase 09 recorded only simulator footprints (303 → 305-306 MB). Mandatory before release; deferred from Phase 09, not passed.
+- Carried from Phase 09 (DECISIONS D83): repeat the world-scene VoiceOver check from Phase 19 on the release candidate.
 - Run full regression only now after integration, not repeatedly after every unchanged earlier phase; update requirements traceability.
 
 ## Definition of Done

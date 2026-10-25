@@ -22,7 +22,7 @@ import { StatusBadge } from '@/shared/ui/status-badge';
 
 import { selectGoal } from '../application/goal-selection';
 
-import { DeadlineCard } from './deadline-card';
+import { SavingsPlanCards } from './savings-plan-cards';
 import { GoalMenu } from './goal-menu';
 import { useDeleteGoal } from './use-delete-goal';
 import { homeDashboard, type HomeDashboard, type NextMilestone } from './home-dashboard';
@@ -33,7 +33,7 @@ import { useGoalAction } from './use-goal-action';
 // menu (⋯: History, Edit, Pause/Resume, New goal, Delete), the saved amount as the largest text,
 // the target, a milestone progress bar with the floored percent and the remaining (or overfunded)
 // amount, Add savings (the one primary action, a full-width button under the progress since owner
-// decision D81; D72/D73 had it floating), the next milestone and the deadline card. Every number
+// decision D81; D72/D73 had it floating), the milestone card and the savings plan when a deadline is set (D84). Every number
 // comes from the committed snapshot (balance recomputed from the ledger) and the civil date it was
 // read on; a commit or a new date re-reads it. Settings is in the navigation bar. Free shows at most one open goal; with more open goals (Pro) a simple list chooses
 // which one Home shows. The choice is stored, and after a restart a missing or closed choice falls
@@ -85,8 +85,9 @@ export function HomeScreen() {
 
 type SelectedGoalHomeProps = { summary: GoalSummary; dashboard: HomeDashboard; open: GoalSummary[]; canCreate: boolean };
 
-// The selected goal on AdaptiveGoalLayout: the world, then the numbers and the deadline card; goal
-// administration is in the ⋯ menu and Add savings sits under the progress (D73, D81).
+// The selected goal on AdaptiveGoalLayout: the world, then the numbers, the milestone and the
+// savings plan; goal administration is in the ⋯ menu and Add savings sits under the progress (D73,
+// D81).
 function SelectedGoalHome({ summary, dashboard, open, canCreate }: SelectedGoalHomeProps) {
   const { goal } = summary;
   const action = useGoalAction();
@@ -160,11 +161,11 @@ function EmptyHome({ completedCount, canCreate }: { completedCount: number; canC
   );
 }
 
-// Title and status, saved amount and target, progress, Add savings, next milestone and the deadline
-// card.
+// Title and status, saved amount and target, progress, Add savings, the milestone card and, when the
+// goal has a deadline, the savings plan cards (D84).
 function GoalNumbers({ summary, dashboard, busy, menu }: { summary: GoalSummary; dashboard: HomeDashboard; busy: boolean; menu: ReactElement }) {
   const { goal } = summary;
-  const { amounts, deadline } = dashboard;
+  const { amounts } = dashboard;
   const paused = goal.status === 'paused';
   const progressDetail = amounts.over ? `${amounts.over} over target` : `${amounts.remaining} to go`;
   return (
@@ -200,19 +201,19 @@ function GoalNumbers({ summary, dashboard, busy, menu }: { summary: GoalSummary;
         <Button label="Add savings" icon="add" disabled={busy} testID="home-add-savings" />
       </Link>
       <MilestoneCallout next={dashboard.next} />
-      <DeadlineCard copy={deadline} goalId={goal.id} />
+      <SavingsPlanCards copy={dashboard.planCopy} />
     </View>
   );
 }
 
 // The next of the ten unlocks and the amount still needed for it, on the warm accent surface. The
-// name comes from the theme manifest; a theme without art falls back to the percentage.
+// name comes from the theme manifest; a theme without art falls back to the percentage. At 100% or
+// more the same card says the world is complete, in the theme's words (D83).
 function MilestoneCallout({ next }: { next: NextMilestone }) {
-  const title =
-    next.kind === 'complete' ? 'All 10 milestones unlocked' : next.name ? `Next: ${next.name}` : `Next milestone: ${next.percent}%`;
-  const detail = next.kind === 'next' ? `${next.toNext} more to reach ${next.percent}%` : 'Your world is complete.';
+  const title = next.kind === 'complete' ? next.title : next.name ? `Next: ${next.name}` : `Next milestone: ${next.percent}%`;
+  const detail = next.kind === 'complete' ? next.detail : `${next.toNext} more to reach ${next.percent}%`;
   return (
-    <View style={styles.milestone} accessible accessibilityLabel={`${title}. ${detail}`} testID="home-next-milestone">
+    <View style={styles.milestone} accessible accessibilityLabel={`${/[.!?]$/.test(title) ? title : `${title}.`} ${detail}`} testID="home-next-milestone">
       <Icon name="milestone" role="headline" tone="accent" filled />
       <View style={styles.title}>
         <AppText role="label">{title}</AppText>
