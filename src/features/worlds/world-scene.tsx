@@ -1,7 +1,7 @@
 import { Image, type ImageProps } from 'expo-image';
-import { Component, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Component, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
-import Animated, { cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming } from 'react-native-reanimated';
+import Animated, { cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 
 import { MILESTONE_COUNT, type Stage, type ThemeId } from '@/core/progression';
 import { fitAspect, useFontScale, useMeasuredSize, useSceneInsets } from '@/shared/layout';
@@ -9,7 +9,8 @@ import { colors, radii, spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
 
-import { sceneDescription, sceneViewport, visibleLayers, type ManifestResult, type Rect, type SceneLayer, type ThemeManifest } from './manifest';
+import { ambientKindOn, useAmbientSwitches, type AmbientSwitches } from './ambient';
+import { sceneDescription, sceneViewport, visibleLayers, type AmbientMark, type ManifestResult, type Rect, type SceneLayer, type ThemeManifest } from './manifest';
 import { themeManifest } from './registry';
 import { layerMotion, WORLD_MOTION, type LayerEntrance, type LayerExit, type LayerMotion, type SceneReveal } from './world-transition';
 
@@ -68,6 +69,9 @@ type WorldSceneProps = {
   // `stage` animates (null or absent: the stage is shown directly, as after a launch).
   upcomingStage?: Stage | null;
   reveal?: SceneReveal | null;
+  // Phase 10.5 (D90): whether the Living Island may move now. Home passes `useAmbientMotion()` (Home
+  // focused, app active, no Reduce Motion); every other scene leaves it off and stays still.
+  ambient?: boolean;
   // Shown over the scene region (Home's "New milestone unlocked!" message).
   children?: ReactNode;
 };
@@ -81,6 +85,7 @@ export function WorldScene({
   manifest,
   upcomingStage = null,
   reveal = null,
+  ambient = false,
   children,
 }: WorldSceneProps) {
   const [area, onAreaLayout] = useMeasuredSize();
@@ -119,6 +124,7 @@ export function WorldScene({
                 stage={stage}
                 upcomingStage={upcomingStage}
                 reveal={reveal}
+                ambient={ambient}
                 boxWidth={box.width}
                 onError={() => setFailed(true)}
               />
@@ -137,6 +143,7 @@ type SceneLayersProps = {
   stage: Stage;
   upcomingStage: Stage | null;
   reveal: SceneReveal | null;
+  ambient: boolean;
   boxWidth: number;
   onError: () => void;
 };
@@ -154,13 +161,19 @@ type LayerAnimation = { revision: number; motion: LayerMotion; leaving: SceneLay
 // their anchors (an unlock) or fade (a quiet change), the stage 8 house crossfades with the cabin and
 // removed layers fade out; without one the stage simply replaces the old one. The layers of
 // `upcomingStage` load invisibly in advance, so an unlock does not wait for its images.
-function SceneLayers({ manifest, stage, upcomingStage, reveal, boxWidth, onError }: SceneLayersProps) {
+//
+// Phase 10.5: layers with an ambient mark move while `ambient` is on and their effect's switch allows
+// it; the water sparkle layers are invisible at rest and are not drawn at all when water is switched
+// off, so the switched-off scene is the approved picture.
+function SceneLayers({ manifest, stage, upcomingStage, reveal, ambient, boxWidth, onError }: SceneLayersProps) {
   const viewport = useMemo(() => sceneViewport(manifest, VIEWPORT_MARGIN), [manifest]);
   const scale = boxWidth / viewport.width;
+  const switches = useAmbientSwitches();
   const [loaded, setLoaded] = useState<ReadonlySet<string>>(() => new Set());
   const [shownStage, setShownStage] = useState<Stage | null>(null);
   const [animation, setAnimation] = useState<LayerAnimation | null>(null);
-  const target = visibleLayers(manifest, stage);
+  const drawn = (forStage: Stage) => visibleLayers(manifest, forStage).filter((layer) => drawsAtRest(layer, switches));
+  const target = drawn(stage);
   const ready = target.every((layer) => loaded.has(layer.id));
 
   // Derived state, updated during render (React's "adjusting state when a prop changes"): a newly
@@ -169,7 +182,7 @@ function SceneLayers({ manifest, stage, upcomingStage, reveal, boxWidth, onError
   if (ready && shownStage !== stage) {
     if (shownStage !== null && reveal) {
       const motion = layerMotion(manifest, shownStage, stage, reveal.mode);
-      const leaving = visibleLayers(manifest, shownStage).filter((layer) => motion.exits.has(layer.id));
+      const leaving = drawn(shownStage).filter((layer) => motion.exits.has(layer.id));
       setAnimation({ revision: reveal.revision, motion, leaving });
     } else if (animation) {
       setAnimation(null);
@@ -179,10 +192,10 @@ function SceneLayers({ manifest, stage, upcomingStage, reveal, boxWidth, onError
     setAnimation(null);
   }
 
-  const shown = ready ? target : shownStage === null ? [] : visibleLayers(manifest, shownStage);
+  const shown = ready ? target : shownStage === null ? [] : drawn(shownStage);
   const shownIds = new Set(shown.map((layer) => layer.id));
   const leaving = (animation?.leaving ?? []).filter((layer) => !shownIds.has(layer.id));
-  const upcoming = upcomingStage === null ? [] : visibleLayers(manifest, upcomingStage);
+  const upcoming = upcomingStage === null ? [] : drawn(upcomingStage);
   const mounted = new Map<string, SceneLayer>();
   [...shown, ...leaving, ...target, ...upcoming].forEach((layer) => mounted.set(layer.id, layer));
   const ordered = [...mounted.values()].sort((a, b) => a.z - b.z);
@@ -205,6 +218,7 @@ function SceneLayers({ manifest, stage, upcomingStage, reveal, boxWidth, onError
       shown={shownIds.has(layer.id)}
       entrance={shownIds.has(layer.id) ? animation?.motion.entrances.get(layer.id) : undefined}
       exit={shownIds.has(layer.id) ? undefined : animation?.motion.exits.get(layer.id)}
+      ambient={ambient && layer.ambient !== null && ambientKindOn(switches, layer.ambient.kind)}
       onLoad={() => markLoaded(layer.id)}
       onError={onError}
     />
@@ -220,6 +234,8 @@ type SceneLayerViewProps = {
   shown: boolean;
   entrance: LayerEntrance | undefined;
   exit: LayerExit | undefined;
+  // The layer's ambient mark may move now.
+  ambient: boolean;
   onLoad: () => void;
   onError: () => void;
 };
@@ -228,7 +244,7 @@ type SceneLayerViewProps = {
 // the object meets the ground), so a new object grows out of the ground; the art already carries its
 // shadow and outline (D76). A layer mounted while waiting starts invisible and appears with its
 // entrance, or at once without one; a superseded entrance jumps to the end.
-function SceneLayerView({ layer, source, viewport, scale, shown, entrance, exit, onLoad, onError }: SceneLayerViewProps) {
+function SceneLayerView({ layer, source, viewport, scale, shown, entrance, exit, ambient, onLoad, onError }: SceneLayerViewProps) {
   const [visibleAtMount] = useState(shown);
   const opacity = useSharedValue(visibleAtMount ? 1 : 0);
   const grow = useSharedValue(1);
@@ -276,27 +292,132 @@ function SceneLayerView({ layer, source, viewport, scale, shown, entrance, exit,
 
   const animated = useAnimatedStyle(() => ({ opacity: opacity.value, transform: [{ scale: grow.value }] }));
   const box = layerBox(layer, viewport, scale);
+  const image = (
+    <Image
+      source={source}
+      style={[StyleSheet.absoluteFill, shown || exit ? null : styles.waiting]}
+      // Each export keeps its crop's aspect ratio, so `contain` fills the box exactly and still lets
+      // the image be decoded at the displayed size instead of the file size.
+      contentFit="contain"
+      enforceEarlyResizing
+      transition={null}
+      accessible={false}
+      onLoad={onLoad}
+      onError={onError}
+      testID={`world-layer-${layer.id}`}
+    />
+  );
 
   return (
     <Animated.View
       style={[box, { transformOrigin: [(layer.anchor.x - layer.x) * scale, (layer.anchor.y - layer.y) * scale, 0] }, animated]}
       pointerEvents="none"
       testID={`world-box-${layer.id}`}>
-      <Image
-        source={source}
-        style={[StyleSheet.absoluteFill, shown || exit ? null : styles.waiting]}
-        // Each export keeps its crop's aspect ratio, so `contain` fills the box exactly and still lets
-        // the image be decoded at the displayed size instead of the file size.
-        contentFit="contain"
-        enforceEarlyResizing
-        transition={null}
-        accessible={false}
-        onLoad={onLoad}
-        onError={onError}
-        testID={`world-layer-${layer.id}`}
-      />
+      {layer.ambient ? (
+        <AmbientBox
+          layer={layer}
+          mark={layer.ambient}
+          scale={scale}
+          // A layer moves only while it is drawn (shown, or fading out), never while it waits to load.
+          running={ambient && (shown || exit !== undefined)}
+          // A new tree starts swaying only after its reveal has finished, so the pop and the sway never
+          // fight.
+          startDelayMs={entrance ? entrance.delayMs + entranceMs(entrance) : 0}>
+          {image}
+        </AmbientBox>
+      ) : (
+        image
+      )}
     </Animated.View>
   );
+}
+
+function entranceMs(entrance: LayerEntrance): number {
+  switch (entrance.kind) {
+    case 'pop':
+      return WORLD_MOTION.popMs;
+    case 'crossfade':
+      return WORLD_MOTION.crossfadeMs;
+    case 'fade':
+      return WORLD_MOTION.quietMs;
+  }
+}
+
+// Whether a layer is part of the picture at rest with these switches: the water sparkle layers
+// (invisible at rest) are left out entirely when water motion is switched off.
+function drawsAtRest(layer: SceneLayer, switches: AmbientSwitches): boolean {
+  return layer.ambient?.kind !== 'water' || ambientKindOn(switches, 'water');
+}
+
+type AmbientBoxProps = {
+  layer: SceneLayer;
+  mark: AmbientMark;
+  scale: number;
+  running: boolean;
+  startDelayMs: number;
+  children: ReactNode;
+};
+
+// Ambient motion of one layer (Phase 10.5, D90), nested inside the reveal box so a pop and a sway
+// compose instead of fighting over one transform. One shared value per layer, driven on the UI thread
+// by a repeating Reanimated timing: no React render per frame, no timer, no frame limiter. Clouds
+// drift out and back (a half-cosine each way), each water flow layer fades in and out in its turn
+// (together the streaks travel downstream, D93), a tree leans to each side from its trunk base (a sine
+// on a skew, so the base stays put and the crown moves sideways). The value is 0 at rest; when `running` turns
+// off (Home hidden, app inactive, Reduce Motion, a switch) the animation is cancelled and the layer
+// is back at rest at once, and the next start begins from rest, so it never jumps. Each layer waits
+// its phase before it starts, so layers never move in step.
+function AmbientBox({ layer, mark, scale, running, startDelayMs, children }: AmbientBoxProps) {
+  const value = useSharedValue(0);
+  // Read when motion starts; a reveal that ends later does not restart a layer that is moving.
+  const delayRef = useRef(startDelayMs);
+  useLayoutEffect(() => {
+    delayRef.current = startDelayMs;
+  });
+
+  useEffect(() => {
+    if (!running) {
+      return;
+    }
+    value.value = withDelay(delayRef.current + mark.phase * mark.periodMs, ambientLoop(mark));
+    return () => {
+      cancelAnimation(value);
+      value.value = 0;
+    };
+  }, [running, mark, value]);
+
+  const { kind } = mark;
+  const animated = useAnimatedStyle(() => {
+    switch (kind) {
+      case 'cloud':
+        return { transform: [{ translateX: value.value * scale }] };
+      case 'water':
+        return { opacity: value.value };
+      case 'sway':
+        return { transform: [{ skewX: `${value.value}deg` }] };
+    }
+  });
+  const origin =
+    mark.pivot === null ? null : { transformOrigin: [(mark.pivot.x - layer.x) * scale, (mark.pivot.y - layer.y) * scale, 0] as [number, number, number] };
+
+  return (
+    <Animated.View style={[StyleSheet.absoluteFill, origin, animated]} testID={`world-ambient-${layer.id}`}>
+      {children}
+    </Animated.View>
+  );
+}
+
+// One endless cycle of a mark, starting and ending at rest (0).
+function ambientLoop({ kind, amplitude, periodMs }: AmbientMark) {
+  const half = periodMs / 2;
+  const smooth = Easing.inOut(Easing.sin);
+  if (kind === 'sway') {
+    return withSequence(
+      withTiming(amplitude, { duration: periodMs / 4, easing: Easing.out(Easing.sin) }),
+      withRepeat(withSequence(withTiming(-amplitude, { duration: half, easing: smooth }), withTiming(amplitude, { duration: half, easing: smooth })), -1),
+    );
+  }
+  return withRepeat(withSequence(withTiming(amplitude, { duration: half, easing: smooth }), withTiming(0, { duration: half, easing: smooth })), -1);
 }
 
 function layerBox(layer: SceneLayer, viewport: Rect, scale: number): ViewStyle {

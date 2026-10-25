@@ -2,7 +2,7 @@
 
 Source art for the Free **Island** theme (docs/ASSET_SPEC.md, PRODUCT_REQUIREMENTS R10). This folder holds the editable Blender scene and the scripts that generate it. It is **not** read by the app: approved exports for the app go to the planned `assets/themes/island/` folder in Phase 09, with a manifest.
 
-Status: **all eleven states approved by the owner (24 October 2026, D76) and exported as layers for Phase 09.** The approved milestone renders are in `renders/milestones/` and the layer export in `export/`; the app bundles that export unchanged in `assets/themes/island/` (Phase 09). Next art change: Phase 10.5 (DECISIONS D90, `docs/prompts/PHASE_10_5.md`) exports clouds and water as separate layers for ambient motion; every approved stage must still stack to the same image.
+Status: **all eleven states approved by the owner (24 October 2026, D76) and exported as layers for Phase 09.** The approved milestone renders are in `renders/milestones/` and the layer export in `export/`; the app bundles that export unchanged in `assets/themes/island/` (Phase 09). Phase 10.5 (DECISIONS D90-D92) re-exported it as manifest version 2 with separate cloud, water-sparkle and per-tree layers for ambient motion; every approved stage still stacks to the same image (the renders and the scene are unchanged; the owner approved the re-export on 25 October 2026, D94).
 
 ## Layout
 
@@ -16,10 +16,12 @@ Status: **all eleven states approved by the owner (24 October 2026, D76) and exp
 | `scripts/verify_stages.py` | Per-stage checks: identical camera/lights/terrain fingerprint, unlock order (only the stage 8 house replacement removes anything), no floating pieces |
 | `scripts/milestone_report.py` | Measures the visible change between consecutive milestone renders and writes the 11-state contact sheet `renders/milestones/island_milestones_all.png` |
 | `scripts/export_layers.py` | Exports the approved milestone renders as stacked layers plus `export/island_manifest.json` and checks the rebuild |
+| `scripts/render_ambient.py` | Phase 10.5 inputs for the export: stage 0 with the clouds invisible to the camera, flat ID masks of clouds, stream, waterfall and trees, and the 16-bit water flow coordinates (`renders/ambient/`; `-- flow-only` renders just the flow pass) |
 | `export/` | Phase 09 input: `2048/` and `1536/` layer PNGs, `island_manifest.json`, `island_layers_review.png` |
 | `scripts/check_framing.py` | Reports whether a stage's geometry stays inside the fixed camera frame |
 | `source/island.blend` | Editable scene (generated, compressed) |
 | `renders/preview/` | Ad-hoc preview renders (default output of `render_preview.py`; not committed) |
+| `renders/ambient/` | Export inputs from `render_ambient.py` (committed; masks only select pixels and never ship) |
 | `renders/milestones/` | Approved milestone renders: one transparent 2048×1536 master per stage (input of `export_layers.py`) and `island_milestones_all.png` (all eleven states). The backdrop and iPhone-size review copies are made locally by `render_preview.py` / `milestone_report.py` and not committed |
 
 ## Rebuild and render
@@ -97,3 +99,17 @@ Sizes scale with the render percentage. Clouds and foam are self-lit (emission),
 - Rebuild check against the renders: mean error 0.2–0.5/255 per stage. The largest single-pixel errors (up to 112/255, about 1,000 pixels) are the thin Freestyle outline along the island's back rim, which Freestyle redraws slightly differently in every render; the layers keep the stage 0 rim line, so the rim never flickers. Visually the stacked image matches the render.
 - Sizes: `2048/` master and `1536/` (0.75, the suggested app size). Crop boxes snap to a 4 px grid, so positions scale to whole pixels. Decoded RGBA with every layer loaded: 17.4 MiB at 2048, 9.8 MiB at 1536 (ASSET_SPEC budget: about 32 MiB per world).
 - Re-render a stage only together with the stages after it, then re-run the export; never edit the exported PNGs by hand.
+
+### Ambient layers (Phase 10.5, manifest version 2)
+
+```bash
+/Applications/Blender.app/Contents/MacOS/Blender -b assets/worlds/island/source/island.blend -P assets/worlds/island/scripts/render_ambient.py
+```
+
+Run it before `export_layers.py` whenever the scene or the stage 0/7 renders change. The export then adds:
+
+- `island_base.png` without clouds (same box as the approved base, so the app's framing does not move); where a cloud covered something (the waterfall), the base takes the cloud-free render.
+- `island_cloud_1..3.png`, one per cloud: over empty sky the layer is the approved render itself; over the waterfall it holds what the cloud adds. Base + clouds = the approved stage 0 (mean 0.004/255). Over a cloud, or within 26 px of a tree of an earlier milestone, milestone pixels that did not change are dropped, so a cloud can drift under the stage 10 islet and a leaning crown leaves no still copy at a roof edge. The stacking check composes each stage as the app does (the cabin hidden from 80%).
+- `island_water_a/b/c.png`, three flow layers (D93): white streaks laid out in the water's Flow UV (`renders/ambient/island_flow_stage00.png`: U across, V along the flow, 16-bit), periodic along the flow and each a third of a period further downstream, on the stream and the waterfall; the app fades them in turn so the streaks travel downstream. They rest invisible and are left out of the stacking check.
+- Milestones 1 and 7: one part per tree (its pixels plus 9 px of outline and filter spread, from the stage 7 tree mask), with `ambient.kind = "sway"` and `pivot` at the trunk base; shadows and bushes stay in plain parts. A back tree continues 4 px under the tree in front, so trees swaying apart never show a gap.
+- `island_manifest.json`: `version` 2, the `ambient` list, `decodedBytesAmbientLayers`; `island_ambient_review.png` shows the base without clouds, the clouds, the water at full strength and the swaying trees with their pivots.

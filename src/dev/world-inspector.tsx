@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { MILESTONE_COUNT, type Stage } from '@/core/progression';
+import { AMBIENT_RELEASE_SWITCHES, setAmbientSwitches, useAmbientSwitches, type AmbientSwitches } from '@/features/worlds/ambient';
 import { sceneDescription, unlockAt, visibleLayers } from '@/features/worlds/manifest';
 import { themeManifest } from '@/features/worlds/registry';
 import { WorldScene, worldArtAspect, type SceneBackdrop } from '@/features/worlds/world-scene';
@@ -10,6 +11,7 @@ import { Screen } from '@/shared/layout';
 import { spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
+import { useAmbientMotion } from '@/shared/ui/motion-preferences';
 import { Notice } from '@/shared/ui/notice';
 import { SectionHeader } from '@/shared/ui/section-header';
 
@@ -18,11 +20,21 @@ import { SectionHeader } from '@/shared/ui/section-header';
 // real WorldScene with the bundled manifest, so what it shows is what Home shows. Reached from
 // Settings → Development only → World inspector (`/dev-world`), guarded and absent from release
 // bundles. Deep links: `?stage=0..10`, `?backdrop=sky|cream|none`, `?view=sheet`.
+//
+// Phase 10.5 (D90): the single view plays the Living Island's ambient motion under the same gate as
+// Home, and "Ambient" switches it off entirely or per effect for review and the Phase 21 on/off
+// measurement. The switches apply app-wide (Home too) until the next launch.
 
 // The export's PNGs are 0.75 of the canvas boxes; RGBA decoding is 4 bytes per pixel.
 const FILE_SCALE = 0.75;
 
 const BACKDROPS: SceneBackdrop[] = ['sky', 'cream', 'none'];
+
+const EFFECTS: { key: keyof Omit<AmbientSwitches, 'enabled'>; label: string }[] = [
+  { key: 'clouds', label: 'Clouds' },
+  { key: 'water', label: 'Water' },
+  { key: 'trees', label: 'Trees' },
+];
 
 const ALL_STAGES = Array.from({ length: MILESTONE_COUNT + 1 }, (_, stage) => stage as Stage);
 
@@ -35,6 +47,8 @@ export function WorldInspector(props: WorldInspectorProps) {
   // Phase 10: each step plays the transition Home would (+ as an unlock, − as a quiet change).
   const [animate, setAnimate] = useState(true);
   const [reveal, setReveal] = useState<SceneReveal | null>(null);
+  const ambientMotion = useAmbientMotion();
+  const switches = useAmbientSwitches();
   const step = (next: Stage) => {
     setReveal(animate ? { revision: Date.now(), mode: next > stage ? 'unlock' : 'quiet' } : null);
     setStage(next);
@@ -65,8 +79,30 @@ export function WorldInspector(props: WorldInspectorProps) {
       {view === 'single' ? (
         <>
           <View style={styles.scene}>
-            <WorldScene themeId="island" stage={stage} backdrop={backdrop} reveal={reveal} />
+            <WorldScene themeId="island" stage={stage} backdrop={backdrop} reveal={reveal} ambient={ambientMotion} />
           </View>
+          <View style={styles.row}>
+            <Button
+              label={switches.enabled ? 'Ambient on' : 'Ambient off'}
+              variant={switches.enabled ? 'primary' : 'secondary'}
+              onPress={() => setAmbientSwitches({ ...switches, enabled: !switches.enabled })}
+              testID="dev-world-ambient"
+            />
+            {EFFECTS.map(({ key, label }) => (
+              <Button
+                key={key}
+                label={label}
+                variant={switches.enabled && switches[key] ? 'primary' : 'secondary'}
+                disabled={!switches.enabled}
+                onPress={() => setAmbientSwitches({ ...switches, [key]: !switches[key] })}
+                testID={`dev-world-ambient-${key}`}
+              />
+            ))}
+            <Button label="Reset" variant="plain" onPress={() => setAmbientSwitches(AMBIENT_RELEASE_SWITCHES)} testID="dev-world-ambient-reset" />
+          </View>
+          <AppText role="footnote" tone="secondary" testID="dev-world-ambient-state">
+            {ambientMotion ? 'Ambient gate open (visible, active, no Reduce Motion)' : 'Ambient gate closed: the Island is still'}
+          </AppText>
           <View style={styles.row}>
             <Button label="−" variant="secondary" disabled={stage === 0} onPress={() => step((stage - 1) as Stage)} />
             <Button label="+" variant="secondary" disabled={stage === MILESTONE_COUNT} onPress={() => step((stage + 1) as Stage)} />

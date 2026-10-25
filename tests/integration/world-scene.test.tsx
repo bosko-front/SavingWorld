@@ -70,17 +70,17 @@ describe('WorldScene', () => {
     expect(screen.getByTestId('world-scene')).toHaveStyle({ width, height: 300, borderRadius: 24 });
     expect(shownLayers()).toEqual(expectedLayers(4));
     // The box shows the art's viewport (every stage's layers plus 12 canvas units), not the whole
-    // canvas. first_tree_1 is at (684, 44), 676 × 456.
+    // canvas. first_tree_1 (the tree itself since Phase 10.5) is at (796, 44), 320 × 280.
     const result = themeManifest('island');
     if (!result.ok) throw new Error('island invalid');
     const viewport = sceneViewport(result.manifest, 12);
     const scale = width / viewport.width;
     expect(screen.getByTestId('world-box-first_tree_1')).toHaveStyle({
       position: 'absolute',
-      left: (684 - viewport.x) * scale,
+      left: (796 - viewport.x) * scale,
       top: (44 - viewport.y) * scale,
-      width: 676 * scale,
-      height: 456 * scale,
+      width: 320 * scale,
+      height: 280 * scale,
     });
   });
 
@@ -208,7 +208,7 @@ describe('WorldScene', () => {
     await render(<WorldScene themeId="island" stage={0} decorative backdrop="none" />);
     await measure(320, 240);
     expect(screen.getByTestId('world-scene', { includeHiddenElements: true }).props.accessible).toBe(false);
-    expect(shownLayers()).toEqual(['empty_island']);
+    expect(shownLayers()).toEqual(expectedLayers(0));
   });
 });
 
@@ -285,7 +285,7 @@ describe('Home shows the ledger’s stage', () => {
     // Decorative: inside the floating empty-state picture, hidden from VoiceOver (Phase 10, D69).
     expect(screen.getByTestId('home-empty-world', { includeHiddenElements: true })).toBeOnTheScreen();
     await measure(320, 240);
-    expect(shownLayers()).toEqual(['empty_island']);
+    expect(shownLayers()).toEqual(expectedLayers(0));
     expect(screen.getByTestId('world-scene', { includeHiddenElements: true }).props.accessible).toBe(false);
   });
 });

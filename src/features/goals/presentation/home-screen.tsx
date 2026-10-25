@@ -17,6 +17,7 @@ import { AmbientSparkles, type SparkleSpot } from '@/shared/ui/ambient-float';
 import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
 import { useCountUp } from '@/shared/ui/count-up';
+import { useAmbientMotion } from '@/shared/ui/motion-preferences';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { haptics } from '@/shared/ui/haptics';
 import { Icon } from '@/shared/ui/icon';
@@ -106,6 +107,9 @@ function SelectedGoalHome({ summary, dashboard, open, canCreate }: SelectedGoalH
     targetMinor: goal.targetMinor,
     revision,
   });
+  // Living Island (Phase 10.5, D90): clouds, water sparkle and trees move only while Home is focused,
+  // the app is active and Reduce Motion is off.
+  const ambientMotion = useAmbientMotion();
   const action = useGoalAction();
   const { deleting, confirmDelete } = useDeleteGoal();
   const busy = action.pending?.goalId === goal.id || deleting === goal.id;
@@ -121,7 +125,13 @@ function SelectedGoalHome({ summary, dashboard, open, canCreate }: SelectedGoalH
       // sheet, or the unlock moment would play off screen.
       keyboard="none"
       scene={
-        <WorldScene themeId={goal.themeId} stage={motion.stage} upcomingStage={motion.upcomingStage} reveal={motion.reveal} fill>
+        <WorldScene
+          themeId={goal.themeId}
+          stage={motion.stage}
+          upcomingStage={motion.upcomingStage}
+          reveal={motion.reveal}
+          ambient={ambientMotion}
+          fill>
           {motion.banner ? <UnlockBanner banner={motion.banner} onDismiss={motion.dismissBanner} /> : null}
         </WorldScene>
       }
@@ -155,7 +165,8 @@ function LoadFailed() {
 // No open goal. A finished goal (Phase 11) still counts toward Free's one goal (D74), so Free is told
 // where it is and what the two ways forward are instead of being sent to a form that would refuse.
 // The picture is the empty Island (stage 0, D76 base layer), floating gently with a soft sparkle while
-// Home is visible (D69, Phase 10).
+// Home is visible (D69, Phase 10). It keeps that float and no ambient motion of its own (Phase 10.5):
+// one gentle movement for a small picture is enough.
 function EmptyHome({ completedCount, canCreate }: { completedCount: number; canCreate: boolean }) {
   return (
     <EmptyState

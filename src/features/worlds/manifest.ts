@@ -13,6 +13,31 @@ export type Point = { x: number; y: number };
 
 export type Rect = { x: number; y: number; width: number; height: number };
 
+// Ambient motion (Phase 10.5, D90): what a layer does while Home is visible and the app is active.
+// Clouds drift sideways and back, the water sparkle layers pulse in and out, trees sway around their
+// trunk base. Every value is 0 at rest, so a still scene is exactly the approved picture.
+export type AmbientKind = 'cloud' | 'water' | 'sway';
+
+export type AmbientMark = {
+  kind: AmbientKind;
+  // cloud: the farthest drift in canvas units (the sign is the direction; it drifts out and back);
+  // water: the brightest opacity (0 at rest); sway: the largest lean in degrees either side (a skew
+  // from the pivot, so the trunk base stays put and the crown moves sideways).
+  amplitude: number;
+  // One full cycle.
+  periodMs: number;
+  // How far into a period the layer waits before it starts (0..1), so layers never move in step.
+  phase: number;
+  // sway only: the point the tree turns around (where the trunk meets the ground), in canvas units.
+  pivot: Point | null;
+};
+
+// Ranges a mark must stay in: calm motion only (D90).
+export const AMBIENT_LIMITS = {
+  periodMs: { min: 2000, max: 120000 },
+  amplitude: { cloud: 160, water: 1, sway: 8 },
+} as const;
+
 export type SceneLayer = {
   // Stable id, unique within the manifest (Phase 10 animates layers by id).
   id: string;
@@ -29,6 +54,8 @@ export type SceneLayer = {
   z: number;
   // A side effect of another object (a shadow or outline shift) that shows without its own reveal.
   incidental: boolean;
+  // Ambient motion of this layer, or null for a layer that never moves on its own.
+  ambient: AmbientMark | null;
 };
 
 export type Milestone = Exclude<Stage, 0>;
@@ -77,6 +104,7 @@ export function validateManifest(manifest: ThemeManifest): string[] {
 
   const layerOwner = new Map<string, number>();
   const zValues = new Set<number>();
+  const bounds = layerBounds(manifest);
   const checkLayer = (layer: SceneLayer, owner: number) => {
     const where = `layer ${layer.id || '(no id)'}`;
     if (!layer.id) {
@@ -103,6 +131,9 @@ export function validateManifest(manifest: ThemeManifest): string[] {
       problems.push(`${where}: duplicate z ${layer.z}`);
     }
     zValues.add(layer.z);
+    if (layer.ambient) {
+      problems.push(...ambientProblems(layer, owner, bounds).map((problem) => `${where}: ${problem}`));
+    }
   };
 
   if (manifest.base.layers.length === 0) {
@@ -153,6 +184,54 @@ export function validateManifest(manifest: ThemeManifest): string[] {
   return problems;
 }
 
+// What is wrong with a layer's ambient mark. Clouds and water belong to the base (always drawn); a
+// sway belongs to one tree of an unlock and turns around a pivot inside its layer. A cloud drifts only
+// inside the art's bounds, so it never leaves the sky the scene frames.
+function ambientProblems(layer: SceneLayer, owner: number, bounds: Rect): string[] {
+  const mark = layer.ambient;
+  if (!mark) {
+    return [];
+  }
+  const problems: string[] = [];
+  const { kind, amplitude, periodMs, phase, pivot } = mark;
+  if (!Object.prototype.hasOwnProperty.call(AMBIENT_LIMITS.amplitude, kind)) {
+    return [`unknown ambient kind ${String(kind)}`];
+  }
+  const limit = AMBIENT_LIMITS.amplitude[kind];
+  const size = Math.abs(amplitude);
+  if (!(size > 0 && size <= limit) || (kind !== 'cloud' && amplitude < 0)) {
+    problems.push(`${kind} amplitude ${amplitude} outside 0..${limit}`);
+  }
+  if (!(periodMs >= AMBIENT_LIMITS.periodMs.min && periodMs <= AMBIENT_LIMITS.periodMs.max)) {
+    problems.push(`ambient period ${periodMs} ms outside ${AMBIENT_LIMITS.periodMs.min}..${AMBIENT_LIMITS.periodMs.max}`);
+  }
+  if (!(phase >= 0 && phase < 1)) {
+    problems.push(`ambient phase ${phase} outside 0..1`);
+  }
+  if (kind === 'sway') {
+    if (owner === 0) {
+      problems.push('a sway belongs to an unlock layer, not the base');
+    }
+    if (layer.incidental) {
+      problems.push('an incidental layer cannot sway');
+    }
+    if (!pivot || pivot.x < layer.x || pivot.x > layer.x + layer.width || pivot.y < layer.y || pivot.y > layer.y + layer.height) {
+      problems.push('sway pivot missing or outside the layer');
+    }
+  } else {
+    if (owner !== 0) {
+      problems.push(`a ${kind} layer belongs to the base`);
+    }
+    if (pivot) {
+      problems.push(`a ${kind} layer has no pivot`);
+    }
+  }
+  if (kind === 'cloud' && (layer.x + Math.min(0, amplitude) < bounds.x || layer.x + layer.width + Math.max(0, amplitude) > bounds.x + bounds.width)) {
+    problems.push('cloud drifts outside the art');
+  }
+  return problems;
+}
+
 // The layers drawn at `stage`, bottom first: the base, then every unlock up to the stage, minus the
 // layers a reached unlock removes. Stage comes from the shared stage function; nothing here knows
 // about money.
@@ -182,10 +261,23 @@ export function sceneDescription(manifest: ThemeManifest, stage: Stage): string 
 // off. Its aspect ratio is the art's own (about 1.2 for the Island), not the canvas's.
 export function sceneViewport(manifest: ThemeManifest, margin: number): Rect {
   const { canvas } = manifest;
+  const art = layerBounds(manifest);
+  const left = Math.max(0, art.x - margin);
+  const top = Math.max(0, art.y - margin);
+  const right = Math.min(canvas.width, art.x + art.width + margin);
+  const bottom = Math.min(canvas.height, art.y + art.height + margin);
+  return { x: left, y: top, width: right - left, height: bottom - top };
+}
+
+// The bounds of every layer of every stage.
+function layerBounds(manifest: ThemeManifest): Rect {
   const layers = [...manifest.base.layers, ...manifest.unlocks.flatMap((unlock) => unlock.adds)];
-  const left = Math.max(0, Math.min(...layers.map((layer) => layer.x)) - margin);
-  const top = Math.max(0, Math.min(...layers.map((layer) => layer.y)) - margin);
-  const right = Math.min(canvas.width, Math.max(...layers.map((layer) => layer.x + layer.width)) + margin);
-  const bottom = Math.min(canvas.height, Math.max(...layers.map((layer) => layer.y + layer.height)) + margin);
+  if (layers.length === 0) {
+    return { x: 0, y: 0, width: 0, height: 0 };
+  }
+  const left = Math.min(...layers.map((layer) => layer.x));
+  const top = Math.min(...layers.map((layer) => layer.y));
+  const right = Math.max(...layers.map((layer) => layer.x + layer.width));
+  const bottom = Math.max(...layers.map((layer) => layer.y + layer.height));
   return { x: left, y: top, width: right - left, height: bottom - top };
 }

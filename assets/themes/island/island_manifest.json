@@ -1,6 +1,6 @@
 {
   "themeId": "island",
-  "version": 1,
+  "version": 2,
   "canvas": {
     "width": 2048,
     "height": 1536,
@@ -26,6 +26,74 @@
     "width": 1436,
     "height": 1168
   },
+  "ambient": [
+    {
+      "id": "cloud_1",
+      "file": "island_cloud_1.png",
+      "x": 232,
+      "y": 944,
+      "width": 204,
+      "height": 140,
+      "ambient": {
+        "kind": "cloud"
+      }
+    },
+    {
+      "id": "cloud_2",
+      "file": "island_cloud_2.png",
+      "x": 496,
+      "y": 1176,
+      "width": 156,
+      "height": 128,
+      "ambient": {
+        "kind": "cloud"
+      }
+    },
+    {
+      "id": "cloud_3",
+      "file": "island_cloud_3.png",
+      "x": 1460,
+      "y": 1192,
+      "width": 200,
+      "height": 168,
+      "ambient": {
+        "kind": "cloud"
+      }
+    },
+    {
+      "id": "water_a",
+      "file": "island_water_a.png",
+      "x": 548,
+      "y": 400,
+      "width": 636,
+      "height": 944,
+      "ambient": {
+        "kind": "water"
+      }
+    },
+    {
+      "id": "water_b",
+      "file": "island_water_b.png",
+      "x": 548,
+      "y": 400,
+      "width": 636,
+      "height": 948,
+      "ambient": {
+        "kind": "water"
+      }
+    },
+    {
+      "id": "water_c",
+      "file": "island_water_c.png",
+      "x": 548,
+      "y": 400,
+      "width": 636,
+      "height": 936,
+      "ambient": {
+        "kind": "water"
+      }
+    }
+  ],
   "unlocks": [
     {
       "milestone": 1,
@@ -37,19 +105,39 @@
         {
           "id": "first_tree_1",
           "file": "island_s01_p1.png",
-          "x": 684,
+          "x": 796,
           "y": 44,
-          "width": 676,
-          "height": 456,
+          "width": 320,
+          "height": 280,
           "anchor": {
-            "x": 993,
+            "x": 923,
+            "y": 309
+          },
+          "incidental": false,
+          "ambient": {
+            "kind": "sway",
+            "pivot": {
+              "x": 923,
+              "y": 309
+            }
+          }
+        },
+        {
+          "id": "first_tree_2",
+          "file": "island_s01_p2.png",
+          "x": 684,
+          "y": 248,
+          "width": 676,
+          "height": 252,
+          "anchor": {
+            "x": 1017,
             "y": 492
           },
           "incidental": false
         },
         {
-          "id": "first_tree_2",
-          "file": "island_s01_p2.png",
+          "id": "first_tree_3",
+          "file": "island_s01_p3.png",
           "x": 964,
           "y": 600,
           "width": 112,
@@ -293,41 +381,214 @@
         {
           "id": "more_trees_1",
           "file": "island_s07_p1.png",
-          "x": 436,
-          "y": 232,
-          "width": 508,
-          "height": 432,
+          "x": 1100,
+          "y": 188,
+          "width": 232,
+          "height": 216,
           "anchor": {
-            "x": 658,
+            "x": 1229,
+            "y": 388
+          },
+          "incidental": false,
+          "ambient": {
+            "kind": "sway",
+            "pivot": {
+              "x": 1229,
+              "y": 388
+            }
+          }
+        },
+        {
+          "id": "more_trees_2",
+          "file": "island_s07_p2.png",
+          "x": 628,
+          "y": 232,
+          "width": 160,
+          "height": 240,
+          "anchor": {
+            "x": 713,
+            "y": 456
+          },
+          "incidental": false,
+          "ambient": {
+            "kind": "sway",
+            "pivot": {
+              "x": 713,
+              "y": 456
+            }
+          }
+        },
+        {
+          "id": "more_trees_3",
+          "file": "island_s07_p3.png",
+          "x": 436,
+          "y": 328,
+          "width": 508,
+          "height": 336,
+          "anchor": {
+            "x": 691,
             "y": 659
           },
           "incidental": false
         },
         {
-          "id": "more_trees_2",
-          "file": "island_s07_p2.png",
+          "id": "more_trees_4",
+          "file": "island_s07_p4.png",
           "x": 1028,
-          "y": 188,
-          "width": 640,
-          "height": 832,
+          "y": 364,
+          "width": 396,
+          "height": 332,
           "anchor": {
-            "x": 1354,
+            "x": 1281,
+            "y": 689
+          },
+          "incidental": false
+        },
+        {
+          "id": "more_trees_5",
+          "file": "island_s07_p5.png",
+          "x": 496,
+          "y": 380,
+          "width": 132,
+          "height": 168,
+          "anchor": {
+            "x": 553,
+            "y": 537
+          },
+          "incidental": false,
+          "ambient": {
+            "kind": "sway",
+            "pivot": {
+              "x": 553,
+              "y": 537
+            }
+          }
+        },
+        {
+          "id": "more_trees_6",
+          "file": "island_s07_p6.png",
+          "x": 1308,
+          "y": 348,
+          "width": 176,
+          "height": 244,
+          "anchor": {
+            "x": 1394,
+            "y": 575
+          },
+          "incidental": false,
+          "ambient": {
+            "kind": "sway",
+            "pivot": {
+              "x": 1394,
+              "y": 575
+            }
+          }
+        },
+        {
+          "id": "more_trees_7",
+          "file": "island_s07_p7.png",
+          "x": 496,
+          "y": 456,
+          "width": 136,
+          "height": 192,
+          "anchor": {
+            "x": 565,
+            "y": 632
+          },
+          "incidental": false,
+          "ambient": {
+            "kind": "sway",
+            "pivot": {
+              "x": 565,
+              "y": 632
+            }
+          }
+        },
+        {
+          "id": "more_trees_8",
+          "file": "island_s07_p8.png",
+          "x": 1408,
+          "y": 496,
+          "width": 212,
+          "height": 268,
+          "anchor": {
+            "x": 1508,
+            "y": 749
+          },
+          "incidental": false,
+          "ambient": {
+            "kind": "sway",
+            "pivot": {
+              "x": 1508,
+              "y": 749
+            }
+          }
+        },
+        {
+          "id": "more_trees_9",
+          "file": "island_s07_p9.png",
+          "x": 1112,
+          "y": 672,
+          "width": 556,
+          "height": 348,
+          "anchor": {
+            "x": 1394,
             "y": 1012
           },
           "incidental": false
         },
         {
-          "id": "more_trees_3",
-          "file": "island_s07_p3.png",
-          "x": 852,
-          "y": 876,
-          "width": 304,
+          "id": "more_trees_10",
+          "file": "island_s07_p10.png",
+          "x": 1172,
+          "y": 740,
+          "width": 200,
           "height": 216,
           "anchor": {
-            "x": 973,
+            "x": 1271,
+            "y": 941
+          },
+          "incidental": false,
+          "ambient": {
+            "kind": "sway",
+            "pivot": {
+              "x": 1271,
+              "y": 941
+            }
+          }
+        },
+        {
+          "id": "more_trees_11",
+          "file": "island_s07_p11.png",
+          "x": 852,
+          "y": 984,
+          "width": 304,
+          "height": 108,
+          "anchor": {
+            "x": 1008,
             "y": 1086
           },
           "incidental": false
+        },
+        {
+          "id": "more_trees_12",
+          "file": "island_s07_p12.png",
+          "x": 880,
+          "y": 876,
+          "width": 128,
+          "height": 200,
+          "anchor": {
+            "x": 946,
+            "y": 1061
+          },
+          "incidental": false,
+          "ambient": {
+            "kind": "sway",
+            "pivot": {
+              "x": 946,
+              "y": 1061
+            }
+          }
         }
       ],
       "hides": []
@@ -549,77 +810,88 @@
   ],
   "provenance": {
     "source": "assets/worlds/island (Blender 5.2.3 LTS, procedural, no third-party assets)",
-    "decision": "D76",
+    "decision": "D76; ambient layers D90 (Phase 10.5)",
     "approved": "2026-10-24, owner approved all eleven states",
     "renders": "Cycles 256 samples + swi/stylize.py storybook pass, 2048x1536",
+    "ambientInputs": "renders/ambient from scripts/render_ambient.py: stage 0 with the clouds invisible to the camera (same rig, samples and storybook pass) and flat ID masks of the clouds, stream, waterfall (stage 0) and trees (stage 7)",
     "sourceBlendSha256": "90f6e62fac34136f",
     "rebuildErrorPer255": [
       {
+        "stage": 0,
+        "mean": 0.002,
+        "p999": 0.0,
+        "max": 31.6
+      },
+      {
         "stage": 1,
-        "mean": 0.177,
+        "mean": 0.179,
         "p999": 10.0,
         "max": 65.8
       },
       {
         "stage": 2,
-        "mean": 0.185,
+        "mean": 0.187,
         "p999": 10.0,
         "max": 65.8
       },
       {
         "stage": 3,
-        "mean": 0.239,
-        "p999": 10.6,
+        "mean": 0.241,
+        "p999": 11.0,
         "max": 65.8
       },
       {
         "stage": 4,
-        "mean": 0.355,
-        "p999": 14.0,
-        "max": 98.8
+        "mean": 0.359,
+        "p999": 15.0,
+        "max": 66.5
       },
       {
         "stage": 5,
-        "mean": 0.378,
-        "p999": 14.0,
-        "max": 98.8
+        "mean": 0.381,
+        "p999": 15.0,
+        "max": 66.5
       },
       {
         "stage": 6,
-        "mean": 0.385,
-        "p999": 14.0,
-        "max": 98.8
+        "mean": 0.388,
+        "p999": 15.0,
+        "max": 66.5
       },
       {
         "stage": 7,
-        "mean": 0.472,
+        "mean": 0.475,
         "p999": 16.0,
-        "max": 98.8
+        "max": 98.1
       },
       {
         "stage": 8,
-        "mean": 0.518,
+        "mean": 0.521,
         "p999": 17.0,
-        "max": 112.2
+        "max": 98.1
       },
       {
         "stage": 9,
-        "mean": 0.497,
-        "p999": 15.9,
-        "max": 112.2
+        "mean": 0.502,
+        "p999": 15.5,
+        "max": 98.1
       },
       {
         "stage": 10,
-        "mean": 0.501,
+        "mean": 0.51,
         "p999": 16.0,
-        "max": 112.2
+        "max": 98.1
       }
     ],
-    "stackRule": "Draw base, then the layers of milestones 1..n in order. A milestone with hiddenFromMilestone may be hidden from that milestone on; the later layer already covers it. Positions are top-left in the 2048x1536 canvas; scale them for other sizes. anchor is the ground point to grow a part from; incidental parts are side effects (shadow or outline shifts) to show without animation.",
+    "stackRule": "Draw base, then the ambient layers, then the layers of milestones 1..n in order. Cloud layers rest where they are; water layers rest at opacity 0 (invisible). A milestone with hiddenFromMilestone may be hidden from that milestone on; the later layer already covers it. Positions are top-left in the 2048x1536 canvas; scale them for other sizes. anchor is the ground point to grow a part from; incidental parts are side effects (shadow or outline shifts) to show without animation. A layer with ambient.kind 'sway' is one tree; ambient.pivot is its trunk base, the point it sways around.",
     "knownDifference": "The thin Freestyle outline along the island's back rim is redrawn slightly differently in every render; the layers keep the stage 0 rim line, so the rim never flickers between stages. This is the max-error figure below; visually the stacked image matches."
   },
   "decodedBytesAllLayers": {
-    "2048": 18211264,
-    "1536": 10243836
+    "2048": 25605952,
+    "1536": 14403348
+  },
+  "decodedBytesAmbientLayers": {
+    "2048": 7522944,
+    "1536": 4231656
   }
 }
