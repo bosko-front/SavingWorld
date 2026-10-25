@@ -2,6 +2,7 @@ import { stageFor, type Stage } from '@/core/progression';
 import { type Milestone, type ThemeManifest } from '@/features/worlds/manifest';
 import { stageName, themeManifest } from '@/features/worlds/registry';
 import {
+  celebrates,
   initialWorldMotion,
   latestSnapshot,
   layerMotion,
@@ -27,7 +28,7 @@ import { fillColorStops, progressFillColor } from '@/shared/ui/progress-bar';
 const TARGET = 100_000; // €1,000.00: stage k starts at k × €100.
 
 function snap(balanceMinor: number, revision: number, overrides: Partial<SceneSnapshot> = {}): SceneSnapshot {
-  return { goalId: 'g1', themeId: 'island', balanceMinor, targetMinor: TARGET, revision, ...overrides };
+  return { goalId: 'g1', themeId: 'island', balanceMinor, targetMinor: TARGET, souvenir: false, revision, ...overrides };
 }
 
 function island(): ThemeManifest {
@@ -315,6 +316,52 @@ describe('unlockMessage', () => {
 
   it('a theme without art says the percentage', () => {
     expect(unlockMessage([4], () => null)).toMatchObject({ detail: '40% reached' });
+  });
+
+  it('the first 100% names the complete world and its souvenir instead of the milestones (Phase 11)', () => {
+    expect(unlockMessage([9, 10], name, { themeId: 'island' })).toEqual({
+      title: 'Your island is complete!',
+      detail: 'Its souvenir is now in your Collection.',
+      announcement: 'Your island is complete! Its souvenir is now in your Collection.',
+    });
+    expect(unlockMessage([], () => null, { themeId: 'garden' }).title).toBe('Your garden is complete!');
+  });
+});
+
+describe('the souvenir moment (Phase 11)', () => {
+  const funded = (balance: number, revision: number, souvenir: boolean) => snap(balance, revision, { souvenir });
+
+  it('marks only the change that newly holds a souvenir', () => {
+    const first = planWorldTransition(funded(95_000, 1, false), funded(100_000, 2, true));
+    expect(first).toMatchObject({ kind: 'unlock', toStage: 10, unlocked: [10], souvenir: true });
+    expect(first && celebrates(first)).toBe(true);
+    // Crossing 100% again later: an ordinary unlock.
+    expect(planWorldTransition(funded(95_000, 3, true), funded(100_000, 4, true))).toMatchObject({ kind: 'unlock', souvenir: false });
+    // A withdrawal never celebrates.
+    const down = planWorldTransition(funded(100_000, 5, true), funded(90_000, 6, true));
+    expect(down).toMatchObject({ kind: 'quiet', souvenir: false });
+    expect(down && celebrates(down)).toBe(false);
+  });
+
+  it('a lower target that earns it is quiet but still has its message', () => {
+    const lower = planWorldTransition(snap(60_000, 1), snap(60_000, 2, { targetMinor: 60_000, souvenir: true }));
+    expect(lower).toMatchObject({ kind: 'quiet', souvenir: true });
+    expect(lower && celebrates(lower)).toBe(true);
+  });
+
+  it('a deposit to 100% and a withdrawal coalesced before the start keep the souvenir message', () => {
+    let state = initialWorldMotion(funded(95_000, 1, false));
+    state = worldMotionReducer(state, { type: 'commit', snapshot: funded(100_000, 2, true) });
+    state = worldMotionReducer(state, { type: 'commit', snapshot: funded(97_000, 3, true) });
+    expect(state.transition).toMatchObject({ kind: 'progress', souvenir: true });
+    state = worldMotionReducer(state, { type: 'celebrate', revision: 3 });
+    expect(state.celebration).toMatchObject({ revision: 3, souvenir: true, unlocked: [] });
+  });
+
+  it('a launch with the souvenir stored plans nothing', () => {
+    const state = initialWorldMotion(funded(100_000, 1, true));
+    expect(state.transition).toBeNull();
+    expect(worldMotionReducer(state, { type: 'celebrate', revision: 1 }).celebration).toBeNull();
   });
 });
 

@@ -47,6 +47,7 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 - No custom definition/form, schedule versions, editable target/frequency, challenge pause, evidence links or challenge reminder.
 - Amounts use global minor units; calendar logic uses saved timezone/period.
 - Historical marker is independent of corrected Completed/Not completed result; never return it to active automatically.
+- Expose a typed attempt view for Phase 13's quest cards (rule, availability and its reason, frozen target, eligible progress, saved period, historical result and, for Next milestone, the milestone it aims at), so the UI presents quests without recomputing rules (owner design direction D97).
 
 ## Acceptance criteria
 

@@ -9,7 +9,7 @@ import type { IdGenerator } from '@/data/ids';
 import { getGoal, updateGoalStatus } from '@/data/repositories/goal-repository';
 import { getEntry } from '@/data/repositories/ledger-repository';
 import { writeCurrency } from '@/data/repositories/settings-repository';
-import { createGoal, deleteGoal, pauseGoal, type GoalCommandDeps } from '@/features/goals/application/goal-commands';
+import { createGoal, deleteGoal, finishGoal, pauseGoal, type GoalCommandDeps } from '@/features/goals/application/goal-commands';
 import { readGoalsOverview } from '@/features/goals/application/goal-queries';
 import { selectGoal } from '@/features/goals/application/goal-selection';
 import {
@@ -172,7 +172,7 @@ export async function mustCreate(h: Harness, kind: EntryValuesInput['kind'], amo
   return result.value;
 }
 
-const EXPECTED_TABLES = ['goals', 'ledger_entries', 'migrations', 'operation_receipts', 'settings'];
+const EXPECTED_TABLES = ['collectibles', 'goals', 'ledger_entries', 'migrations', 'operation_receipts', 'settings'];
 
 export const DATABASE_SCENARIOS: Scenario[] = [
   {
@@ -181,7 +181,7 @@ export const DATABASE_SCENARIOS: Scenario[] = [
     run: (context) =>
       withSession(context, async (s) => {
         const db = await s.openDb(s.name('fresh'));
-        equal(db.migration, { fromVersion: 0, toVersion: 2, applied: [1, 2] }, 'migration outcome');
+        equal(db.migration, { fromVersion: 0, toVersion: 3, applied: [1, 2, 3] }, 'migration outcome');
         const pragmas = await db.pragmas();
         equal(pragmas.writer.journalMode.toLowerCase(), 'wal', 'writer journal_mode');
         equal(pragmas.writer.foreignKeys, true, 'writer foreign_keys');
@@ -221,7 +221,7 @@ export const DATABASE_SCENARIOS: Scenario[] = [
         })();
         for (let i = 0; i < 3; i += 1) {
           const db = await s.openDb(h.name);
-          equal(db.migration, { fromVersion: 2, toVersion: 2, applied: [] }, `reopen ${i + 1} migration outcome`);
+          equal(db.migration, { fromVersion: 3, toVersion: 3, applied: [] }, `reopen ${i + 1} migration outcome`);
           const ledger = await readGoalLedger(db, h.goalId);
           equal(ledger?.balanceMinor, 3_750, `reopen ${i + 1} balance`);
           equal(ledger?.entries.map((e) => e.note), ['first', null], `reopen ${i + 1} notes`);
@@ -231,6 +231,7 @@ export const DATABASE_SCENARIOS: Scenario[] = [
             [
               { version: 1, applied_at_utc: firstAppliedAt },
               { version: 2, applied_at_utc: firstAppliedAt },
+              { version: 3, applied_at_utc: firstAppliedAt },
             ],
             `reopen ${i + 1} history unchanged`,
           );
@@ -247,13 +248,13 @@ export const DATABASE_SCENARIOS: Scenario[] = [
         await mustCreate(h, 'deposit', 9_999, '2026-10-22', 'keep me');
         await h.db.close();
         const broken: Migration = {
-          version: 3,
+          version: 4,
           name: 'broken_upgrade',
           sql: 'CREATE TABLE upgrade_probe (id TEXT PRIMARY KEY) STRICT; UPDATE ledger_entries SET note = NULL; INSERT INTO missing_table VALUES (1);',
         };
-        await rejects(s.openDb(h.name, [...MIGRATIONS, broken]), /migration_failed|Migration 3 failed/, 'broken migration');
+        await rejects(s.openDb(h.name, [...MIGRATIONS, broken]), /migration_failed|Migration 4 failed/, 'broken migration');
         const db = await s.openDb(h.name);
-        equal(db.migration.applied, [], 'still schema 2');
+        equal(db.migration.applied, [], 'still schema 3');
         const state = await db.read(async (r) => ({
           tables: await tableNames(r),
           notes: (await r.all<{ note: string | null }>('SELECT note FROM ledger_entries')).map((row) => row.note),
@@ -261,9 +262,9 @@ export const DATABASE_SCENARIOS: Scenario[] = [
         equal(state.tables, EXPECTED_TABLES, 'no partial upgrade table');
         equal(state.notes, ['keep me'], 'data untouched by the failed migration');
         await db.close();
-        const good: Migration = { version: 3, name: 'probe_upgrade', sql: 'CREATE TABLE upgrade_probe (id TEXT PRIMARY KEY) STRICT;' };
+        const good: Migration = { version: 4, name: 'probe_upgrade', sql: 'CREATE TABLE upgrade_probe (id TEXT PRIMARY KEY) STRICT;' };
         const upgraded = await s.openDb(h.name, [...MIGRATIONS, good]);
-        equal(upgraded.migration, { fromVersion: 2, toVersion: 3, applied: [3] }, 'upgrade outcome');
+        equal(upgraded.migration, { fromVersion: 3, toVersion: 4, applied: [4] }, 'upgrade outcome');
         equal((await readGoalLedger(upgraded, h.goalId))?.balanceMinor, 9_999, 'balance after upgrade');
       }),
   },
@@ -276,13 +277,13 @@ export const DATABASE_SCENARIOS: Scenario[] = [
         await mustCreate(h, 'deposit', 4_200, '2026-10-22');
         await h.db.close();
         const raw = await s.raw(h.name);
-        await raw.run("INSERT INTO migrations VALUES (3, 'from_the_future', 'ffff', '2027-01-01T00:00:00.000Z')");
+        await raw.run("INSERT INTO migrations VALUES (4, 'from_the_future', 'ffff', '2027-01-01T00:00:00.000Z')");
         await raw.close();
         await rejects(s.openDb(h.name), /newer_schema|newer than supported/, 'newer schema');
         const after = await s.raw(h.name);
         equal(await count(after, 'ledger_entries'), 1, 'entries kept after newer-schema refusal');
-        equal(await count(after, 'migrations'), 3, 'history kept');
-        await after.run('DELETE FROM migrations WHERE version = 3');
+        equal(await count(after, 'migrations'), 4, 'history kept');
+        await after.run('DELETE FROM migrations WHERE version = 4');
         await after.close();
 
         const edited: Migration = { ...MIGRATIONS[0]!, sql: `${MIGRATIONS[0]!.sql}\n-- edited` };
@@ -680,6 +681,8 @@ export const DATABASE_SCENARIOS: Scenario[] = [
 const RESTART_NOTE = 'Ünïcødé ✓ survives restart';
 const RESTART_WITHDRAWAL_OP = 'op-r-20-unacknowledged';
 const RESTART_WITHDRAWAL = values('withdrawal', 2_000, '2026-10-05');
+const RESTART_SOUVENIR_OP = 'op-r-souvenir-unacknowledged';
+const RESTART_SOUVENIR_DEPOSIT = values('deposit', 20_000, '2026-10-06');
 
 export function restartDatabaseName(seedId: string): string {
   return `dbtest-restart-${seedId}.db`;
@@ -717,6 +720,13 @@ export function restartSeedScenario(seedId: string): Scenario {
       check((await createEntry(deps, { operationId: 'op-r-50', goalId: paused.value.goalId, ...fifty.value })).ok, 'deposit 50');
       await createEntry(deps, { operationId: RESTART_WITHDRAWAL_OP, goalId: paused.value.goalId, ...RESTART_WITHDRAWAL });
       check((await pauseGoal(pro, { operationId: 'op-r-pause', goalId: paused.value.goalId, expectedRevision: 1 })).ok, 'pause');
+      // Phase 11: a goal funded by a deposit whose result is dropped (the souvenir commits with it),
+      // then finished. R2 retries that deposit after the restart: it replays without a second
+      // souvenir or a second first-award moment.
+      const finished = await createGoal(pro, { operationId: 'op-r-goal-4', title: 'Finished bike', targetMinor: 20_000, deadlineDate: null, themeId: 'island' });
+      check(finished.ok, 'finished goal');
+      await createEntry(deps, { operationId: RESTART_SOUVENIR_OP, goalId: finished.value.goalId, ...RESTART_SOUVENIR_DEPOSIT });
+      check((await finishGoal(pro, { operationId: 'op-r-finish', goalId: finished.value.goalId, expectedRevision: 1 })).ok, 'finish');
       await db.close();
       return { database: restartDatabaseName(seedId), goalId, balanceMinor: 10_000 };
     },
@@ -732,12 +742,13 @@ export function restartVerifyScenario(seedId: string): Scenario {
       const clock = steppingClock();
       const db = await AppDatabase.open({ driver: context.driver, name, migrations: MIGRATIONS, clock });
       try {
-        equal(db.migration, { fromVersion: 2, toVersion: 2, applied: [] }, 'no re-migration');
+        equal(db.migration, { fromVersion: 3, toVersion: 3, applied: [] }, 'no re-migration');
         const state = await db.read(async (r) => ({
           currency: (await r.get<{ value_json: string }>("SELECT value_json FROM settings WHERE key = 'currency'"))?.value_json,
           goals: await r.all('SELECT id, title, target_minor, status, revision FROM goals ORDER BY created_at_utc, id'),
           entries: await r.all('SELECT signed_amount_minor, entry_date, note, revision FROM ledger_entries ORDER BY entry_date, created_at_utc, id'),
           receipts: await count(r, 'operation_receipts'),
+          souvenirs: await r.all('SELECT goal_id, theme_id, theme_version, target_minor_at_award FROM collectibles'),
         }));
         equal(state.currency, '{"code":"EUR","exponent":2,"registryVersion":1}', 'global currency');
         equal(
@@ -746,12 +757,18 @@ export function restartVerifyScenario(seedId: string): Scenario {
             { id: 'restart-0001', title: 'Restart goal', target_minor: 50_000, status: 'active', revision: 1 },
             { id: 'restart-0004', title: 'Zero balance goal', target_minor: 7_500, status: 'active', revision: 1 },
             { id: 'restart-0005', title: 'Paused trip', target_minor: 10_000, status: 'paused', revision: 2 },
+            { id: 'restart-0008', title: 'Finished bike', target_minor: 20_000, status: 'completed', revision: 2 },
           ],
           'goals',
         );
         const overview = await readGoalsOverview(db);
         equal(overview.selectedGoalId, 'restart-0004', 'Home selection');
-        equal(overview.goals.map((g) => g.balanceMinor), [10_000, 0, 3_000], 'balances: zero-balance goal and 50 − 20 = 30');
+        equal(overview.goals.map((g) => g.balanceMinor), [10_000, 0, 3_000, 20_000], 'balances: zero-balance goal and 50 − 20 = 30');
+        equal(
+          state.souvenirs,
+          [{ goal_id: 'restart-0008', theme_id: 'island', theme_version: 2, target_minor_at_award: 20_000 }],
+          'one souvenir, only for the funded goal',
+        );
         equal(
           state.entries,
           [
@@ -759,10 +776,11 @@ export function restartVerifyScenario(seedId: string): Scenario {
             { signed_amount_minor: -2_000, entry_date: '2026-10-03', note: null, revision: 2 },
             { signed_amount_minor: 5_000, entry_date: '2026-10-04', note: null, revision: 1 },
             { signed_amount_minor: -2_000, entry_date: '2026-10-05', note: null, revision: 1 },
+            { signed_amount_minor: 20_000, entry_date: '2026-10-06', note: null, revision: 1 },
           ],
           'entries',
         );
-        equal(state.receipts, 9, 'receipts');
+        equal(state.receipts, 12, 'receipts');
         // The unacknowledged withdrawal: retrying after the restart replays it instead of writing twice.
         const after = { db, clock, ids: sequentialIds('after') };
         const retried = await createEntry(after, { operationId: RESTART_WITHDRAWAL_OP, goalId: 'restart-0005', ...RESTART_WITHDRAWAL });
@@ -772,6 +790,9 @@ export function restartVerifyScenario(seedId: string): Scenario {
         equal((await db.read((r) => getGoal(r, 'restart-0005')))?.status, 'paused', 'paused goal stays paused');
         const replay = await createEntry({ db, clock, ids: sequentialIds('after') }, { operationId: 'op-r-1', goalId: 'restart-0001', ...values('deposit', 12_000, '2026-10-01', RESTART_NOTE) });
         check(replay.ok && replay.value.replayed && replay.value.balanceMinor === 10_000, 'receipt replays after restart');
+        const souvenirRetry = await createEntry(after, { operationId: RESTART_SOUVENIR_OP, goalId: 'restart-0008', ...RESTART_SOUVENIR_DEPOSIT });
+        check(souvenirRetry.ok && souvenirRetry.value.replayed && !souvenirRetry.value.souvenirAwarded, 'awarding deposit replays without a new award');
+        equal(await db.read((r) => count(r, 'collectibles')), 1, 'still one souvenir after the restart and retry');
         return { balanceMinor: 10_000, pausedGoalBalanceMinor: 3_000 };
       } finally {
         await db.close();

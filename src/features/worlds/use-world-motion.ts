@@ -7,6 +7,7 @@ import { useAppActive, useReduceMotion } from '@/shared/ui/motion-preferences';
 
 import { themeManifest, stageName } from './registry';
 import {
+  celebrates,
   initialWorldMotion,
   latestSnapshot,
   layerMotion,
@@ -24,7 +25,11 @@ import {
 // state machine in world-transition.ts and runs its timeline. The D73 unlock moment, in order: the
 // saved amount counts up and the bar fills, then the Island shows the new stage and its new objects
 // pop from their anchors, together with one "New milestone unlocked!" message in the scene, one
-// VoiceOver announcement and one `haptics.milestone()`.
+// VoiceOver announcement and one `haptics.milestone()`. The first time the goal reaches its target
+// (its souvenir was just stored, Phase 11) the message says the world is complete and its souvenir is
+// in Collection, and the haptic is `success` instead: the souvenir moment and the last unlock are one
+// event. A souvenir earned by a lower target shows the same message without a haptic, because the
+// goal form already confirmed that save with one.
 //
 // Presentation only: it never writes data or decides eligibility, and the committed snapshot stays
 // the truth. A transition starts only while Home is focused and the app is in the foreground;
@@ -56,15 +61,21 @@ export function useWorldMotion(snapshot: SceneSnapshot): WorldMotion {
   const { transition, phase, celebration } = state;
 
   // The moment's feedback, once per transition: the message (state), the announcement, the haptic.
-  const celebrate = (unlock: WorldTransition) => {
-    if (lastMoment.current === unlock.to.revision) {
+  const celebrate = (moment: WorldTransition) => {
+    if (lastMoment.current === moment.to.revision) {
       return;
     }
-    lastMoment.current = unlock.to.revision;
-    const message = unlockMessage(unlock.unlocked, (milestone) => stageName(unlock.to.themeId, milestone));
-    haptics.milestone();
+    lastMoment.current = moment.to.revision;
+    const message = momentMessage(moment.unlocked, moment.to.themeId, moment.souvenir);
+    if (moment.kind === 'unlock') {
+      if (moment.souvenir) {
+        haptics.success();
+      } else {
+        haptics.milestone();
+      }
+    }
     AccessibilityInfo.announceForAccessibilityWithOptions(message.announcement, { queue: true });
-    dispatch({ type: 'celebrate', revision: unlock.to.revision });
+    dispatch({ type: 'celebrate', revision: moment.to.revision });
   };
 
   // In the background nothing waits or runs: on return the scene is simply the committed one.
@@ -84,7 +95,7 @@ export function useWorldMotion(snapshot: SceneSnapshot): WorldMotion {
   // Reduce Motion: the final state at once, before the frame is painted, plus the message.
   useLayoutEffect(() => {
     if (transition && phase === 'waiting' && focused && active && reduced) {
-      if (transition.kind === 'unlock') {
+      if (celebrates(transition)) {
         celebrate(transition);
       }
       dispatch({ type: 'finish', revision: transition.to.revision });
@@ -101,12 +112,19 @@ export function useWorldMotion(snapshot: SceneSnapshot): WorldMotion {
     if (phase === 'waiting') {
       timer = setTimeout(() => dispatch({ type: 'start' }), WORLD_MOTION.startDelayMs);
     } else if (phase === 'counting') {
-      timer = setTimeout(
-        () => dispatch(transition.kind === 'unlock' ? { type: 'reveal', revision } : { type: 'finish', revision }),
-        WORLD_MOTION.countMs,
-      );
+      timer = setTimeout(() => {
+        if (transition.kind === 'unlock') {
+          dispatch({ type: 'reveal', revision });
+          return;
+        }
+        // Same stage, first souvenir (commits coalesced into one change): the message after the count.
+        if (celebrates(transition)) {
+          celebrate(transition);
+        }
+        dispatch({ type: 'finish', revision });
+      }, WORLD_MOTION.countMs);
     } else {
-      if (transition.kind === 'unlock') {
+      if (celebrates(transition)) {
         celebrate(transition);
       }
       timer = setTimeout(() => dispatch({ type: 'finish', revision }), revealDurationMs(transition));
@@ -126,7 +144,7 @@ export function useWorldMotion(snapshot: SceneSnapshot): WorldMotion {
   const banner = useMemo(
     () =>
       celebration
-        ? { ...unlockMessage(celebration.unlocked, (milestone) => stageName(celebration.themeId, milestone)), key: celebration.revision }
+        ? { ...momentMessage(celebration.unlocked, celebration.themeId, celebration.souvenir), key: celebration.revision }
         : null,
     [celebration],
   );
@@ -140,6 +158,10 @@ export function useWorldMotion(snapshot: SceneSnapshot): WorldMotion {
       }
     },
   };
+}
+
+function momentMessage(unlocked: WorldTransition['unlocked'], themeId: WorldTransition['to']['themeId'], souvenir: boolean) {
+  return unlockMessage(unlocked, (milestone) => stageName(themeId, milestone), souvenir ? { themeId } : null);
 }
 
 // How long the scene animates its layers for a transition, plus a little time for the new images to

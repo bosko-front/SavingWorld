@@ -16,12 +16,15 @@ export type FormMessage = { field: GoalFormField | null; message: string };
 
 export const SAVE_FAILED = 'Couldn’t save. Nothing was changed. Try again.';
 
-// Shown when a second goal is attempted on Free (Home's goal menu, D73-D74). Phase 16 turns this
+// Shown when a second goal is attempted on Free (D73-D74): from Home's goal menu while the goal is
+// open, or from Home's empty state while Free's one goal is finished (Phase 11). Phase 16 turns this
 // into the paywall entry with "Explore Pro".
 export const ANOTHER_WORLD = {
   title: 'Build another world',
   message:
     'You’ve already created your free savings goal. Unlock Pro to create more goals and grow your collection of worlds. One-time purchase, no subscription. To start over instead, delete this goal from its menu.',
+  finishedMessage:
+    'You’ve already created your free savings goal. Unlock Pro to create more goals and grow your collection of worlds. One-time purchase, no subscription. To start over instead, delete your finished goal in Collection.',
 } as const;
 
 const FREE_LIMIT =

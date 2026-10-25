@@ -28,6 +28,7 @@ All prior native/device/art checks must be truly complete. Required devices, sig
 - Exercise actual SQLite migrations and financial commands under interruption, repeated taps, stale edits, low-storage/write failures and foreground date changes.
 - Profile local launch, goal/history queries and both worlds on the oldest supported iPhone using realistic multi-goal data, including a 10,000-entry fixture in the one global currency. Test alternate currency exponents in separate whole-app fixtures only.
 - Fix measured bottlenecks with indexes, bounded query results, memoized layers and stopped offscreen effects; record before/after evidence without redesigning the app.
+- Include the D97 visual elements in profiling: Collection with many souvenir worlds (Pro), quest-card and souvenir celebrations, the paywall and theme-picker world previews and every continuous effect's start/stop. Anything over the budget is simplified per the D97 motion budget (static is an acceptable fallback).
 - Repeat the proven OTA/offline/runtime and known-good fallback checks against the actual release-candidate EAS binary, including the relevant persisted financial fixture.
 - Create an installable release candidate with no debug routes, entitlement overrides, placeholder art or leaked logs. Audit every R01-R26 acceptance scenario and unresolved blocker.
 
@@ -63,6 +64,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 - Carried from Phase 09 (DECISIONS D83): repeat the world-scene VoiceOver check from Phase 19 on the release candidate.
 - Carried from Phase 10 (DECISIONS D88): on a physical iPhone, a recording with frame inspection of the D73 unlock moment (count-up, bar, stage reveal, object pop, stage 8 crossfade, message), of rapid repeated deposits and of navigating away/backgrounding mid-moment; the scene always ends on the committed stage and nothing replays. Repeat the Phase 19 unlock VoiceOver/haptic check on the release candidate.
 - Phase 10.5 ambient motion (DECISIONS D90): on a physical iPhone with Xcode Instruments, compare Home with ambient motion on and off (Energy Log/Power Profiler, memory, Animation Hitches or Core Animation frame pacing) over a few minutes idle on Home and during an unlock; confirm it stops off Home, in the background and under Reduce Motion. Keep ambient motion only if it passes; otherwise simplify the water first, then switch it off (static Island). The switches are `AMBIENT_RELEASE_SWITCHES` in `src/features/worlds/ambient.ts` (all, clouds, water, trees); the World inspector toggles them at runtime in a measurement build (D91). Record the numbers and the decision.
+- Carried from Phase 11 (DECISIONS D102): repeat the Collection VoiceOver walkthrough and haptics from Phase 19 on the release candidate, and include Collection (featured card, multi-world gallery with the D100 float, souvenir detail and sparkle burst) in the physical-iPhone frame and energy measurement.
 - Run full regression only now after integration, not repeatedly after every unchanged earlier phase; update requirements traceability.
 
 ## Definition of Done

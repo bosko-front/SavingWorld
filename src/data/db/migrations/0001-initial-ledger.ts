@@ -1,7 +1,7 @@
 import type { Migration } from '../migration-runner';
 
 // Schema 1 (Phase 05): settings, goals, ledger_entries and operation_receipts. Never edit this text
-// after it ships; add a new migration instead (tests/unit/migrations.test.ts pins the checksum).
+// after it ships; add a new migration instead (tests/unit/ledger-history.test.ts pins the checksum).
 // Later phases own collectibles (11), challenge_attempts (12), notification requests (14) and the
 // entitlement cache (15). There is no ledger revision/audit table and no balance column
 // (docs/DATA_MODEL.md).

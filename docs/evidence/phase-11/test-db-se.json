@@ -1,0 +1,467 @@
+{
+  "tool": "npm run test:db",
+  "device": {
+    "name": "SW iPhone SE 3 iOS 18.5",
+    "udid": "66F6F9E8-A5F1-499F-BBA7-1D61CA7AC729",
+    "runtime": "",
+    "state": "Booted"
+  },
+  "freshInstall": false,
+  "launches": [
+    {
+      "runId": "rmvo8kyy6a",
+      "suite": "all",
+      "seedId": null,
+      "startedAtUtc": "2026-10-25T19:44:49.667Z",
+      "finishedAtUtc": "2026-10-25T19:45:05.220Z",
+      "driver": "expo-sqlite",
+      "platform": {
+        "os": "ios",
+        "version": "18.5"
+      },
+      "hermes": true,
+      "uuidSource": "Math.random",
+      "appDatabase": {
+        "name": "saving-worlds.db",
+        "driver": "expo-sqlite",
+        "migrationAtThisLaunch": {
+          "fromVersion": 2,
+          "toVersion": 3,
+          "applied": [
+            3
+          ]
+        }
+      },
+      "summary": {
+        "total": 43,
+        "passed": 43,
+        "failed": 0
+      },
+      "results": [
+        {
+          "id": "S01",
+          "title": "Fresh database: latest schema, WAL, foreign keys on both connections, integrity checks",
+          "status": "pass",
+          "durationMs": 457,
+          "facts": {
+            "driver": "expo-sqlite",
+            "sqliteVersion": "3.53.3",
+            "history": [
+              {
+                "version": 1,
+                "name": "initial_ledger",
+                "checksum": "f060530662e52157"
+              },
+              {
+                "version": 2,
+                "name": "goal_deletion",
+                "checksum": "02eb49969587883c"
+              },
+              {
+                "version": 3,
+                "name": "collectibles",
+                "checksum": "1d1c7826fd9f83de"
+              }
+            ],
+            "goalColumns": [
+              "id",
+              "title",
+              "target_minor",
+              "deadline_date",
+              "theme_id",
+              "status",
+              "created_at_utc",
+              "updated_at_utc",
+              "revision"
+            ],
+            "entryColumns": [
+              "id",
+              "goal_id",
+              "signed_amount_minor",
+              "entry_date",
+              "note",
+              "created_at_utc",
+              "updated_at_utc",
+              "revision"
+            ],
+            "pragmas": {
+              "writer": {
+                "journalMode": "wal",
+                "foreignKeys": true,
+                "synchronous": 2
+              },
+              "reader": {
+                "journalMode": "wal",
+                "foreignKeys": true,
+                "synchronous": 2
+              }
+            }
+          }
+        },
+        {
+          "id": "S02",
+          "title": "Repeated startup keeps schema and data without re-running or resetting",
+          "status": "pass",
+          "durationMs": 243
+        },
+        {
+          "id": "S03",
+          "title": "Failed migration rolls back completely; prior data intact; later upgrade applies",
+          "status": "pass",
+          "durationMs": 211
+        },
+        {
+          "id": "S04",
+          "title": "Unknown newer schema, edited migration and foreign database fail safely without changes",
+          "status": "pass",
+          "durationMs": 1506
+        },
+        {
+          "id": "S05",
+          "title": "Foreign keys, CHECK constraints and triggers defend the command invariants",
+          "status": "pass",
+          "durationMs": 295
+        },
+        {
+          "id": "S06",
+          "title": "v1.2 example: 0 + 50 − 20 = 30, withdrawal 31 rejected atomically",
+          "status": "pass",
+          "durationMs": 209
+        },
+        {
+          "id": "S07",
+          "title": "Withdrawal dated before the first deposit is rejected even when the final total is positive",
+          "status": "pass",
+          "durationMs": 160
+        },
+        {
+          "id": "S08",
+          "title": "Deleting a deposit needed by a later withdrawal is rejected despite a later positive total",
+          "status": "pass",
+          "durationMs": 301
+        },
+        {
+          "id": "S09",
+          "title": "Corrections overwrite current values, keep createdAt, step the revision and revalidate history",
+          "status": "pass",
+          "durationMs": 289
+        },
+        {
+          "id": "S10",
+          "title": "Future entry dates are rejected on create and correction, using the device-local date",
+          "status": "pass",
+          "durationMs": 346
+        },
+        {
+          "id": "S11",
+          "title": "Stable operation IDs replay without duplicating; a changed payload is a conflict",
+          "status": "pass",
+          "durationMs": 227
+        },
+        {
+          "id": "S12",
+          "title": "Stale revisions and missing rows fail clearly",
+          "status": "pass",
+          "durationMs": 177
+        },
+        {
+          "id": "S13",
+          "title": "Concurrent deposits, withdrawals and corrections serialize to an exact result",
+          "status": "pass",
+          "durationMs": 755
+        },
+        {
+          "id": "S14",
+          "title": "Unicode and SQL-special notes round-trip exactly; invalid notes are rejected",
+          "status": "pass",
+          "durationMs": 388
+        },
+        {
+          "id": "S15",
+          "title": "Forced mid-write failure rolls back entry and receipt; the same operation ID then succeeds",
+          "status": "pass",
+          "durationMs": 251
+        },
+        {
+          "id": "S16",
+          "title": "Readers see only committed data while a write transaction is open",
+          "status": "pass",
+          "durationMs": 177
+        },
+        {
+          "id": "S17",
+          "title": "Closed goals reject ledger changes; currency and goal rules gate creation",
+          "status": "pass",
+          "durationMs": 393
+        },
+        {
+          "id": "S18",
+          "title": "Exact minor units at the 10^12 ceiling survive storage; the ceiling is enforced",
+          "status": "pass",
+          "durationMs": 188
+        },
+        {
+          "id": "S19",
+          "title": "Same-date, same-createdAt entries are ordered by id",
+          "status": "pass",
+          "durationMs": 143
+        },
+        {
+          "id": "G01",
+          "title": "Lifecycle: Free keeps one goal in any status, Finish and Reopen follow the rules, no Archive (D74)",
+          "status": "pass",
+          "durationMs": 395
+        },
+        {
+          "id": "G02",
+          "title": "Concurrent creates take Free's one goal at most once; concurrent deletes delete once",
+          "status": "pass",
+          "durationMs": 204,
+          "facts": {
+            "winners": 1,
+            "limited": 3
+          }
+        },
+        {
+          "id": "G03",
+          "title": "Edit Goal: paused is editable, closed is read-only, deadlines and theme follow the rules",
+          "status": "pass",
+          "durationMs": 498
+        },
+        {
+          "id": "G04",
+          "title": "Global currency: empty goals change without conversion; a transaction or souvenir locks it",
+          "status": "pass",
+          "durationMs": 812,
+          "facts": {
+            "raceOrder": "currency first",
+            "kwd": 3
+          }
+        },
+        {
+          "id": "G05",
+          "title": "Home selection persists across a restart and falls back to the oldest open goal",
+          "status": "pass",
+          "durationMs": 257
+        },
+        {
+          "id": "G06",
+          "title": "Currency and a zero-balance goal survive a restart; the goal can then be deleted (D74)",
+          "status": "pass",
+          "durationMs": 232
+        },
+        {
+          "id": "G07",
+          "title": "Delete Goal removes a completed goal with its entries and souvenir in one transaction (D74)",
+          "status": "pass",
+          "durationMs": 404
+        },
+        {
+          "id": "G08",
+          "title": "Schema 1 → 2: archived goals become paused with their records; goals become deletable",
+          "status": "pass",
+          "durationMs": 349
+        },
+        {
+          "id": "L01",
+          "title": "Form input: 50 − 20 = 30 survives a database reopen; withdrawal 31 is rejected; deposit → 60 gives 40; deleting the withdrawal gives 60",
+          "status": "pass",
+          "durationMs": 354,
+          "facts": {
+            "balanceMinor": 3000,
+            "afterCorrectionAndDelete": 6000
+          }
+        },
+        {
+          "id": "L02",
+          "title": "Chronological order: equal dates order by createdAt then id; a backdated deposit cannot be moved past its withdrawal",
+          "status": "pass",
+          "durationMs": 606,
+          "facts": {
+            "balanceMinor": 1000
+          }
+        },
+        {
+          "id": "L03",
+          "title": "Edit moving a withdrawal earlier than its funding is rejected with a positive final total; sign flips revalidate",
+          "status": "pass",
+          "durationMs": 368
+        },
+        {
+          "id": "L04",
+          "title": "Deleting the funding deposit is rejected despite a positive final total; confirmation is required",
+          "status": "pass",
+          "durationMs": 490
+        },
+        {
+          "id": "L05",
+          "title": "Zero, empty, malformed, overflow, future-date and long-note input is refused before or by the command",
+          "status": "pass",
+          "durationMs": 316
+        },
+        {
+          "id": "L06",
+          "title": "Commit then lost acknowledgment: after a reopen the same operation ID replays once for create, correct and delete",
+          "status": "pass",
+          "durationMs": 408
+        },
+        {
+          "id": "L07",
+          "title": "Failed write keeps the operation ID retryable; double tap writes once; a stale form revision is refused",
+          "status": "pass",
+          "durationMs": 306
+        },
+        {
+          "id": "L08",
+          "title": "Paused goals take entries, corrections and deletions and stay paused; completed goals are read-only until Reopen",
+          "status": "pass",
+          "durationMs": 424
+        },
+        {
+          "id": "C01",
+          "title": "First saved 100% stores one souvenir (Free) without changing the status; nothing duplicates or removes it",
+          "status": "pass",
+          "durationMs": 410,
+          "facts": {
+            "souvenir": {
+              "goalId": "award-0001",
+              "themeId": "island",
+              "themeVersion": 2,
+              "targetMinorAtAward": 100000,
+              "earnedAtUtc": "2026-10-23T08:00:07.000Z"
+            }
+          }
+        },
+        {
+          "id": "C02",
+          "title": "A failure between the ledger or target write and the award rolls back both; the retry awards once",
+          "status": "pass",
+          "durationMs": 325
+        },
+        {
+          "id": "C03",
+          "title": "A target edit that first reaches B >= T awards with the saved target; later target and balance changes keep it",
+          "status": "pass",
+          "durationMs": 293
+        },
+        {
+          "id": "C04",
+          "title": "Finish/Reopen: the finished goal counts toward Free, Reopen stays active at 100%, correction 100 → 10 keeps the souvenir",
+          "status": "pass",
+          "durationMs": 406
+        },
+        {
+          "id": "C05",
+          "title": "Deleting a completed goal removes goal, entries and souvenir together; the currency lock recounts and Free may create again",
+          "status": "pass",
+          "durationMs": 334
+        },
+        {
+          "id": "C06",
+          "title": "Schema 2 → 3: funded goals receive their souvenir once, others none; records unchanged",
+          "status": "pass",
+          "durationMs": 265
+        },
+        {
+          "id": "I01",
+          "title": "Intl output of formatMoney, separatorsForLocale and today() on this engine",
+          "status": "pass",
+          "durationMs": 33,
+          "facts": {
+            "samples": {
+              "eurMax": "€9,999,999,999.99",
+              "eurDe": "9.999.999.999,99 €",
+              "jpy": "¥1,235",
+              "kwd": "KWD 1.250",
+              "iqd": "IQD 1,250.000",
+              "eurSigned": "-€5.00"
+            },
+            "engineLocale": "en-US",
+            "separators": {
+              "decimal": ".",
+              "group": ",",
+              "grouping": "thousands"
+            },
+            "deviceLanguageTag": "en-US",
+            "deviceTagSeparators": {
+              "decimal": ".",
+              "group": ",",
+              "grouping": "thousands"
+            },
+            "deviceTypingSeparators": {
+              "decimal": ",",
+              "group": ".",
+              "grouping": "thousands"
+            },
+            "deviceFormatted": "€1,234.50",
+            "deDe": {
+              "decimal": ",",
+              "group": ".",
+              "grouping": "thousands"
+            },
+            "enIn": {
+              "decimal": ".",
+              "group": ",",
+              "grouping": "indian"
+            },
+            "timeZone": "Europe/Belgrade",
+            "today": "2026-10-25",
+            "utcNow": "2026-10-25T19:45:04.891Z"
+          }
+        },
+        {
+          "id": "R1",
+          "title": "Restart seed: write goal, entries and a correction, then leave the database closed",
+          "status": "pass",
+          "durationMs": 329,
+          "facts": {
+            "database": "dbtest-restart-rmvo8kyy6a.db",
+            "goalId": "restart-0001",
+            "balanceMinor": 10000
+          }
+        }
+      ]
+    },
+    {
+      "runId": "rmvo8kyy6b",
+      "suite": "restart-verify",
+      "seedId": "rmvo8kyy6a",
+      "startedAtUtc": "2026-10-25T19:46:03.266Z",
+      "finishedAtUtc": "2026-10-25T19:46:03.997Z",
+      "driver": "expo-sqlite",
+      "platform": {
+        "os": "ios",
+        "version": "18.5"
+      },
+      "hermes": true,
+      "uuidSource": "Math.random",
+      "appDatabase": {
+        "name": "saving-worlds.db",
+        "driver": "expo-sqlite",
+        "migrationAtThisLaunch": {
+          "fromVersion": 3,
+          "toVersion": 3,
+          "applied": []
+        }
+      },
+      "summary": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0
+      },
+      "results": [
+        {
+          "id": "R2",
+          "title": "Restart verify: a new app process reads the same exact state without migrating again",
+          "status": "pass",
+          "durationMs": 724,
+          "facts": {
+            "balanceMinor": 10000,
+            "pausedGoalBalanceMinor": 3000
+          }
+        }
+      ]
+    }
+  ],
+  "passed": true
+}

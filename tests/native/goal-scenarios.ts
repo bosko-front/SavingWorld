@@ -18,7 +18,7 @@ import {
 } from '@/features/goals/application/goal-commands';
 import { readGoalsOverview } from '@/features/goals/application/goal-queries';
 import { selectGoal } from '@/features/goals/application/goal-selection';
-import { deleteEntry } from '@/features/ledger/application/ledger-commands';
+import { createEntry, deleteEntry } from '@/features/ledger/application/ledger-commands';
 import { setGlobalCurrency } from '@/features/settings/application/currency-commands';
 import { readCurrencyOverview } from '@/features/settings/application/settings-queries';
 
@@ -31,6 +31,7 @@ import {
   expectError,
   mustCreate,
   steppingClock,
+  values,
   withSession,
   type Harness,
 } from './database-scenarios';
@@ -38,7 +39,8 @@ import { check, equal, type Scenario } from './scenario-harness';
 
 // Phase 06 scenarios: goal lifecycle, Free goal limit, closed/paused edit guards, global currency
 // lock and Home selection (docs/TEST_PLAN.md T07, T27), changed in Phase 08 by owner decision D74:
-// no Archive, Free keeps one goal in any status, goals can be deleted (G07), schema 2 (G08). Same dual use as database-scenarios.ts: the iOS
+// no Archive, Free keeps one goal in any status, goals can be deleted (G07), schema 2 (G08). Phase
+// 11 replaced the planned-shape souvenir fixture with real souvenirs (schema 3). Same dual use as database-scenarios.ts: the iOS
 // simulator through real Expo SQLite (`npm run test:db`, the evidence) and Jest on host SQLite.
 
 const JPY = getCurrency('JPY') as CurrencyMetadata;
@@ -78,27 +80,6 @@ function goalFields(title: string, targetMinor: number, deadlineDate: string | n
 
 async function goalCount(h: Harness): Promise<number> {
   return h.db.read((r) => count(r, 'goals'));
-}
-
-// Phase 11 owns the real collectibles table; until then a test database gets the planned shape so
-// the currency lock can be proven against a souvenir that exists without any transaction.
-async function addCollectibleFixture(h: Harness, goalId: string): Promise<void> {
-  await h.db.write(async (tx) => {
-    await tx.exec(
-      `CREATE TABLE collectibles (
-         goal_id TEXT PRIMARY KEY NOT NULL REFERENCES goals (id),
-         theme_id TEXT NOT NULL,
-         theme_version INTEGER NOT NULL,
-         earned_at_utc TEXT NOT NULL
-       ) STRICT`,
-    );
-    await tx.run('INSERT INTO collectibles (goal_id, theme_id, theme_version, earned_at_utc) VALUES (?, ?, ?, ?)', [
-      goalId,
-      'island',
-      1,
-      START,
-    ]);
-  });
 }
 
 export const GOAL_SCENARIOS: Scenario[] = [
@@ -283,8 +264,12 @@ export const GOAL_SCENARIOS: Scenario[] = [
         check(removed.ok, 'delete last transaction');
         check((await set('USD')).ok, 'unlocked after the last transaction is deleted');
 
-        // A souvenir alone keeps it locked (boundary fixture until Phase 11 adds real storage).
-        await addCollectibleFixture(h, second);
+        // A souvenir alone keeps it locked (Phase 11: a real one, earned by the paused goal and kept
+        // after its only transaction is deleted).
+        const funded = await createEntry(deps, { operationId: h.op(), goalId: second, ...values('deposit', 2_500, '2026-10-22') });
+        check(funded.ok && funded.value.souvenirAwarded, 'the paused goal earns its souvenir');
+        const unfunded = await deleteEntry(deps, { operationId: h.op(), entryId: funded.value.entryId, expectedRevision: 1, confirmed: true });
+        check(unfunded.ok && !unfunded.value.souvenirAwarded, 'its only transaction deleted');
         const souvenir = await set('EUR');
         equal(!souvenir.ok && souvenir.error, { code: 'currency_locked', transactionCount: 0, souvenirCount: 1 }, 'souvenir locks');
 
@@ -376,7 +361,6 @@ export const GOAL_SCENARIOS: Scenario[] = [
         await mustCreate(h, 'deposit', 60_000, '2026-10-20');
         await mustCreate(h, 'deposit', 40_000, '2026-10-21');
         check((await finishGoal(deps, await lifecycle(h, h.goalId))).ok, 'finish');
-        await addCollectibleFixture(h, h.goalId);
         const totals = () =>
           h.db.read(async (r) => [await count(r, 'goals'), await count(r, 'ledger_entries'), await count(r, 'collectibles')]);
 
@@ -422,7 +406,7 @@ export const GOAL_SCENARIOS: Scenario[] = [
         });
         await old.close();
 
-        const db = await s.openDb(name);
+        const db = await s.openDb(name, MIGRATIONS.slice(0, 2));
         equal(db.migration, { fromVersion: 1, toVersion: 2, applied: [2] }, 'upgrade to schema 2');
         const state = await db.read(async (r) => ({
           goal: await r.get('SELECT status, revision FROM goals WHERE id = ?', ['legacy-1']),
@@ -432,7 +416,14 @@ export const GOAL_SCENARIOS: Scenario[] = [
         equal(state.goal, { status: 'paused', revision: 3 }, 'archived became paused');
         equal(state.entries, [{ id: 'legacy-e1', signed_amount_minor: 12_345, note: 'kept' }], 'records kept');
         equal(state.trigger, null, 'no-delete trigger dropped');
-        const removed = await deleteGoal({ db, clock: steppingClock() }, { operationId: 'op-upgrade-delete', goalId: 'legacy-1', expectedRevision: 3 });
+        await db.close();
+
+        // The current app (schema 3) opens it and can delete the goal; it is below target, so the
+        // schema 3 upgrade gives it no souvenir.
+        const current = await s.openDb(name);
+        equal(current.migration, { fromVersion: 2, toVersion: 3, applied: [3] }, 'upgrade to schema 3');
+        equal(await current.read((r) => count(r, 'collectibles')), 0, 'no souvenir below target');
+        const removed = await deleteGoal({ db: current, clock: steppingClock() }, { operationId: 'op-upgrade-delete', goalId: 'legacy-1', expectedRevision: 3 });
         check(removed.ok, 'upgraded goal can be deleted');
       }),
   },

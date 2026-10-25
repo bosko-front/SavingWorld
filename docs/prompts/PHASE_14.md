@@ -29,6 +29,7 @@ The schedule is fixed by v1.2, not an open cadence decision.
 - Reconcile on launch/foreground, settings/permission/timezone and goal Pause/Resume/Finish/Reopen/Delete. paused/completed do not qualify; no active goal means no request. Editing a paused goal does not resume it.
 - Cancel duplicates/orphans and recover interrupted scheduling after SQLite commit. Use generic text and a safe Home/current-active-goal notification-tap fallback.
 - Use the actual local-notification adapter/config; no per-goal/per-challenge cadence/time/pause controls, push token/server or background-JavaScript assumption.
+- Present the switch as one Settings row in the shared look (`reminder` tile, native switch) with a short, warm permission explanation; the notification text is generic and kind in the D97 voice (proposal V08: "Your world is ready for this week's savings.", pending owner approval), never an amount, title or guilt.
 
 ## Expected files and modules
 

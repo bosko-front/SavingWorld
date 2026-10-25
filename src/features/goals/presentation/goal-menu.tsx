@@ -12,6 +12,8 @@ import type { useGoalAction } from './use-goal-action';
 
 type GoalMenuProps = {
   summary: GoalSummary;
+  // B ≥ T: Finish is offered (Phase 11).
+  funded: boolean;
   canCreate: boolean;
   // A lifecycle change or the deletion of this goal is running.
   busy: boolean;
@@ -20,12 +22,13 @@ type GoalMenuProps = {
   onDelete: () => void;
 };
 
-// Home's goal options (owner directions D73-D74): History, Edit goal, Pause/Resume, Delete goal and
-// New goal live in one native pull-down menu (SwiftUI Menu from @expo/ui) behind the ⋯ button next
-// to the goal title, so Home shows the world and the progress instead of administration. Delete is
+// Home's goal options (owner directions D73-D74): History, Edit goal, Pause/Resume, Finish goal (only
+// at B ≥ T, Phase 11), Delete goal and New goal live in one native pull-down menu (SwiftUI Menu from
+// @expo/ui) behind the ⋯ button next to the goal title, so Home shows the world and the progress
+// instead of administration. Finish closes the goal (completed, read-only, in Collection); Delete is
 // destructive and confirmed natively; New goal is a separate action and, when Free's one goal
 // exists, explains Pro and deleting instead of opening a form that would be refused.
-export function GoalMenu({ summary, canCreate, busy, run, onDelete }: GoalMenuProps) {
+export function GoalMenu({ summary, funded, canCreate, busy, run, onDelete }: GoalMenuProps) {
   const router = useRouter();
   const { goal } = summary;
   const paused = goal.status === 'paused';
@@ -58,6 +61,9 @@ export function GoalMenu({ summary, canCreate, busy, run, onDelete }: GoalMenuPr
           onPress={() => router.push({ pathname: '/goal-form', params: { goalId: goal.id } })}
         />
         <Button label={LIFECYCLE_COPY[lifecycle].label} systemImage={ICON_SYMBOLS[lifecycle]} onPress={() => void run(lifecycle, goal)} />
+        {funded ? (
+          <Button label={LIFECYCLE_COPY.finish.label} systemImage={ICON_SYMBOLS.finish} onPress={() => void run('finish', goal)} />
+        ) : null}
         <Divider />
         <Button label="New goal" systemImage={ICON_SYMBOLS.add} onPress={newGoal} />
         <Divider />

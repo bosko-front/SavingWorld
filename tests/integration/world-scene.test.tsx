@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import { renderRouter } from 'expo-router/testing-library';
 import { StyleSheet } from 'react-native';
 
@@ -28,8 +28,15 @@ const zone = systemClock.timeZone();
 let instant = new Date(2026, 9, 25, 12, 0).getTime();
 const testClock: Clock = { nowMs: () => (instant += 1), timeZone: () => zone };
 
+// Home's scene when Home is rendered (the Collection tab beside it draws worlds too since Phase 11),
+// otherwise the screen of a WorldScene rendered on its own.
+function scope() {
+  const home = screen.queryByTestId('home', { includeHiddenElements: true });
+  return home ? within(home) : screen;
+}
+
 function shownLayers(): string[] {
-  return screen.queryAllByTestId(/^world-layer-/, { includeHiddenElements: true }).map((node) => String(node.props.testID).replace('world-layer-', ''));
+  return scope().queryAllByTestId(/^world-layer-/, { includeHiddenElements: true }).map((node) => String(node.props.testID).replace('world-layer-', ''));
 }
 
 function expectedLayers(stage: Stage): string[] {
@@ -40,7 +47,7 @@ function expectedLayers(stage: Stage): string[] {
 // Fires expo-image's load callback on every mounted layer (Jest has no native image loading), or
 // on the layers given.
 async function load(ids?: string[]) {
-  for (const node of screen.queryAllByTestId(/^world-layer-/, { includeHiddenElements: true })) {
+  for (const node of scope().queryAllByTestId(/^world-layer-/, { includeHiddenElements: true })) {
     const id = String(node.props.testID).replace('world-layer-', '');
     if (!ids || ids.includes(id)) {
       await act(() => node.props.onLoad({ nativeEvent: {} }));
@@ -50,14 +57,14 @@ async function load(ids?: string[]) {
 
 // Layers drawn on screen: mounted and not waiting for the rest of their stage.
 function visible(): string[] {
-  return screen
+  return scope()
     .queryAllByTestId(/^world-layer-/, { includeHiddenElements: true })
     .filter((node) => StyleSheet.flatten(node.props.style).opacity !== 0)
     .map((node) => String(node.props.testID).replace('world-layer-', ''));
 }
 
 async function measure(width: number, height: number) {
-  await fireEvent(screen.getByTestId('world-scene-area', { includeHiddenElements: true }), 'layout', { nativeEvent: { layout: { x: 0, y: 0, width, height } } });
+  await fireEvent(scope().getByTestId('world-scene-area', { includeHiddenElements: true }), 'layout', { nativeEvent: { layout: { x: 0, y: 0, width, height } } });
 }
 
 describe('WorldScene', () => {
@@ -207,7 +214,7 @@ describe('WorldScene', () => {
   it('decorative: not an accessibility element (the empty state’s text says what it is)', async () => {
     await render(<WorldScene themeId="island" stage={0} decorative backdrop="none" />);
     await measure(320, 240);
-    expect(screen.getByTestId('world-scene', { includeHiddenElements: true }).props.accessible).toBe(false);
+    expect(scope().getByTestId('world-scene', { includeHiddenElements: true }).props.accessible).toBe(false);
     expect(shownLayers()).toEqual(expectedLayers(0));
   });
 });
@@ -286,6 +293,6 @@ describe('Home shows the ledger’s stage', () => {
     expect(screen.getByTestId('home-empty-world', { includeHiddenElements: true })).toBeOnTheScreen();
     await measure(320, 240);
     expect(shownLayers()).toEqual(expectedLayers(0));
-    expect(screen.getByTestId('world-scene', { includeHiddenElements: true }).props.accessible).toBe(false);
+    expect(scope().getByTestId('world-scene', { includeHiddenElements: true }).props.accessible).toBe(false);
   });
 });

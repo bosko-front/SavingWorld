@@ -1,6 +1,6 @@
 import { capabilitiesFor, canUseTheme, hasGoalSlot, withinGoalLimit, type Capabilities } from '@/core/access';
 import { parseCivilDate, today, utcTimestamp, validateNewDeadline, type CivilDate, type Clock } from '@/core/calendar';
-import { isPositiveMinorAmount, sumMinor } from '@/core/money';
+import { isPositiveMinorAmount, sumMinor, toMinorAmount } from '@/core/money';
 import { isThemeId, type ThemeId } from '@/core/progression';
 import { err, ok, type Result } from '@/core/result';
 import { normalizeUserText } from '@/core/text';
@@ -23,6 +23,7 @@ import {
 import { deleteEntriesForGoal, listEntriesForGoal } from '@/data/repositories/ledger-repository';
 import { insertReceipt, lookupReceipt, requestHash } from '@/data/repositories/receipt-repository';
 import { readCurrency } from '@/data/repositories/settings-repository';
+import { awardSouvenirIfFirstFunded } from '@/features/collection/application/souvenir-award';
 
 import { lifecycleTarget, needsFunding, needsGoalLimit, type LifecycleAction } from '../domain/goal-lifecycle';
 
@@ -36,9 +37,11 @@ import { lifecycleTarget, needsFunding, needsGoalLimit, type LifecycleAction } f
 //   status, D74) in the same transaction.
 // - Edit Goal: the same fields on an open (active or paused) goal only. A changed deadline must be
 //   today or later; an unchanged one may already have passed. Changing the theme of an open goal
-//   is a Pro capability (Phase 17 adds Garden).
+//   is a Pro capability (Phase 17 adds Garden). A target edit that first leaves B >= T stores the
+//   goal's souvenir in the same transaction (Phase 11).
 // - Lifecycle: Pause, Resume, Finish (only when B ≥ T) and Reopen (within the goal limit, never an
-//   automatic Finish). Archive was removed (D74).
+//   automatic Finish). Archive was removed (D74). No lifecycle change adds, removes or replaces a
+//   souvenir: it was stored when the goal first reached its target.
 // - Delete Goal (D74): any goal, after the screen's confirmation; removes its entries, its souvenir
 //   and the goal in one transaction. Nothing keeps a copy.
 
@@ -210,6 +213,15 @@ async function goalBalance(tx: SqlExecutor, goalId: string): Promise<bigint> {
   return sumMinor(entries.map((entry) => entry.signedAmountMinor));
 }
 
+// The ledger commands keep every saved balance within the money range.
+async function checkedGoalBalance(tx: SqlExecutor, goalId: string): Promise<number> {
+  const balance = toMinorAmount(await goalBalance(tx, goalId));
+  if (!balance.ok) {
+    throw new Error('Stored goal balance is out of range');
+  }
+  return balance.value;
+}
+
 export async function createGoal(
   deps: GoalCommandDeps,
   input: CreateGoalInput,
@@ -311,11 +323,12 @@ export async function editGoal(
     if (details.themeId !== goal.themeId && !(capabilities.switchOpenGoalTheme && canUseTheme(capabilities, details.themeId))) {
       reject({ code: 'theme_unavailable' });
     }
-    // Phase 11: a target edit that first makes B >= T awards the souvenir in this same transaction.
     const nowUtc = utcTimestamp(deps.clock);
     if (!(await updateGoalDetails(tx, goal.id, details, input.expectedRevision, nowUtc))) {
       reject({ code: 'stale_goal', currentRevision: goal.revision });
     }
+    // A lower target can be the first B >= T: the souvenir records the saved target and theme.
+    await awardSouvenirIfFirstFunded(tx, { ...goal, ...details }, await checkedGoalBalance(tx, goal.id), nowUtc);
     const stored: StoredGoalResult = { goalId: goal.id, revision: input.expectedRevision + 1 };
     await insertReceipt(tx, input.operationId, kind, hash, stored, nowUtc);
     return { operationId: input.operationId, replayed: false, ...stored };
@@ -368,7 +381,7 @@ export async function changeGoalStatus(
 
 export const pauseGoal = (deps: GoalCommandDeps, input: LifecycleInput) => changeGoalStatus(deps, 'pause', input);
 export const resumeGoal = (deps: GoalCommandDeps, input: LifecycleInput) => changeGoalStatus(deps, 'resume', input);
-// Guarded Finish for Phase 11: open goal with B >= T. Phase 11 adds its UI and haptic.
+// Finish: an open goal with B >= T becomes completed and read-only (Home's goal menu, Phase 11).
 export const finishGoal = (deps: GoalCommandDeps, input: LifecycleInput) => changeGoalStatus(deps, 'finish', input);
 export const reopenGoal = (deps: GoalCommandDeps, input: LifecycleInput) => changeGoalStatus(deps, 'reopen', input);
 

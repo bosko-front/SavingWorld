@@ -29,6 +29,7 @@ Q06 is resolved by v1.2. Chart scope/range and completed count are fixed, not qu
 - Build one all-goal daily-balance graph for today and the preceding 29 calendar dates. Carry in every valid earlier transaction as opening balance, then accumulate each displayed date across every existing goal. No selected-goal graph or currency selector.
 - Count goals whose current status is completed, not the number of souvenirs. Reopen changes the count even though souvenirs remain; deleting a completed goal removes it from the count.
 - Recalculate after transaction correction/deletion, goal status change and date/month rollover; provide clear empty/loading/error states, accessible chart text and Pro command/query entry guards.
+- Present the four views as "your savings at a glance", not a finance dashboard (DESIGN_SYSTEM "World-first design direction" (owner decision D97)): the all-goal total as the headline, the month's deposits and withdrawals as a calm sentence or two small cards like the savings plan (D84), one soft line in the accent/green ramp with a text summary and data list, and the completed-goal count linked to Collection. No KPI grid, extra metrics or red/green trading colors.
 
 ## Expected files and modules
 

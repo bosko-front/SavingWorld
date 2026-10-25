@@ -30,6 +30,7 @@ Q05 is resolved by v1.2 and its confirmed-loss policy is changed by owner decisi
 - Enable unlimited Pro goals and statistics navigation; Free keeps the one-goal-in-total limit (any status) for Create; fixed challenges remain identical in both tiers; Garden becomes selectable only when Phase 17 is complete.
 - Implement the D74 verified-loss behavior (verified revocation/refund, Family Sharing removed): delete or change nothing; with several goals the person chooses one goal to keep using; the other goals stay visible but read-only (no new entries or edits) until Pro returns or they are deleted. A Garden goal keeps its world as it is but cannot progress further in Garden without Pro; to continue saving the person switches it to Island (Phase 17). Garden souvenirs persist. Temporary offline failure retains previously verified rights; never alter amounts or delete data.
 - Provide restore from both paywall and Settings, distinguish purchase rights from data recovery, and return users to the action that opened the paywall.
+- Design the paywall world-first and honest (DESIGN_SYSTEM "World-first design direction" (owner decision D97)): the person's world as the hero, the exact included features as a short list with tiles, the store's localized price, one primary purchase button, Restore as a plain button and the footnote. Garden is described in words until Phase 17 provides its art (proposal V06). No comparison tables, discounts, timers, pressure or toast for purchase results; every state has calm in-place text.
 
 ## Expected files and modules
 
@@ -46,6 +47,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 - Do not gate Free deadline estimates, history, goal editing, basic challenges or accessibility.
 - Check capabilities in application commands as well as UI; preserve rights during unknown network state.
 - Do not promise all future themes, subscriptions, advanced analytics, rewards or unimplemented functionality.
+- Read-only goals after a verified loss look calm and explained (a neutral badge and one sentence), never alarming.
 
 ## Acceptance criteria
 

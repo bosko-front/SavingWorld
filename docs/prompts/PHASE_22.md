@@ -25,7 +25,7 @@ Final Pro price and sale details (Q07), identity/legal/URLs/toolchain (Q09), art
 ## Exact scope
 
 - Recheck current official Apple submission, IAP, privacy-manifest, privacy-label, age-rating and toolchain requirements against the actual release candidate.
-- Finalize owner-approved name/publisher/bundle/support/privacy information and prepare truthful description, screenshots, age rating, review notes and privacy answers.
+- Finalize owner-approved name/publisher/bundle/support/privacy information and prepare truthful description, screenshots, age rating, review notes and privacy answers. Screenshots show the real app in the D97 world-first look (worlds first, honest numbers), never mock features.
 - Prepare the one-time Pro product description and localized price displays using the owner-finalized commercial decision. Leave future premium-theme rights/prices unresolved and avoid broad inclusion promises.
 - Verify the Phase 20/21 EAS delivery evidence and prepare the exact production update promotion/rollout/recovery record with runtime/channel/environment and schema constraints. Do not publish it.
 - Generate/verify the signed EAS distribution candidate and prepare TestFlight/review instructions, build/version mapping and installed-build smoke evidence as credentials permit.

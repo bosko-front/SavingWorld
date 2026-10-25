@@ -29,6 +29,18 @@ export function themeManifest(themeId: ThemeId): ManifestResult {
   return result;
 }
 
+// The art of a theme at a stored version (a souvenir's theme and version, docs/ASSET_SPEC.md "Store
+// only theme IDs and version references"). The bundled art serves the version it was exported as;
+// an art revision must keep every version a souvenir may have stored. A version that is not bundled
+// gets the scene's fallback, never another version's art presented as the old one.
+export function themeManifestAt(themeId: ThemeId, version: number): ManifestResult {
+  const result = themeManifest(themeId);
+  if (!result.ok || result.manifest.version === version) {
+    return result;
+  }
+  return { ok: false, problems: [`${themeId} art version ${version} is not bundled (bundled: ${result.manifest.version}).`] };
+}
+
 // The name of the unlock at `stage` ("Small house"), or null when the theme has no valid art or
 // the stage is the base.
 export function stageName(themeId: ThemeId, stage: Stage): string | null {

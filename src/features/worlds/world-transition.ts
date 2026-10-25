@@ -1,6 +1,7 @@
 import { MILESTONE_COUNT, stageFor, type Stage, type ThemeId } from '@/core/progression';
 
 import { visibleLayers, type Milestone, type SceneUnlock, type ThemeManifest } from './manifest';
+import { worldCompleteCopy } from './world-copy';
 
 // World transitions (Phase 10, owner direction D73): what Home animates after a committed change of
 // the selected goal. Pure TypeScript: no React, no timers, no database. The committed snapshot is
@@ -9,12 +10,14 @@ import { visibleLayers, type Milestone, type SceneUnlock, type ThemeManifest } f
 // eligibility: stages come from the shared stage function.
 
 // One committed reading of the selected goal. `revision` is the app-data version the snapshot was
-// read at; it only grows, so an older reading can never replace a newer one.
+// read at; it only grows, so an older reading can never replace a newer one. `souvenir` says whether
+// the goal holds its permanent souvenir (Phase 11).
 export type SceneSnapshot = {
   goalId: string;
   themeId: ThemeId;
   balanceMinor: number;
   targetMinor: number;
+  souvenir: boolean;
   revision: number;
 };
 
@@ -36,6 +39,10 @@ export type WorldTransition = {
   unlocked: readonly Milestone[];
   // The balance rose: the saved amount and the percent count up. A decrease is shown at once.
   countUp: boolean;
+  // The goal received its souvenir in this change (the first saved B >= T, Phase 11): the moment
+  // says so instead of naming the milestone. A launch never shows it, because the first snapshot
+  // already has the souvenir.
+  souvenir: boolean;
 };
 
 // How the screen moves from `from` to `to`, or null when the goal or theme changed (the screen
@@ -57,7 +64,13 @@ export function planWorldTransition(from: SceneSnapshot, to: SceneSnapshot): Wor
       unlocked.push(stage as Milestone);
     }
   }
-  return { kind, from, to, fromStage, toStage, unlocked, countUp: rose };
+  return { kind, from, to, fromStage, toStage, unlocked, countUp: rose, souvenir: !from.souvenir && to.souvenir };
+}
+
+// Whether a transition has an in-scene message: every unlock, and a first souvenir however it came
+// (a lower target also earns it).
+export function celebrates(transition: WorldTransition): boolean {
+  return transition.kind === 'unlock' || transition.souvenir;
 }
 
 // Whether a committed change of the balance unlocks a stage. The entry form uses it to leave the
@@ -96,7 +109,13 @@ export type WorldMotionState = {
   celebration: Celebration | null;
 };
 
-export type Celebration = { revision: number; goalId: string; themeId: ThemeId; unlocked: readonly Milestone[] };
+export type Celebration = {
+  revision: number;
+  goalId: string;
+  themeId: ThemeId;
+  unlocked: readonly Milestone[];
+  souvenir: boolean;
+};
 
 export type WorldMotionEvent =
   | { type: 'commit'; snapshot: SceneSnapshot }
@@ -159,11 +178,12 @@ export function worldMotionReducer(state: WorldMotionState, event: WorldMotionEv
       return { ...state, shown: state.transition.to, transition: null, phase: 'waiting' };
     case 'celebrate': {
       const { transition } = state;
-      if (!transition || transition.kind !== 'unlock' || transition.to.revision !== event.revision) {
+      if (!transition || !celebrates(transition) || transition.to.revision !== event.revision) {
         return state;
       }
       const { goalId, themeId } = transition.to;
-      return { ...state, celebration: { revision: event.revision, goalId, themeId, unlocked: transition.unlocked } };
+      const { unlocked, souvenir } = transition;
+      return { ...state, celebration: { revision: event.revision, goalId, themeId, unlocked, souvenir } };
     }
     case 'dismiss':
       return state.celebration?.revision === event.revision ? { ...state, celebration: null } : state;
@@ -316,8 +336,19 @@ function staggerStep(count: number, preferred: number, total: number): number {
 
 export type UnlockMessage = { title: string; detail: string; announcement: string };
 
-// `name` gives a milestone's name from the theme manifest (null for a theme without art).
-export function unlockMessage(unlocked: readonly Milestone[], name: (milestone: Milestone) => string | null): UnlockMessage {
+// `name` gives a milestone's name from the theme manifest (null for a theme without art). The first
+// time a goal reaches its target (`souvenir`), the message is the completed world and its souvenir
+// instead of the milestone names (Phase 11).
+export function unlockMessage(
+  unlocked: readonly Milestone[],
+  name: (milestone: Milestone) => string | null,
+  souvenir: { themeId: ThemeId } | null = null,
+): UnlockMessage {
+  if (souvenir) {
+    const title = worldCompleteCopy(souvenir.themeId).title;
+    const detail = 'Its souvenir is now in your Collection.';
+    return { title, detail, announcement: `${title} ${detail}` };
+  }
   const names = unlocked.map((milestone) => name(milestone) ?? `${(milestone * 100) / MILESTONE_COUNT}% reached`);
   const title = unlocked.length === 1 ? 'New milestone unlocked!' : `${unlocked.length} milestones unlocked!`;
   const detail =

@@ -1,8 +1,11 @@
 import { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
 import { currencyCommandDeps, refreshAppData } from '@/bootstrap/app-data';
 import { getCurrency } from '@/core/money';
+import { MILESTONE_COUNT } from '@/core/progression';
 import { randomUuid } from '@/data/ids';
+import { WorldScene, worldArtAspect } from '@/features/worlds/world-scene';
 import { deviceCurrencyCode } from '@/shared/i18n/locale';
 import { Screen } from '@/shared/layout';
 import { AppText } from '@/shared/ui/app-text';
@@ -24,7 +27,9 @@ function initialCurrency(): string {
 
 // First launch (v1.2 sections 2 and 6): a short explanation that this is a record, not a bank
 // account, and one global currency choice. No account, purchase or notification prompt. When the
-// choice is saved the root layout switches to the app; the same command later serves Settings.
+// choice is saved the root layout switches to the app; the same command later serves Settings. The
+// first thing on screen is a finished Island (D98, V09): the world a goal grows into, a still,
+// decorative picture (the text says the same), so the first impression is the app's world.
 export function OnboardingScreen() {
   const [code, setCode] = useState(initialCurrency);
   const [operationId] = useState(randomUuid);
@@ -47,6 +52,9 @@ export function OnboardingScreen() {
 
   return (
     <Screen testID="onboarding">
+      <View style={styles.world} testID="onboarding-world">
+        <WorldScene themeId="island" stage={MILESTONE_COUNT} backdrop="none" decorative />
+      </View>
       <AppText role="largeTitle" accessibilityRole="header">
         Saving Worlds
       </AppText>
@@ -77,3 +85,13 @@ export function OnboardingScreen() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  // Wide enough to read as a world, small enough that the currency choice and Continue stay close.
+  world: {
+    width: '100%',
+    maxWidth: 300,
+    alignSelf: 'center',
+    aspectRatio: worldArtAspect('island'),
+  },
+});

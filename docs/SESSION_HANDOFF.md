@@ -1,37 +1,89 @@
 # Latest session handoff
 
-Session date: 25 October 2026. Session kind: Phase 10.5 (Living Island ambient motion). Result: **Phase 10.5 VERIFIED COMPLETE**: the owner approved the re-exported Island and the D93 motion (D94); lint, typecheck, Jest 768/768, release export and simulator checks (17 Pro Max, SE, Duo open) PASS. Next prompt: [PHASE_11](prompts/PHASE_11.md).
+Session date: 25 October 2026. Session kind: Phase 11 (permanent souvenirs, Finish/Reopen and Collection), with owner design work D97-D101. Result: **Phase 11 VERIFIED COMPLETE** (D102). Every acceptance criterion has automated, native-SQLite and simulator evidence. The Collection VoiceOver walkthrough and felt haptics are deferred to Phase 19 and repeated in Phase 21: not passed, mandatory before release. Next prompt: [PHASE_12](prompts/PHASE_12.md).
 
-The previous handoff (Phase 10) is superseded; its record remains in [PHASE_10 evidence](evidence/PHASE_10.md) and DECISIONS D85-D90.
+The previous handoff (Phase 10.5) is superseded; its record remains in [PHASE_10_5 evidence](evidence/PHASE_10_5.md) and DECISIONS D91-D94.
 
 ## Completed
 
-- Read the full v1.2 DOCX and the required docs; verified Phase 10 in code. Baseline: clean tree on e386419 (Phase 10 is committed; the old handoff said uncommitted).
-- Art (D76 workflow): new `assets/worlds/island/scripts/render_ambient.py` (stage 0 with clouds invisible to the camera, flat ID masks for clouds, stream, waterfall and trees, in `renders/ambient/`); `export_layers.py` extended to manifest **version 2**: base without clouds (same box), `island_cloud_1..3`, `island_water_a/b` (invisible at rest), one layer per tree for milestones 1 and 7 with `ambient: {kind: 'sway', pivot}`; stacking at rest reproduces all eleven renders (stage 0 mean 0.004/255, others as v1), layer bounds unchanged. Review sheet `export/island_ambient_review.png`. Copied unchanged to `assets/themes/island/` (48 files) and listed in `themes/island-assets.ts`.
-- `manifest.ts`: `AmbientMark`, `AMBIENT_LIMITS`, ambient validation; `theme-export.ts`: `ambient` list → base layers z 1..5, sway marks, `AMBIENT_PRESETS` with per-layer spread/phase, inward cloud drift.
-- `ambient.ts`: `AMBIENT_RELEASE_SWITCHES` (all, clouds, water, trees), `ambientKindOn`, in-memory development override.
-- `world-scene.tsx`: `ambient` prop, `AmbientBox` nested in each reveal box (UI-thread `withRepeat`, rest = 0, cancel to rest when the gate closes, start from rest, a revealed tree sways after its pop), water layers not drawn when water is off.
-- Home passes `useAmbientMotion()`; the empty-state Island keeps its Phase 10 float (D91).
-- World inspector: Ambient on/off, Clouds, Water, Trees, Reset, gate state.
-- Tests: new `tests/integration/world-ambient.test.tsx` (7); ambient block in `tests/unit/world-manifest.test.ts`; version 2 counts/ids in the manifest and scene tests.
-- Owner feedback mid-session: motion invisible → enlarged (D92); clouds/sky "lighter" → measured identical to the approved art, sky unchanged.
-- Owner's second review (relayed by the owner's other session): trees barely, water almost not visible; SpriteKit/Swift evaluation dropped. D93: `render_ambient.py -- flow-only` adds a 16-bit Flow-UV pass; the export makes three flow layers `island_water_a/b/c` (streaks a third of a period further downstream each), drops unchanged later-layer pixels over earlier trees, and checks the stack exactly as the app draws it; the app fades the water layers in turn (shared 2.4 s round) and leans trees 5° with `skewX`. Simulator screenshots show clearly visible flowing streaks and leaning crowns.
-- Docs: evidence PHASE_10_5 (+ `docs/evidence/phase-10-5/` recordings and frame/heat-map images), DECISIONS D91-D92, ASSET_SPEC, DESIGN_SYSTEM, ARCHITECTURE, Phase 21 prompt + roadmap (switch location), Island READMEs, CLAUDE.md, PROJECT_STATUS, this file.
+- Read the v1.2 DOCX and the required docs. Verified the Phase 06/07/10/10.5 dependencies in code. Baseline: clean `main` at 23a97d1.
+- Schema 3 `src/data/db/migrations/0003-collectibles.ts`:
+  - columns `goal_id` (PK), `theme_id`, `theme_version`, `target_minor_at_award`, `earned_at_utc`;
+  - no updates allowed;
+  - backfill for goals already funded;
+  - checksum `1d1c7826fd9f83de` pinned.
+- `collectible-repository.ts`: get, list, insert, delete for a goal, count. The "no table" fallback was removed.
+- `CURRENT_THEME_VERSIONS` (Island 2, Garden 1) and `themeManifestAt` for historical art.
+- `awardSouvenirIfFirstFunded` (`src/features/collection/application/`) runs inside `createEntry`, `correctEntry`, `deleteEntry` and `editGoal`. `souvenirAwarded` is on ledger results and false on replays.
+- Home:
+  - "Finish goal" in the ⋯ menu at B ≥ T;
+  - the souvenir moment (`SceneSnapshot.souvenir`, success haptic instead of milestone, quiet for a lower target);
+  - "Build another world" on the empty Home while Free's one goal is finished.
+- Collection (`src/features/collection/presentation/`):
+  - list: empty state, Completed goals / Still open, cards with the still souvenir world;
+  - `/souvenir?goalId=` detail: Souvenir then / Goal now, Reopen, and Delete with the D74 confirmation.
+  - `closed-goals.tsx` removed. `useDeleteGoal(onDeleted)` lets the detail leave after deleting.
+- Tests:
+  - `tests/native/souvenir-scenarios.ts` C01-C06;
+  - native pins moved to schema 3; G04/G07 use real souvenirs; G08 continues to 3; R1/R2 finish a goal across a process restart;
+  - `tests/integration/collection-ui.test.tsx`, `tests/unit/collection-model.test.ts`, souvenir cases in the world-transition/manifest/motion tests.
+- Docs:
+  - evidence `PHASE_11.md` with `phase-11/` (7 screenshots, 3 test:db reports);
+  - DECISIONS D95-D96;
+  - DATA_MODEL, ARCHITECTURE, DESIGN_SYSTEM, UI_UX_GUIDELINES, TEST_PLAN, RELEASE_CHECKLIST (Phase 11 physical-device item), PROJECT_STATUS, CLAUDE.md.
+
+## Follow-up in the same session: design direction (D97, docs only)
+
+- The owner set the world-first direction: a cozy savings game with useful tracking, with Home and the Island as the reference.
+- Added DESIGN_SYSTEM "World-first design direction": philosophy, identity table, eight patterns, motion budget, anti-patterns, per-screen direction for Challenges, reminder, paywall, theme picker, Statistics, Settings and store screenshots, and proposals V01-V08.
+- UI_UX_GUIDELINES links to it and annotates the screen contracts.
+- Prompts 12, 13, 14, 16, 17, 18, 19, 21 and 22 and the matching roadmap entries gained scope/verification lines; a roadmap revision note was added. Acceptance criteria, phase numbering, business rules and scope are unchanged.
+- No code changed; Home is untouched.
+- Owner approval needed for V01-V08 (DESIGN_SYSTEM table). Without approval they stay unapplied.
+
+## Follow-up: approved visual polish (D98)
+
+- V01 gallery empty Collection; V02 gold frame on completed cards and a one-shot sparkle burst on the souvenir detail, after the world is drawn (`WorldScene onShown`, `AmbientSparkles once large`); V03 History "Ready to grow"; V04 Home's finished-world empty state; V09 onboarding Island.
+- Fixed: Collection cards lost their surface style inside `Link asChild` (now `CardButton`).
+- Checks: Jest 795/795, lint and typecheck PASS. Screenshots 08-14 are in `docs/evidence/phase-11/`; 12-14 come from a fresh install on the 17 Pro Max iOS 26.4 simulator, whose app now has RSD and the goal "New bike" (RSD 800).
+- D99: the souvenir detail follows Home (full-bleed sky, transparent bar with the goal name, chevron-only Back); screenshot 15.
+- D101: Collection gallery polish: intro line, featured/two-column gallery, subtle 1 pt gold frame, simplified achievement-first detail; Jest 799/799; screenshots 16-20. The 26.4 simulator has a seeded four-world fixture; its earlier "New bike" goal had been deleted through the app's confirmed Delete (receipt at 21:23:35).
+- Still open: the VoiceOver decision. V05-V08 remain proposals. D100: Collection card worlds float slowly (3 pt over 4.4 s, out of step per card, only while visible, still under Reduce Motion), an owner exception to D90; Jest 797/797.
 
 ## Decisions
 
-D91 (engineering): ambient layers, manifest version 2, marks, driver, switches, no canopies, empty state keeps its float. D92 (owner feedback): larger motion. D93 (owner feedback, second review): flowing water (three flow layers), trees lean 5° by skew, limits sway 8°, tree-area clearing in the export. D94 (owner): Living Island approved, Phase 10.5 closed. No product rule changed.
+- D95: souvenir storage and award (schema 3 shape, immutability, backfill, the award hook, the stored version constant).
+- D96: souvenir moment, Finish in the menu, Collection structure and the detail route, Build another world on the empty Home.
+- D97 (owner): world-first design direction for all later UI phases (docs only).
+- D99-D101 (owner): souvenir detail like Home, Collection card float, Collection gallery polish.
+- D102 (owner): Phase 11 closed; the Collection VoiceOver walkthrough and felt haptics carried to Phases 19/21.
+- D98 (owner): V01-V04 and V09 approved and built in Phase 11.
+- No product rule changed.
 
 ## Checks
 
-Final state (D93): lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (31 suites, 768 tests, 131 s once the Mac's load fell; also PASS with `--testTimeout=60000` during the overload). Release export PASS (72 assets, no inspector code). Export stacking check PASS (each stage as the app draws it). Simulator (build 405064a9): 17 Pro Max iOS 26.1 (ambient on, threshold deposit RWF 900 32% → 40% with ambient on, Reduce Motion still, D93 water/trees), SE 3 iOS 18.5, Duo open iOS 27.1 (motion; leave Home + background and resume) PASS. `verify_stages.py`, `test:db`, `deps:check`, `doctor`: NOT RUN (scene, persistence and dependencies unchanged). Physical iPhone: NOT RUN (Phase 21).
+- `npm run lint` PASS
+- `npm run typecheck` PASS
+- `npm test -- --runInBand` PASS (33 suites, 795 tests)
+- `npm run test:db` (build 405064a9, Metro started from `.claude/launch.json`) PASS, 43/43 + restart verify:
+  - iPhone 17 Pro Max iOS 26.1
+  - SE 3 iOS 18.5
+  - Duo iOS 27.1
+- Release export PASS: 72 assets, no dev code.
+- Simulator walkthrough on the 17 Pro Max PASS: souvenir moment on a paused goal, Finish, Build another world, Collection, detail, Reopen; database rows checked.
+- `deps:check`/`doctor`: NOT RUN (no dependency change).
+- VoiceOver walkthrough and felt haptics: NOT RUN (physical iPhone).
 
 ## Incomplete work and blockers
 
-1. No Phase 10.5 blocker. By design (D90): Phase 21 measures energy, memory and smoothness with ambient on and off on a physical iPhone and keeps the effect only if it passes (`AMBIENT_RELEASE_SWITCHES`: water first, then a static Island).
-2. Minor, noted in evidence: the low cloud carries a faint waterfall sliver (~0.3 pt); clouds pass in front of the rock face; the inspector toggle buttons were not tapped on the simulator (Jest covers the switches).
-3. Git: Phase 10.5 is committed on `main` ("Phase 10.5: Living Island ambient motion, owner-approved (D91-D94)"); not pushed. Simulator state: the 17 Pro Max test goal "Summer trip12.345" is at RWF 4,950 (stage 4) after this session's RWF 900 deposit; the 17 Pro Max simulator was shut down outside this session; Reduce Motion is off. The Duo shows the goal "New bike" (RSD 250 of 800) on Home. Metro is the owner's own `expo start`. The Mac was heavily loaded during part of the session (load average up to ~700).
+1. No Phase 11 blocker. Carried by D102 to Phase 19 (repeated in Phase 21): the Collection/historical-manifest VoiceOver walkthrough and felt haptics; also the D100 float and the burst in the Phase 21 device measurement. Listed in RELEASE_CHECKLIST and the Phase 19/21 prompts and roadmap.
+2. Minor: the onboarding picture pushes Continue below the fold on the iPhone SE (the screen scrolls).
+3. Git: Phase 11 is committed on `main` ("Phase 11: permanent souvenirs, Finish/Reopen and Collection (D95-D102)"); not pushed.
+4. Simulator state:
+   - The 17 Pro Max goal "Summer trip12.345" is now active at RWF 12,345/12,345 with its souvenir.
+   - The SE and Duo app databases are at schema 3 and their goals are unchanged.
+   - Metro was started by this session through the preview tool.
 
 ## Exact next session
 
-In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_11.md` (permanent souvenirs, Finish/Reopen and Collection). Verify Phase 10.5 from this file and [PHASE_10_5 evidence](evidence/PHASE_10_5.md) first; do not redo it. Souvenirs store the Island theme version 2 (no version 1 was ever stored); Phase 11 replaces the first-100% `milestone` haptic with `success` (D85).
+In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_12.md` (three fixed challenge rules and the attempt engine). Verify Phase 11 from this file and [PHASE_11 evidence](evidence/PHASE_11.md) first; do not redo it. Phase 12 extends `deleteGoal` to remove the goal's attempts in the same transaction, next to the collectible deletion. It exposes a typed attempt view for Phase 13's quest cards (D97).

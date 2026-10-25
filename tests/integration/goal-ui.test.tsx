@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, userEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, userEvent, waitFor, within } from '@testing-library/react-native';
 import { router } from 'expo-router';
 import { renderRouter } from 'expo-router/testing-library';
 import fs from 'fs';
@@ -86,6 +86,10 @@ describe('onboarding', () => {
     await renderRouter(APP_DIR, { initialUrl: '/' });
     expect(screen).toHavePathname('/onboarding');
     expect(screen.getByText('A record, not a bank account')).toBeOnTheScreen();
+    // The first thing on screen is a finished Island (D98, V09), decorative: the text says the same.
+    const onboardingWorld = within(screen.getByTestId('onboarding-world')).getByTestId('world-scene', { includeHiddenElements: true });
+    expect(onboardingWorld.props.accessible).toBe(false);
+    expect(onboardingWorld.props.accessibilityLabel).toBe('Island world, 10 of 10 milestones unlocked');
     // Preselected from the device region (Jest locale en-US), then changed natively.
     expect(screen.getByTestId('onboarding-selected')).toHaveTextContent('Selected: USD – US Dollar');
     await fireEvent(nativeView({ label: 'Currency' }), 'selectionChange', { nativeEvent: { selection: 'JPY' } });
@@ -297,13 +301,16 @@ describe('Home lifecycle, Free goal limit and Collection', () => {
 
     await renderRouter(APP_DIR, { initialUrl: '/' });
     // Free's one goal is finished: Home explains the two ways forward instead of a Create button.
-    expect(screen.getByTestId('home-closed-hint')).toHaveTextContent(/Unlock Pro to build another world, or delete it there to start over\./);
+    expect(screen.getByTestId('home-closed-hint')).toHaveTextContent(/Unlock Pro to build another world, or delete your finished goal in Collection to start over\./);
     expect(screen.queryByTestId('home-new-goal')).not.toBeOnTheScreen();
+    expect(screen.getByTestId('home-another-world')).toHaveTextContent('Build another world');
 
     await act(async () => {
       router.navigate('/collection');
     });
     expect(screen.getByText('Completed')).toBeOnTheScreen();
+    await userEvent.press(screen.getByTestId(`collection-card-${goalId}`));
+    expect(screen).toHavePathname('/souvenir');
     const confirm = jest.spyOn(Alert, 'alert');
     answerNextAlert('Cancel');
     await userEvent.press(screen.getByTestId(`delete-${goalId}`));

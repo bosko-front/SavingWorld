@@ -6,7 +6,7 @@ import { checkOperationId, executeCommand, reject, type CommandFailure, type Ope
 import type { AppDatabase } from '@/data/db/database';
 import type { SqlExecutor } from '@/data/db/sql';
 import { isEntityId, type IdGenerator } from '@/data/ids';
-import { getGoal, isOpenStatus } from '@/data/repositories/goal-repository';
+import { getGoal, isOpenStatus, type GoalRecord } from '@/data/repositories/goal-repository';
 import {
   deleteEntry as deleteEntryRow,
   getEntry,
@@ -17,6 +17,7 @@ import {
 } from '@/data/repositories/ledger-repository';
 import { insertReceipt, lookupReceipt, requestHash } from '@/data/repositories/receipt-repository';
 import { readCurrency } from '@/data/repositories/settings-repository';
+import { awardSouvenirIfFirstFunded } from '@/features/collection/application/souvenir-award';
 
 import { validateCandidateHistory, type HistoryEntry, type HistoryViolation } from '../domain/candidate-history';
 
@@ -27,7 +28,8 @@ import { validateCandidateHistory, type HistoryEntry, type HistoryViolation } fr
 // 2. in one exclusive transaction: replays a receipt for a repeated operation ID (or rejects a
 //    different payload), requires the global currency, an open goal and the expected row revision,
 //    validates the goal's whole candidate history in date/createdAt/id order, writes the current
-//    values and a minimal receipt;
+//    values, stores the goal's one souvenir when this change first leaves B >= T (Phase 11) and a
+//    minimal receipt;
 // 3. returns the recomputed balance only after COMMIT.
 // Nothing keeps a previous entry version: a correction overwrites, a deletion removes.
 
@@ -102,6 +104,9 @@ export type LedgerMutationResult = {
   balanceMinor: number;
   // Balance before this mutation; null for a replay.
   previousBalanceMinor: number | null;
+  // True when this commit stored the goal's souvenir (the first saved B >= T). Always false for a
+  // replay, so a retry never repeats the first-award moment.
+  souvenirAwarded: boolean;
 };
 
 // What a receipt keeps: identifiers and outcome only.
@@ -186,6 +191,7 @@ async function replayOrContinue(
       ...receipt.result,
       balanceMinor: await goalBalance(tx, receipt.result.goalId),
       previousBalanceMinor: null,
+      souvenirAwarded: false,
     };
   }
   return null;
@@ -198,7 +204,7 @@ async function requireCurrency(tx: SqlExecutor): Promise<void> {
   }
 }
 
-async function requireOpenGoal(tx: SqlExecutor, goalId: string): Promise<void> {
+async function requireOpenGoal(tx: SqlExecutor, goalId: string): Promise<GoalRecord> {
   const goal = await getGoal(tx, goalId);
   if (!goal) {
     reject<LedgerRuleError>({ code: 'goal_not_found' });
@@ -206,18 +212,23 @@ async function requireOpenGoal(tx: SqlExecutor, goalId: string): Promise<void> {
   if (!isOpenStatus(goal.status)) {
     reject<LedgerRuleError>({ code: 'goal_closed' });
   }
+  return goal;
 }
 
-async function requireCurrentEntry(tx: SqlExecutor, entryId: string, expectedRevision: number): Promise<LedgerEntryRecord> {
+async function requireCurrentEntry(
+  tx: SqlExecutor,
+  entryId: string,
+  expectedRevision: number,
+): Promise<{ entry: LedgerEntryRecord; goal: GoalRecord }> {
   const entry = await getEntry(tx, entryId);
   if (!entry) {
     reject<LedgerRuleError>({ code: 'entry_not_found' });
   }
-  await requireOpenGoal(tx, entry.goalId);
+  const goal = await requireOpenGoal(tx, entry.goalId);
   if (entry.revision !== expectedRevision) {
     reject<LedgerRuleError>({ code: 'stale_entry', currentRevision: entry.revision });
   }
-  return entry;
+  return { entry, goal };
 }
 
 function requireValidHistory(candidate: readonly HistoryEntry[]): number {
@@ -253,7 +264,7 @@ export async function createEntry(
       return replay;
     }
     await requireCurrency(tx);
-    await requireOpenGoal(tx, input.goalId);
+    const goal = await requireOpenGoal(tx, input.goalId);
 
     const nowUtc = utcTimestamp(deps.clock);
     const existing = await listEntriesForGoal(tx, input.goalId);
@@ -270,9 +281,10 @@ export async function createEntry(
     };
     const balanceMinor = requireValidHistory([...existing, entry]);
     await insertEntry(tx, entry);
+    const souvenirAwarded = await awardSouvenirIfFirstFunded(tx, goal, balanceMinor, nowUtc);
     const stored: StoredLedgerResult = { goalId: entry.goalId, entryId: entry.id, entryRevision: entry.revision };
     await insertReceipt(tx, input.operationId, kind, hash, stored, nowUtc);
-    return { operationId: input.operationId, replayed: false, ...stored, balanceMinor, previousBalanceMinor };
+    return { operationId: input.operationId, replayed: false, ...stored, balanceMinor, previousBalanceMinor, souvenirAwarded };
   });
 }
 
@@ -301,7 +313,7 @@ export async function correctEntry(
       return replay;
     }
     await requireCurrency(tx);
-    const current = await requireCurrentEntry(tx, input.entryId, input.expectedRevision);
+    const { entry: current, goal } = await requireCurrentEntry(tx, input.entryId, input.expectedRevision);
 
     const existing = await listEntriesForGoal(tx, current.goalId);
     const previousBalanceMinor = checkedBalance(existing);
@@ -314,13 +326,14 @@ export async function correctEntry(
     if (!(await updateEntry(tx, current.id, input.expectedRevision, { signedAmountMinor, entryDate, note }, nowUtc))) {
       reject<LedgerRuleError>({ code: 'stale_entry', currentRevision: current.revision });
     }
+    const souvenirAwarded = await awardSouvenirIfFirstFunded(tx, goal, balanceMinor, nowUtc);
     const stored: StoredLedgerResult = {
       goalId: current.goalId,
       entryId: current.id,
       entryRevision: input.expectedRevision + 1,
     };
     await insertReceipt(tx, input.operationId, kind, hash, stored, nowUtc);
-    return { operationId: input.operationId, replayed: false, ...stored, balanceMinor, previousBalanceMinor };
+    return { operationId: input.operationId, replayed: false, ...stored, balanceMinor, previousBalanceMinor, souvenirAwarded };
   });
 }
 
@@ -347,7 +360,7 @@ export async function deleteEntry(
       return replay;
     }
     await requireCurrency(tx);
-    const current = await requireCurrentEntry(tx, input.entryId, input.expectedRevision);
+    const { entry: current, goal } = await requireCurrentEntry(tx, input.entryId, input.expectedRevision);
 
     const existing = await listEntriesForGoal(tx, current.goalId);
     const previousBalanceMinor = checkedBalance(existing);
@@ -355,8 +368,11 @@ export async function deleteEntry(
     if (!(await deleteEntryRow(tx, current.id, input.expectedRevision))) {
       reject<LedgerRuleError>({ code: 'stale_entry', currentRevision: current.revision });
     }
+    // Deleting a withdrawal raises the balance, so it can be the first B >= T too.
+    const nowUtc = utcTimestamp(deps.clock);
+    const souvenirAwarded = await awardSouvenirIfFirstFunded(tx, goal, balanceMinor, nowUtc);
     const stored: StoredLedgerResult = { goalId: current.goalId, entryId: current.id, entryRevision: null };
-    await insertReceipt(tx, input.operationId, kind, hash, stored, utcTimestamp(deps.clock));
-    return { operationId: input.operationId, replayed: false, ...stored, balanceMinor, previousBalanceMinor };
+    await insertReceipt(tx, input.operationId, kind, hash, stored, nowUtc);
+    return { operationId: input.operationId, replayed: false, ...stored, balanceMinor, previousBalanceMinor, souvenirAwarded };
   });
 }

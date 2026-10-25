@@ -74,6 +74,9 @@ type WorldSceneProps = {
   ambient?: boolean;
   // Shown over the scene region (Home's "New milestone unlocked!" message).
   children?: ReactNode;
+  // Called once a stage is on screen with all of its layers loaded (Phase 11, D98: a souvenir's
+  // sparkle burst waits for the world it greets).
+  onShown?: (stage: Stage) => void;
 };
 
 export function WorldScene({
@@ -87,6 +90,7 @@ export function WorldScene({
   reveal = null,
   ambient = false,
   children,
+  onShown,
 }: WorldSceneProps) {
   const [area, onAreaLayout] = useMeasuredSize();
   const insets = useSceneInsets();
@@ -126,6 +130,7 @@ export function WorldScene({
                 reveal={reveal}
                 ambient={ambient}
                 boxWidth={box.width}
+                onShown={onShown}
                 onError={() => setFailed(true)}
               />
             </SceneErrorBoundary>
@@ -145,6 +150,7 @@ type SceneLayersProps = {
   reveal: SceneReveal | null;
   ambient: boolean;
   boxWidth: number;
+  onShown?: (stage: Stage) => void;
   onError: () => void;
 };
 
@@ -165,7 +171,7 @@ type LayerAnimation = { revision: number; motion: LayerMotion; leaving: SceneLay
 // Phase 10.5: layers with an ambient mark move while `ambient` is on and their effect's switch allows
 // it; the water sparkle layers are invisible at rest and are not drawn at all when water is switched
 // off, so the switched-off scene is the approved picture.
-function SceneLayers({ manifest, stage, upcomingStage, reveal, ambient, boxWidth, onError }: SceneLayersProps) {
+function SceneLayers({ manifest, stage, upcomingStage, reveal, ambient, boxWidth, onShown, onError }: SceneLayersProps) {
   const viewport = useMemo(() => sceneViewport(manifest, VIEWPORT_MARGIN), [manifest]);
   const scale = boxWidth / viewport.width;
   const switches = useAmbientSwitches();
@@ -205,6 +211,14 @@ function SceneLayers({ manifest, stage, upcomingStage, reveal, ambient, boxWidth
   if ([...loaded].some((id) => !mounted.has(id))) {
     setLoaded(new Set([...loaded].filter((id) => mounted.has(id))));
   }
+
+  useEffect(() => {
+    if (shownStage !== null) {
+      onShown?.(shownStage);
+    }
+    // Only a newly shown stage reports; the callback identity may change on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shownStage]);
 
   const markLoaded = (id: string) => setLoaded((current) => (current.has(id) ? current : new Set(current).add(id)));
 

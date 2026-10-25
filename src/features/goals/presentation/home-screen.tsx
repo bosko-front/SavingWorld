@@ -1,13 +1,16 @@
 import { Link } from 'expo-router';
 import { useState, type ReactElement } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 
 import { currentCapabilities, goalCommandDeps, refreshAppData, useAppDataStore } from '@/bootstrap/app-data';
 import { hasGoalSlot } from '@/core/access';
-import { progressPercent, sceneFeedback } from '@/core/progression';
+import { MILESTONE_COUNT, progressPercent, sceneFeedback } from '@/core/progression';
+import type { CollectibleRecord } from '@/data/repositories/collectible-repository';
 import { isOpenStatus, type GoalSummary } from '@/data/repositories/goal-repository';
+import { themeManifestAt } from '@/features/worlds/registry';
 import { UnlockBanner } from '@/features/worlds/unlock-banner';
 import { useWorldMotion, type WorldMotion } from '@/features/worlds/use-world-motion';
+import { worldNoun } from '@/features/worlds/world-copy';
 import { WorldScene, worldArtAspect } from '@/features/worlds/world-scene';
 import { WORLD_MOTION } from '@/features/worlds/world-transition';
 import { AdaptiveGoalLayout, Screen } from '@/shared/layout';
@@ -29,6 +32,7 @@ import { StatusBadge } from '@/shared/ui/status-badge';
 
 import { selectGoal } from '../application/goal-selection';
 
+import { ANOTHER_WORLD } from './goal-copy';
 import { SavingsPlanCards } from './savings-plan-cards';
 import { GoalMenu } from './goal-menu';
 import { useDeleteGoal } from './use-delete-goal';
@@ -37,7 +41,7 @@ import { useGoalAction } from './use-goal-action';
 
 // Home (Phase 06 basics, Phase 07 ledger actions, Phase 07.5 visual direction A "Calm hero", Phase 08
 // dashboard): the world first, then progress. The controls show the goal title with its options
-// menu (⋯: History, Edit, Pause/Resume, New goal, Delete), the saved amount as the largest text,
+// menu (⋯: History, Edit, Pause/Resume, Finish at B ≥ T, New goal, Delete), the saved amount as the largest text,
 // the target, a milestone progress bar with the floored percent and the remaining (or overfunded)
 // amount, Add savings (the one primary action, a full-width button under the progress since owner
 // decision D81; D72/D73 had it floating), the milestone card and the savings plan when a deadline is set (D84). Every number
@@ -75,7 +79,18 @@ export function HomeScreen() {
   if (!selected) {
     return (
       <Screen testID="home" centered>
-        <EmptyHome completedCount={completedCount} canCreate={canCreate} />
+        <EmptyHome
+          completedCount={completedCount}
+          canCreate={canCreate}
+          // Free's one goal is finished (D98, V04): its finished world, newest souvenir of a completed goal.
+          finishedWorld={
+            canCreate
+              ? null
+              : (goals.souvenirs.find((souvenir) =>
+                  goals.goals.some(({ goal }) => goal.id === souvenir.goalId && goal.status === 'completed'),
+                ) ?? null)
+          }
+        />
       </Screen>
     );
   }
@@ -86,18 +101,27 @@ export function HomeScreen() {
       dashboard={homeDashboard(selected, currency.currency.currency, today)}
       open={open}
       canCreate={canCreate}
+      souvenir={goals.souvenirs.some((souvenir) => souvenir.goalId === selected.goal.id)}
     />
   );
 }
 
-type SelectedGoalHomeProps = { summary: GoalSummary; dashboard: HomeDashboard; open: GoalSummary[]; canCreate: boolean };
+type SelectedGoalHomeProps = {
+  summary: GoalSummary;
+  dashboard: HomeDashboard;
+  open: GoalSummary[];
+  canCreate: boolean;
+  // The goal holds its permanent souvenir (Phase 11): the first time this turns true after a commit,
+  // the world's moment is the souvenir moment.
+  souvenir: boolean;
+};
 
 // The selected goal on AdaptiveGoalLayout: the world, then the numbers, the milestone and the
 // savings plan; goal administration is in the ⋯ menu and Add savings sits under the progress (D73,
 // D81). After a committed change the world motion (Phase 10) moves the amount, the bar and the
 // scene from what was shown to the committed values, with the unlock moment when a deposit crosses
 // a threshold; everything else on Home shows the committed values at once.
-function SelectedGoalHome({ summary, dashboard, open, canCreate }: SelectedGoalHomeProps) {
+function SelectedGoalHome({ summary, dashboard, open, canCreate, souvenir }: SelectedGoalHomeProps) {
   const { goal } = summary;
   const revision = useAppDataStore((store) => store.version);
   const motion = useWorldMotion({
@@ -105,6 +129,7 @@ function SelectedGoalHome({ summary, dashboard, open, canCreate }: SelectedGoalH
     themeId: goal.themeId,
     balanceMinor: summary.balanceMinor,
     targetMinor: goal.targetMinor,
+    souvenir,
     revision,
   });
   // Living Island (Phase 10.5, D90): clouds, water sparkle and trees move only while Home is focused,
@@ -137,7 +162,7 @@ function SelectedGoalHome({ summary, dashboard, open, canCreate }: SelectedGoalH
       }
       controls={
         <View style={styles.controls}>
-          <GoalNumbers summary={summary} dashboard={dashboard} motion={motion} busy={busy} menu={<GoalMenu summary={summary} canCreate={canCreate} busy={busy} run={action.run} onDelete={() => confirmDelete(goal)} />} />
+          <GoalNumbers summary={summary} dashboard={dashboard} motion={motion} busy={busy} menu={<GoalMenu summary={summary} funded={dashboard.amounts.funded} canCreate={canCreate} busy={busy} run={action.run} onDelete={() => confirmDelete(goal)} />} />
           {open.length > 1 ? <GoalSwitcher open={open} selectedId={goal.id} /> : null}
         </View>
       }
@@ -162,35 +187,62 @@ function LoadFailed() {
   );
 }
 
-// No open goal. A finished goal (Phase 11) still counts toward Free's one goal (D74), so Free is told
+// No open goal. A finished goal still counts toward Free's one goal (D74), so Free is told
 // where it is and what the two ways forward are instead of being sent to a form that would refuse.
 // The picture is the empty Island (stage 0, D76 base layer), floating gently with a soft sparkle while
 // Home is visible (D69, Phase 10). It keeps that float and no ambient motion of its own (Phase 10.5):
-// one gentle movement for a small picture is enough.
-function EmptyHome({ completedCount, canCreate }: { completedCount: number; canCreate: boolean }) {
+// one gentle movement for a small picture is enough. While Free's one goal is finished (D98, V04) the
+// picture is that finished world (its souvenir's theme and version) and the title says so.
+type EmptyHomeProps = { completedCount: number; canCreate: boolean; finishedWorld: CollectibleRecord | null };
+
+function EmptyHome({ completedCount, canCreate, finishedWorld }: EmptyHomeProps) {
+  const finished = !canCreate && completedCount > 0;
+  const title = finished ? 'Your world is finished' : completedCount > 0 ? 'Start a new goal' : 'Start your first goal';
+  const message = finished
+    ? `You reached your goal. Your finished ${worldNoun(finishedWorld?.themeId ?? 'island')} is kept in Collection.`
+    : 'Name something you are saving for and set a target. Each amount you record grows a small world.';
   return (
     <EmptyState
       icon="milestone"
       illustration={
-        <View style={styles.emptyWorld} testID="home-empty-world">
-          <WorldScene themeId="island" stage={0} backdrop="none" decorative />
+        <View style={[styles.emptyWorld, finishedWorld ? { aspectRatio: worldArtAspect(finishedWorld.themeId, themeManifestAt(finishedWorld.themeId, finishedWorld.themeVersion)) } : null]} testID="home-empty-world">
+          {finishedWorld ? (
+            <WorldScene
+              themeId={finishedWorld.themeId}
+              stage={MILESTONE_COUNT}
+              manifest={themeManifestAt(finishedWorld.themeId, finishedWorld.themeVersion)}
+              backdrop="none"
+              decorative
+            />
+          ) : (
+            <WorldScene themeId="island" stage={0} backdrop="none" decorative />
+          )}
           <AmbientSparkles spots={EMPTY_ISLAND_SPARKLES} testID="home-empty-sparkles" />
         </View>
       }
-      title={completedCount > 0 ? 'Start a new goal' : 'Start your first goal'}
+      title={title}
       testID="home-empty"
-      message="Name something you are saving for and set a target. Each amount you record grows a small world.">
+      message={message}>
       <View style={styles.emptyActions}>
         {canCreate ? (
           <Link href="/goal-form" asChild>
             <Button label="Create a goal" testID="home-new-goal" />
           </Link>
-        ) : null}
+        ) : (
+          // Free's one goal is finished: the "Build another world" entry (Phase 16's paywall; an
+          // alert until then) instead of a form that would refuse.
+          <Button
+            label={ANOTHER_WORLD.title}
+            icon="pro"
+            onPress={() => Alert.alert(ANOTHER_WORLD.title, ANOTHER_WORLD.finishedMessage)}
+            testID="home-another-world"
+          />
+        )}
         {completedCount > 0 ? (
           <AppText role="footnote" tone="secondary" style={styles.centered} testID="home-closed-hint">
             {canCreate
               ? `Your finished ${completedCount === 1 ? 'goal is' : 'goals are'} in Collection.`
-              : 'Your finished goal is in Collection. Unlock Pro to build another world, or delete it there to start over.'}
+              : 'Unlock Pro to build another world, or delete your finished goal in Collection to start over.'}
           </AppText>
         ) : null}
       </View>

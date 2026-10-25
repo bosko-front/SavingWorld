@@ -6,6 +6,8 @@ import { refreshAppData, useAppDataStore, useCommittedRead } from '@/bootstrap/a
 import { formatMoney, type CurrencyMetadata } from '@/core/money';
 import { isOpenStatus } from '@/data/repositories/goal-repository';
 import type { LedgerEntryRecord } from '@/data/repositories/ledger-repository';
+import { worldNoun } from '@/features/worlds/world-copy';
+import { WorldScene, worldArtAspect } from '@/features/worlds/world-scene';
 import { deviceLocale, formatCivilDate } from '@/shared/i18n/locale';
 import { Screen } from '@/shared/layout';
 import { colors, layout, spacing } from '@/shared/theme';
@@ -87,11 +89,17 @@ export function HistoryScreen({ goalId }: { goalId: string }) {
         />
       )}
       {rows.length === 0 ? (
+        // The goal's own world at its start, waiting for its first savings (D98, V03).
         <EmptyState
           icon="history"
           iconColor="blue"
-          title="No entries yet"
-          message="Deposits and withdrawals you record for this goal are listed here, newest first."
+          illustration={
+            <View style={[styles.emptyWorld, { aspectRatio: worldArtAspect(goal.themeId) }]} testID="history-empty-world">
+              <WorldScene themeId={goal.themeId} stage={0} backdrop="none" decorative />
+            </View>
+          }
+          title="Ready to grow"
+          message={`Your ${worldNoun(goal.themeId)} is waiting for its first savings. Each deposit and withdrawal you record is listed here, newest first.`}
           testID="history-empty"
         />
       ) : (
@@ -168,6 +176,11 @@ function RowButton({ label, testID, children, onPress }: RowButtonProps) {
 }
 
 const styles = StyleSheet.create({
+  // Smaller than Home's world: the empty state sits under the goal card and Add savings.
+  emptyWorld: {
+    width: '100%',
+    maxWidth: 280,
+  },
   // Rows sit inside the shared ListGroup, which draws the rounded surface and the separators.
   row: {
     flexDirection: 'row',

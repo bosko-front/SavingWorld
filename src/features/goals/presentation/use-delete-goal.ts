@@ -15,8 +15,9 @@ import { DELETE_COPY, deleteConfirmation, deleteMessage } from './goal-copy';
 // names what is lost, then one deletion. One operation ID per confirmed attempt, so a retry after a
 // lost acknowledgment replays instead of failing; a second confirmation while one runs is ignored.
 // Success: the data is re-read, one "Goal deleted" toast and one success haptic. Failure: an error
-// toast (a one-tap action has no form, D66) and nothing else.
-export function useDeleteGoal() {
+// toast (a one-tap action has no form, D66) and nothing else. `onDeleted` runs right after the
+// commit, before the re-read, so a screen that showed the goal (Collection's detail) can leave first.
+export function useDeleteGoal(onDeleted?: () => void) {
   const [deleting, setDeleting] = useState<string | null>(null);
   const running = useRef(false);
 
@@ -31,6 +32,9 @@ export function useDeleteGoal() {
       goalId: goal.id,
       expectedRevision: goal.revision,
     });
+    if (result.ok) {
+      onDeleted?.();
+    }
     await refreshAppData();
     running.current = false;
     setDeleting(null);

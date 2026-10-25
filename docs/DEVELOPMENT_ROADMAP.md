@@ -8,6 +8,8 @@ The current 22 focused phases implement [MVP plan v1.2](Saving_Worlds_MVP_Plan_v
 
 The original 19-phase plan expanded to 21 for early style/adaptive layout, then 22 for EAS preview/OTA recovery. On 23 October 2026 the owner authorized documentation alignment to v1.2 only. This revision replaces per-goal currency, custom challenges, audit versions, contribution-calendar estimates and unresolved lifecycle/statistics policies. No app files, packages, database, builds or cloud actions were created. Use current prompt names rather than saved older copies; a partial phase repeats its own prompt. On 23 October 2026, after Phase 03, the owner added checkpoint Phase 07.5 (visual direction and design review, DECISIONS D49) between 07 and 08; the 22 numbered phases keep their numbers. On 23 October 2026, during Phase 08, the owner removed Archive (statuses active, paused, completed), allowed confirmed whole-goal deletion (goal, entries and souvenir), changed the Free limit to one goal in total in any status and replaced the loss-of-Pro rule (DECISIONS D74). Phases 09-22 below follow D74; archive or no-deletion text inside the completed Phase 04-07 sections is historical and superseded by D74.
 
+Design direction revision (owner, 25 October 2026, D97): DESIGN_SYSTEM "World-first design direction" now guides every UI phase. Phases 12, 13, 14, 16, 17, 18, 19, 21 and 22 gained scope or verification lines that apply it; no phase, number, acceptance criterion or business rule changed.
+
 ## Ordered phases
 
 | Phase | Deliverable | Prompt |
@@ -871,6 +873,7 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 - No custom definition/form, schedule versions, editable target/frequency, challenge pause, evidence links or challenge reminder.
 - Amounts use global minor units; calendar logic uses saved timezone/period.
 - Historical marker is independent of corrected Completed/Not completed result; never return it to active automatically.
+- Expose a typed attempt view for Phase 13's quest cards (rule, availability and its reason, frozen target, eligible progress, saved period, historical result and, for Next milestone, the milestone it aims at), so the UI presents quests without recomputing rules (owner design direction D97).
 
 ## Acceptance criteria
 
@@ -908,7 +911,8 @@ No unresolved product gate. Free and Pro use the identical catalog.
 
 ## Exact scope
 
-- Build First step, Next milestone and Weekly step cards with availability explanations, frozen target/period and one unfinished-attempt limit. Replace the Phase 07.5 Challenges `EmptyState`; follow the shared look (one primary action, `ListGroup` rows for history, `StatusBadge` for results, progress with the shared `ProgressBar`).
+- Build First step, Next milestone and Weekly step as a small set of **quest cards** for the selected open goal, not a task list (owner design direction D97, DESIGN_SYSTEM "World-first design direction" (owner decision D97)). Each card says what to do, how it helps the world (the Next milestone quest names the object it unlocks from the theme manifest, for example "Bring the Pond to your island") and its availability, frozen target/period and the one unfinished-attempt limit in plain words. Replace the Phase 07.5 Challenges `EmptyState` and follow the shared look (DESIGN_SYSTEM "Visual direction"): one primary action per screen, the shared `ProgressBar` and amounts for money-target progress, `ListGroup` rows for past attempts with `StatusBadge` for Completed (success) and Not completed/Skipped (neutral, never red or "failed").
+- Empty and unavailable states (no open goal, goal paused or closed, nothing available this week) follow the D97 empty-state pattern: a world picture or tile, an encouraging sentence and the one next step. A completed attempt is celebrated once in its card (short one-shot motion within the D97 motion budget, off under Reduce Motion); no XP, points, streaks, levels or new money.
 - Show current progress plus historical Completed/Not completed/Skipped attempts. Corrections may adjust a historical result without reactivating it or displacing the current attempt.
 - Add savings opens the same Home transaction form and command with the same operation ID/retry behavior. Saving one eligible Home or Challenges entry updates money exactly once and recalculates progress automatically; no separate confirmation/evidence-link screen.
 - Offer Skip without penalty/history loss; a new attempt selects an available fixed type. Do not offer pause/resume, amount/frequency editing, custom creation, challenge reminders or a custom-feature paywall.
@@ -940,6 +944,7 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 ## Tests and verification
 
 - Interactions for all three types, validation/availability, Skip/cancel/error/retry and absence of custom/pause/editor/paywall controls.
+- Simulator screenshots of every card and empty/unavailable state at default and largest text, reviewed against the D97 checklist (no generic task-list look, no shaming wording or colors).
 - Native device: start, Home deposit, restart, eligible withdrawal/date correction/deletion, historical result correction with a different current attempt.
 - VoiceOver/text sizing/resize-preserved transaction draft and standard checks.
 
@@ -972,6 +977,7 @@ The schedule is fixed by v1.2, not an open cadence decision.
 - Reconcile on launch/foreground, settings/permission/timezone and goal Pause/Resume/Finish/Reopen/Delete. paused/completed do not qualify; no active goal means no request. Editing a paused goal does not resume it.
 - Cancel duplicates/orphans and recover interrupted scheduling after SQLite commit. Use generic text and a safe Home/current-active-goal notification-tap fallback.
 - Use the actual local-notification adapter/config; no per-goal/per-challenge cadence/time/pause controls, push token/server or background-JavaScript assumption.
+- Present the switch as one Settings row in the shared look (`reminder` tile, native switch) with a short, warm permission explanation; the notification text is generic and kind in the D97 voice (proposal V08: "Your world is ready for this week's savings.", pending owner approval), never an amount, title or guilt.
 
 ## Expected files and modules
 
@@ -1090,6 +1096,7 @@ Q05 is resolved by v1.2 and its confirmed-loss policy is changed by owner decisi
 - Enable unlimited Pro goals and statistics navigation; Free keeps the one-goal-in-total limit (any status) for Create; fixed challenges remain identical in both tiers; Garden becomes selectable only when Phase 17 is complete.
 - Implement the D74 verified-loss behavior (verified revocation/refund, Family Sharing removed): delete or change nothing; with several goals the person chooses one goal to keep using; the other goals stay visible but read-only (no new entries or edits) until Pro returns or they are deleted. A Garden goal keeps its world as it is but cannot progress further in Garden without Pro; to continue saving the person switches it to Island (Phase 17). Garden souvenirs persist. Temporary offline failure retains previously verified rights; never alter amounts or delete data.
 - Provide restore from both paywall and Settings, distinguish purchase rights from data recovery, and return users to the action that opened the paywall.
+- Design the paywall world-first and honest (DESIGN_SYSTEM "World-first design direction" (owner decision D97)): the person's world as the hero, the exact included features as a short list with tiles, the store's localized price, one primary purchase button, Restore as a plain button and the footnote. Garden is described in words until Phase 17 provides its art (proposal V06). No comparison tables, discounts, timers, pressure or toast for purchase results; every state has calm in-place text.
 
 ## Expected files and modules
 
@@ -1106,6 +1113,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 - Do not gate Free deadline estimates, history, goal editing, basic challenges or accessibility.
 - Check capabilities in application commands as well as UI; preserve rights during unknown network state.
 - Do not promise all future themes, subscriptions, advanced analytics, rewards or unimplemented functionality.
+- Read-only goals after a verified loss look calm and explained (a neutral badge and one sentence), never alarming.
 
 ## Acceptance criteria
 
@@ -1150,6 +1158,7 @@ Approved Garden art and provenance plus verified implementation of v1.2 Q03 and 
 - Keep completion snapshots on their historical theme/version; switching an open live goal already at100% does not rewrite its souvenir or award another.
 - Use a brief bounded transition and accessible confirmation; verify all Garden states offline and implement the D74 verified-loss Garden rule: a Garden goal is never deleted or changed and its world stays visible as it is, but without Pro it cannot progress further in Garden; to continue saving the person switches that goal to Island (ledger, target and souvenir kept). Garden souvenirs stay. Nothing switches the theme automatically (D75): without Pro the only theme change allowed is the person's own choice of Island for a Garden goal, after a confirmation; if Pro returns they may choose Garden again, and the Garden scene is computed from the goal's current balance and target with the shared stage function.
 - Call `haptics.selection()` when the user picks Island or Garden in a custom theme picker; the theme change confirmation uses the shared toast.
+- The theme picker shows both themes as picture cards drawn by `WorldScene` at the goal's current stage (owner design direction D97); switching settles on Home with a brief crossfade, never a replay of milestones. Garden souvenirs appear in Collection exactly like Island ones (stored theme and version). The locked-Garden explanation after a verified loss is kind and short.
 
 ## Expected files and modules
 
@@ -1210,6 +1219,7 @@ Q06 is resolved by v1.2. Chart scope/range and completed count are fixed, not qu
 - Build one all-goal daily-balance graph for today and the preceding 29 calendar dates. Carry in every valid earlier transaction as opening balance, then accumulate each displayed date across every existing goal. No selected-goal graph or currency selector.
 - Count goals whose current status is completed, not the number of souvenirs. Reopen changes the count even though souvenirs remain; deleting a completed goal removes it from the count.
 - Recalculate after transaction correction/deletion, goal status change, goal deletion and date/month rollover; provide clear empty/loading/error states, accessible chart text and Pro command/query entry guards.
+- Present the four views as "your savings at a glance", not a finance dashboard (DESIGN_SYSTEM "World-first design direction" (owner decision D97)): the all-goal total as the headline, the month's deposits and withdrawals as a calm sentence or two small cards like the savings plan (D84), one soft line in the accent/green ramp with a text summary and data list, and the completed-goal count linked to Collection. No KPI grid, extra metrics or red/green trading colors.
 
 ## Expected files and modules
 
@@ -1269,6 +1279,7 @@ Production support/privacy destinations and publisher information from Q09 are n
 - Complete Settings/help explanation that app deletion/device loss may permanently remove local data and the app cannot restore it. Restore Purchases returns the license only. No backup/export/import/sync button or recovery promise; OS backup caveats cannot imply app data restoration.
 - Check global currency is editable only in Settings with zero transactions and zero collectibles, applies to every empty goal without conversion, and never appears as an editable goal field; verify the single Sunday 18:00 global reminder switch, permission-denial paths remain usable, and privacy/support links use resolved legitimate destinations or remain explicitly pending release dependencies.
 - Audit haptics and icons against DESIGN_SYSTEM: every haptic has a matching visual/text confirmation, at most one per action, none on navigation/regression/purchase; every icon is decorative or labelled, uses the shared map and scales with text.
+- Audit every implemented screen against the D97 world-first direction (identity, empty states, celebrations, motion budget, encouraging copy) and present Settings as calm grouped rows in the shared look. Apply only owner-approved D97 proposals (V01-V08) to existing screens; record the others as not applied. Changing Home needs an explicit owner request.
 
 ## Expected files and modules
 
@@ -1301,6 +1312,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 - Carried from Phase 07 (DECISIONS D63): on a physical iPhone, run the VoiceOver walkthrough of the Add/Edit Entry form (`/entry-form`: amount/note labels and inline errors read with their field, the Deposit/Withdrawal control, the date picker, the delete confirmation) and History (`/history`: rows read as "Deposit/Withdrawal, signed amount, date, note", closed-goal read-only state); each ledger toast is announced once and never takes focus. Feel the haptics: one success after each committed write, one warning per rule rejection, none otherwise.
 - Carried from Phase 10 (DECISIONS D88): on a physical iPhone, VoiceOver hears "New milestone unlocked! {stage}." (or "{n} milestones unlocked! …") exactly once after an unlocking deposit, can focus the in-scene message and dismiss it with a double-tap; nothing is announced for a withdrawal or a deposit inside one interval. Also: the milestone haptic is felt once for an unlocking deposit and the success haptic is not (felt haptics, Phase 19 haptics check).
 - Carried from Phase 09 (DECISIONS D83): on a physical iPhone, VoiceOver of the world scene on Home: one image element read as "Island world, n of 10 milestones unlocked" with the stage description as its value, decorative layers silent, the empty-state Island hidden, the scene fallback ("Your world can’t be shown right now", Try again) and the milestone card at 100% ("Your island is complete!"). Mandatory before release; deferred from Phase 09, not passed.
+- Carried from Phase 11 (DECISIONS D102): on a physical iPhone, the Collection VoiceOver walkthrough. Each gallery card is one button whose label carries the full goal name, its status and "Island · {date}"; the floating world and the sparkle burst are silent. In the souvenir detail, the world is one labelled image, the achievement block reads "{status}. Saved {amount}. Island completed on {date}.", the "since then" note is read when shown, and Reopen and Delete…, with the "Delete completed goal?" confirmation, are reachable in order. "Your island is complete! Its souvenir is now in your Collection." is heard once after the first 100%. Also: the success haptic of the first 100%, Finish, Reopen and Delete, and the warning of a refused Reopen, are each felt once.
 - Formatting tests for at least two numeric/date locales, currency exponents and all user-facing catalog keys.
 - Contrast/touch/layout review, relevant interaction regressions and standard checks.
 
@@ -1396,6 +1408,7 @@ All prior native/device/art checks must be truly complete. Required devices, sig
 - Exercise actual SQLite migrations and financial commands under interruption, repeated taps, stale edits, low-storage/write failures and foreground date changes.
 - Profile local launch, goal/history queries and both worlds on the oldest supported iPhone using realistic multi-goal data, including a 10,000-entry fixture in the one global currency. Test alternate currency exponents in separate whole-app fixtures only.
 - Fix measured bottlenecks with indexes, bounded query results, memoized layers and stopped offscreen effects; record before/after evidence without redesigning the app.
+- Include the D97 visual elements in profiling: Collection with many souvenir worlds (Pro), quest-card and souvenir celebrations, the paywall and theme-picker world previews and every continuous effect's start/stop. Anything over the budget is simplified per the D97 motion budget (static is an acceptable fallback).
 - Repeat the proven OTA/offline/runtime and known-good fallback checks against the actual release-candidate EAS binary, including the relevant persisted financial fixture.
 - Create an installable release candidate with no debug routes, entitlement overrides, placeholder art or leaked logs. Audit every R01-R26 acceptance scenario and unresolved blocker.
 
@@ -1431,6 +1444,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 - Carried from Phase 09 (DECISIONS D83): repeat the world-scene VoiceOver check from Phase 19 on the release candidate.
 - Carried from Phase 10 (DECISIONS D88): on a physical iPhone, a recording with frame inspection of the D73 unlock moment (count-up, bar, stage reveal, object pop, stage 8 crossfade, message), of rapid repeated deposits and of navigating away/backgrounding mid-moment; the scene always ends on the committed stage and nothing replays. Repeat the Phase 19 unlock VoiceOver/haptic check on the release candidate.
 - Phase 10.5 ambient motion (DECISIONS D90): on a physical iPhone with Xcode Instruments, compare Home with ambient motion on and off (Energy Log/Power Profiler, memory, Animation Hitches or Core Animation frame pacing) over a few minutes idle on Home and during an unlock; confirm it stops off Home, in the background and under Reduce Motion. Keep ambient motion only if it passes; otherwise simplify the water first, then switch it off (static Island). The switches are `AMBIENT_RELEASE_SWITCHES` in `src/features/worlds/ambient.ts` (all, clouds, water, trees); the World inspector toggles them at runtime in a measurement build (D91). Record the numbers and the decision.
+- Carried from Phase 11 (DECISIONS D102): repeat the Collection VoiceOver walkthrough and haptics from Phase 19 on the release candidate, and include Collection (featured card, multi-world gallery with the D100 float, souvenir detail and sparkle burst) in the physical-iPhone frame and energy measurement.
 - Run full regression only now after integration, not repeatedly after every unchanged earlier phase; update requirements traceability.
 
 ## Definition of Done
@@ -1458,7 +1472,7 @@ Final Pro price and sale details (Q07), identity/legal/URLs/toolchain (Q09), art
 ## Exact scope
 
 - Recheck current official Apple submission, IAP, privacy-manifest, privacy-label, age-rating and toolchain requirements against the actual release candidate.
-- Finalize owner-approved name/publisher/bundle/support/privacy information and prepare truthful description, screenshots, age rating, review notes and privacy answers.
+- Finalize owner-approved name/publisher/bundle/support/privacy information and prepare truthful description, screenshots, age rating, review notes and privacy answers. Screenshots show the real app in the D97 world-first look (worlds first, honest numbers), never mock features.
 - Prepare the one-time Pro product description and localized price displays using the owner-finalized commercial decision. Leave future premium-theme rights/prices unresolved and avoid broad inclusion promises.
 - Verify the Phase 20/21 EAS delivery evidence and prepare the exact production update promotion/rollout/recovery record with runtime/channel/environment and schema constraints. Do not publish it.
 - Generate/verify the signed EAS distribution candidate and prepare TestFlight/review instructions, build/version mapping and installed-build smoke evidence as credentials permit.

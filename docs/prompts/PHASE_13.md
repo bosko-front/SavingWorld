@@ -24,7 +24,8 @@ No unresolved product gate. Free and Pro use the identical catalog.
 
 ## Exact scope
 
-- Build First step, Next milestone and Weekly step cards with availability explanations, frozen target/period and one unfinished-attempt limit. Replace the Phase 07.5 Challenges `EmptyState` and follow the shared look (DESIGN_SYSTEM "Visual direction"): one primary action per screen, `ListGroup` rows for past attempts, `StatusBadge` for Completed/Not completed/Skipped, the shared `ProgressBar` for money-target progress.
+- Build First step, Next milestone and Weekly step as a small set of **quest cards** for the selected open goal, not a task list (owner design direction D97, DESIGN_SYSTEM "World-first design direction" (owner decision D97)). Each card says what to do, how it helps the world (the Next milestone quest names the object it unlocks from the theme manifest, for example "Bring the Pond to your island") and its availability, frozen target/period and the one unfinished-attempt limit in plain words. Replace the Phase 07.5 Challenges `EmptyState` and follow the shared look (DESIGN_SYSTEM "Visual direction"): one primary action per screen, the shared `ProgressBar` and amounts for money-target progress, `ListGroup` rows for past attempts with `StatusBadge` for Completed (success) and Not completed/Skipped (neutral, never red or "failed").
+- Empty and unavailable states (no open goal, goal paused or closed, nothing available this week) follow the D97 empty-state pattern: a world picture or tile, an encouraging sentence and the one next step. A completed attempt is celebrated once in its card (short one-shot motion within the D97 motion budget, off under Reduce Motion); no XP, points, streaks, levels or new money.
 - Show current progress plus historical Completed/Not completed/Skipped attempts. Corrections may adjust a historical result without reactivating it or displacing the current attempt.
 - Add savings opens the same Home transaction form and command with the same operation ID/retry behavior. Saving one eligible Home or Challenges entry updates money exactly once and recalculates progress automatically; no separate confirmation/evidence-link screen.
 - Offer Skip without penalty/history loss; a new attempt selects an available fixed type. Do not offer pause/resume, amount/frequency editing, custom creation, challenge reminders or a custom-feature paywall.
@@ -56,6 +57,7 @@ These are planned code paths, not claims that the files exist. Reuse equivalent 
 ## Tests and verification
 
 - Interactions for all three types, validation/availability, Skip/cancel/error/retry and absence of custom/pause/editor/paywall controls.
+- Simulator screenshots of every card and empty/unavailable state at default and largest text, reviewed against the D97 checklist (no generic task-list look, no shaming wording or colors).
 - Native device: start, Home deposit, restart, eligible withdrawal/date correction/deletion, historical result correction with a different current attempt.
 - VoiceOver/text sizing/resize-preserved transaction draft and standard checks.
 

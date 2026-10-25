@@ -12,4 +12,4 @@ export {
   type SceneFeedback,
   type Stage,
 } from './stage';
-export { isThemeId, THEME_IDS, type ThemeId } from './theme-ids';
+export { currentThemeVersion, CURRENT_THEME_VERSIONS, isThemeId, THEME_IDS, type ThemeId } from './theme-ids';

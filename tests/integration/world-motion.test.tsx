@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, userEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, userEvent, waitFor, within } from '@testing-library/react-native';
 import { renderRouter } from 'expo-router/testing-library';
 import { AccessibilityInfo, AppState, StyleSheet, type AppStateStatus } from 'react-native';
 
@@ -21,7 +21,8 @@ import { playedHaptics } from '../support/expo-haptics-fake';
 // committed deposit (count-up to the committed amount, the new stage with its objects, one "New
 // milestone unlocked!" message in the scene, one VoiceOver announcement, one milestone haptic and no
 // success haptic from the form), multi-threshold coalescing, quiet regression, Reduce Motion,
-// background and restart. Frames, smoothness and felt haptics are device checks (evidence/PHASE_10.md).
+// background and restart. Phase 11: the first 100% is the souvenir moment. Frames, smoothness and
+// felt haptics are device checks (evidence/PHASE_10.md).
 
 const zone = systemClock.timeZone();
 let instant = new Date(2026, 9, 25, 12, 0).getTime();
@@ -73,7 +74,7 @@ function text(testID: string): string {
 }
 
 function spokenStage(): string {
-  return screen.getByTestId('world-scene').props.accessibilityLabel as string;
+  return home().getByTestId('world-scene').props.accessibilityLabel as string;
 }
 
 function expectedLayers(stage: Stage): string[] {
@@ -82,15 +83,20 @@ function expectedLayers(stage: Stage): string[] {
 }
 
 // Jest loads no images: fire expo-image's load callback on every mounted layer.
+// Home's scene only: since Phase 11 the Collection tab (mounted beside Home) draws souvenir worlds too.
+function home() {
+  return within(screen.getByTestId('home', { includeHiddenElements: true }));
+}
+
 async function loadLayers() {
-  for (const node of screen.queryAllByTestId(/^world-layer-/, { includeHiddenElements: true })) {
+  for (const node of home().queryAllByTestId(/^world-layer-/, { includeHiddenElements: true })) {
     await act(() => node.props.onLoad({ nativeEvent: {} }));
   }
 }
 
 // Layers of the complete stage on screen (mounted and not waiting).
 function drawnLayers(): string[] {
-  return screen
+  return home()
     .queryAllByTestId(/^world-layer-/, { includeHiddenElements: true })
     .filter((node) => StyleSheet.flatten(node.props.style).opacity !== 0)
     .map((node) => String(node.props.testID).replace('world-layer-', ''));
@@ -98,7 +104,7 @@ function drawnLayers(): string[] {
 
 async function renderHome() {
   await renderRouter(APP_DIR, { initialUrl: '/' });
-  await fireEvent(screen.getByTestId('world-scene-area', { includeHiddenElements: true }), 'layout', {
+  await fireEvent(home().getByTestId('world-scene-area', { includeHiddenElements: true }), 'layout', {
     nativeEvent: { layout: { x: 0, y: 0, width: 360, height: 300 } },
   });
   await loadLayers();
@@ -223,6 +229,65 @@ describe('the milestone unlock moment (D73)', () => {
     await waitFor(() => expect(drawnLayers()).toEqual(expectedLayers(6)), MOMENT);
     expect(screen.queryByTestId('unlock-banner')).toBeNull();
     expect(playedHaptics()).toEqual([]);
+  });
+});
+
+describe('the first 100%: the souvenir moment (Phase 11)', () => {
+  it('the deposit that first reaches the target says the island is complete and its souvenir is in Collection, with one success haptic', async () => {
+    const goalId = await setupGoal(100_000);
+    await seed(goalId, 'deposit', 95_000);
+    await renderHome();
+    await depositThroughForm('50');
+    // The count runs first; then the stage 10 layers load and the moment plays.
+    await waitFor(() => expect(text('home-saved')).toBe('€1,000.00'), MOMENT);
+    await loadLayers();
+    await waitFor(() => expect(screen.getByTestId('unlock-banner')).toBeOnTheScreen(), MOMENT);
+    expect(screen.getByTestId('unlock-banner')).toHaveAccessibleName('Your island is complete! Its souvenir is now in your Collection.');
+    expect(spokenStage()).toBe('Island world, 10 of 10 milestones unlocked');
+    expect(announce).toHaveBeenCalledWith('Your island is complete! Its souvenir is now in your Collection.', { queue: true });
+    // The souvenir moment and the last unlock are one event: success instead of the milestone impact.
+    expect(playedHaptics()).toEqual([{ kind: 'notification', type: 'success' }]);
+    // Reaching 100% does not finish the goal.
+    const { state } = useAppDataStore.getState();
+    expect(state.status === 'ready' && state.data.goals.goals[0]?.goal.status).toBe('active');
+    expect(state.status === 'ready' && state.data.goals.souvenirs.map((souvenir) => souvenir.goalId)).toEqual([goalId]);
+  });
+
+  it('crossing 100% again after a withdrawal is an ordinary unlock: the milestone message and impact, no second souvenir', async () => {
+    const goalId = await setupGoal(100_000);
+    await seed(goalId, 'deposit', 100_000);
+    await seed(goalId, 'withdrawal', 5_000);
+    await renderHome();
+    await depositThroughForm('50');
+    await loadLayers();
+    await waitFor(() => expect(screen.getByTestId('unlock-banner')).toBeOnTheScreen(), MOMENT);
+    expect(text('unlock-banner-title')).toBe('New milestone unlocked!');
+    expect(playedHaptics()).toEqual([{ kind: 'impact', style: 'medium' }]);
+    const { state } = useAppDataStore.getState();
+    expect(state.status === 'ready' && state.data.goals.souvenirs).toHaveLength(1);
+  });
+
+  it('a lower target that earns the souvenir shows the message quietly, without a haptic from Home', async () => {
+    const goalId = await setupGoal(100_000);
+    await seed(goalId, 'deposit', 60_000);
+    await renderHome();
+    const edited = await editGoal(deps(), { operationId: randomUuid(), goalId, expectedRevision: 1, title: 'Boat', targetMinor: 60_000, deadlineDate: null, themeId: 'island' });
+    expect(edited.ok).toBe(true);
+    await act(() => refreshAppData());
+    await loadLayers();
+    await waitFor(() => expect(screen.getByTestId('unlock-banner')).toHaveAccessibleName('Your island is complete! Its souvenir is now in your Collection.'), MOMENT);
+    expect(playedHaptics()).toEqual([]);
+  });
+
+  it('a relaunch with the souvenir already stored shows the complete island without the moment', async () => {
+    const goalId = await setupGoal(100_000);
+    await seed(goalId, 'deposit', 100_000);
+    await renderHome();
+    await pass(1_500);
+    expect(spokenStage()).toBe('Island world, 10 of 10 milestones unlocked');
+    expect(screen.queryByTestId('unlock-banner')).toBeNull();
+    expect(playedHaptics()).toEqual([]);
+    expect(announce).not.toHaveBeenCalled();
   });
 });
 

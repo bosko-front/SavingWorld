@@ -93,11 +93,12 @@ describe('currency setting codec', () => {
 
 describe('shipped migrations', () => {
   it('are versions 1..n and every shipped schema is pinned', () => {
-    expect(MIGRATIONS.map((migration) => migration.version)).toEqual([1, 2]);
-    expect(LATEST_SCHEMA_VERSION).toBe(2);
+    expect(MIGRATIONS.map((migration) => migration.version)).toEqual([1, 2, 3]);
+    expect(LATEST_SCHEMA_VERSION).toBe(3);
     // A released migration is never edited. If this fails, revert the edit and add a new migration.
     expect(migrationChecksum(MIGRATIONS[0]!)).toBe('f060530662e52157');
     expect(migrationChecksum(MIGRATIONS[1]!)).toBe('02eb49969587883c');
+    expect(migrationChecksum(MIGRATIONS[2]!)).toBe('1d1c7826fd9f83de');
   });
 
   it('hashes UTF-8 with FNV-1a 64', () => {

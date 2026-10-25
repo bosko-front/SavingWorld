@@ -395,7 +395,10 @@ describe('History, corrections and confirmed deletion', () => {
   it('shows an empty state with Add savings', async () => {
     const goalId = await setupGoal();
     await renderRouter(APP_DIR, { initialUrl: `/history?goalId=${goalId}` });
-    expect(screen.getByTestId('history-empty')).toHaveTextContent(/No entries yet/);
+    // The goal's own world at its start, waiting for its first savings (D98, V03).
+    expect(screen.getByTestId('history-empty')).toHaveTextContent(/Ready to grow/);
+    expect(screen.getByTestId('history-empty')).toHaveTextContent(/Your island is waiting for its first savings\./);
+    expect(screen.getByTestId('history-empty-world', { includeHiddenElements: true })).toBeOnTheScreen();
     // A button above the entries, as on Home; nothing floats (D81).
     expect(screen.queryByTestId('floating-action-slot')).toBeNull();
     expect(screen.getByTestId('history-add')).toHaveAccessibleName('Add savings');
@@ -452,6 +455,7 @@ describe('Free-limit rejections play one warning haptic', () => {
       (await createGoal(pro, { operationId: randomUuid(), title: 'Open goal', targetMinor: 100_000, deadlineDate: null, themeId: 'island' })).ok,
     ).toBe(true);
     await renderRouter(APP_DIR, { initialUrl: '/collection' });
+    await userEvent.press(screen.getByTestId(`collection-card-${closed}`));
     await userEvent.press(screen.getByTestId(`reopen-${closed}`));
     // A one-tap action has no form, so its refusal is an error toast with the explanation (D66).
     await waitFor(() => expect(toastsShown()).toEqual([expect.stringMatching(/^Goal not reopened\. Free includes one goal/)]));

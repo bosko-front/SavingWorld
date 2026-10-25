@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 
-import { stageFor, stageThresholdMinor, type Stage } from '@/core/progression';
+import { CURRENT_THEME_VERSIONS, stageFor, stageThresholdMinor, type Stage } from '@/core/progression';
 import { AMBIENT_LIMITS, sceneDescription, sceneViewport, unlockAt, validateManifest, visibleLayers, type ThemeManifest } from '@/features/worlds/manifest';
-import { stageName, themeManifest } from '@/features/worlds/registry';
+import { stageName, themeManifest, themeManifestAt } from '@/features/worlds/registry';
 import { AMBIENT_PRESETS, manifestFromExport } from '@/features/worlds/theme-export';
 import { ISLAND_ASSETS, islandManifestJson } from '@/features/worlds/themes/island-assets';
 import { worldCompleteCopy } from '@/features/worlds/world-copy';
@@ -119,6 +119,20 @@ describe('bundled Island manifest', () => {
         height: layer.height * 0.75,
       });
     }
+  });
+});
+
+describe('stored art versions (Phase 11 souvenirs)', () => {
+  it('a souvenir earned today records the bundled Island version, and that version renders', () => {
+    const bundled = themeManifest('island');
+    expect(bundled.ok && bundled.manifest.version).toBe(CURRENT_THEME_VERSIONS.island);
+    expect(themeManifestAt('island', CURRENT_THEME_VERSIONS.island)).toBe(bundled);
+  });
+
+  it('a version that is not bundled gets the fallback, never another version presented as it', () => {
+    const missing = themeManifestAt('island', 1);
+    expect(missing.ok).toBe(false);
+    expect(!missing.ok && missing.problems[0]).toMatch(/island art version 1 is not bundled/);
   });
 });
 

@@ -154,7 +154,7 @@ Haptics confirm a meaningful moment the user caused; they are never the only fee
 | --- | --- | --- | --- |
 | `haptics.success()` | Notification success | Rule since D68: once after every committed write confirmed by a success toast: deposit, withdrawal, entry edit, entry delete, goal created, goal saved, Pause, Resume, Reopen, goal deleted, currency changed; after Finish; when a challenge attempt becomes Completed while its screen is visible | 07, 11, 13 |
 | `haptics.warning()` | Notification warning | Once per submit when a save is rejected by a rule (negative running balance, future date, Free goal limit on Create/Reopen), together with the inline explanation | 07, 11 (06 adds the call once the helper exists) |
-| `haptics.milestone()` | Impact, medium | Once per committed stage unlock, coalesced when several thresholds are crossed; the first 100% uses `success` instead because the souvenir moment is the same event | 10, 11 | Phase 10 (D85): Home's unlock moment plays it, and the entry form then skips its `success` for that commit (`unlocksStage`), so the action still has one haptic.
+| `haptics.milestone()` | Impact, medium | Once per committed stage unlock, coalesced when several thresholds are crossed; the first 100% uses `success` instead because the souvenir moment is the same event | 10, 11 | Phase 10 (D85): Home's unlock moment plays it, and the entry form then skips its `success` for that commit (`unlocksStage`), so the action still has one haptic. Phase 11 (D96): when that commit also stores the goal's souvenir, Home plays `success` instead and the in-scene message reads "Your island is complete! / Its souvenir is now in your Collection."; a souvenir earned by a lower target shows the message with no Home haptic (the goal form already played `success`).
 | `haptics.selection()` | Selection changed | Custom selection controls only: Home goal switcher, theme picker, challenge type choice; and each press on a bottom tab (owner request, D66, `screenListeners.tabPress` in `src/app/(tabs)/_layout.tsx`). Native `@expo/ui` pickers and switches already give system feedback, so do not add more | 08, 13, 17 |
 
 Never: on other navigation (push, back, sheets), scrolling, every button tap, press-in, Skip, refused or failed actions (those get `warning` only for rule refusals), info toasts on their own, withdrawal or target-edit scene regression (no punitive feel), purchase or restore results (StoreKit has its own), animation frames or loops, or while the app is in the background. Fire after the commit, in the same place the confirmation toast is shown. One user action produces at most one haptic.
@@ -255,13 +255,123 @@ Saving Worlds should feel like a small game, not a finance app: the world first,
 - **One title.** The native navigation title names the screen; content never repeats it. Tab roots keep large titles; pushed screens use standard titles.
 - **One primary action per screen** (filled button). Other actions are grouped rows (`ListGroup`/`ListRow`); destructive actions use the `destructive` button or row tone after a confirmation; Cancel in forms is a `plain` button with `centered`, directly under the primary button (D66).
 - **Forms** (D67): a one-line context (goal name and saved amount) instead of a summary card; the money value as `TextField variant="amount"`; secondary inputs (date, note, deadline, world) as rows of one `ListGroup` card with the native pickers at the trailing edge; hints only where they add information (placeholders carry examples); the primary button, then a centered plain Cancel, then any destructive action. Save is visible without scrolling on the iPhone SE at default text with the keyboard down.
-- **Sections** use `SectionHeader`; **lists** (History, Settings, Collection, Challenges history) use `ListGroup` with separators rather than separate bordered cards; read-only values are static rows, not soft cards that look tappable.
+- **Sections** use `SectionHeader`; **lists** (History, Settings, Collection, Challenges history) use `ListGroup` with separators rather than separate bordered cards; read-only values are static rows, not soft cards that look tappable. Exception (Phase 11, D96): Collection's finished worlds are pressable surface cards with the still souvenir world, because the picture is the content; the detail uses `ListGroup` rows.
 - **Empty states** use `EmptyState` on `Screen centered` (middle of the visible area, D69): what belongs here and how it fills, no "will appear here" copy. Since Phase 10 the picture floats gently (D85).
 - **Status** words use `StatusBadge`; color never carries meaning alone.
 - **Accent role.** `accent`/`accentText`/`accentSurface`/`progressTrack` and the four progress-range fills mark progress and milestones only. Money keeps `moneyDeposit`/`moneyWithdrawal`, actions keep `actionPrimary`, errors keep `error`. `accentDecorative` stays decorative.
 - **Large text.** Every composition is checked at the largest accessibility size; anything with a fixed size next to text (rings, badges, icons) must scale with `useFontScale` or wrap. Option B's fixed ring failed this check, one reason it was not chosen.
 
 Not changed: one forced light appearance (D37), system font, SF Symbols only, the Phase 02 palette for everything except the new accent roles.
+
+## World-first design direction (owner, D97)
+
+Decided by the owner on 25 October 2026, after Phase 11. It applies to every screen built from Phase 12 on, and to later polish of existing screens. It changes no product rule, scope or acceptance criterion. Home and the Island (Phases 08-10.5, approved in D83/D94) are the visual reference; **Home itself is not changed by this direction**.
+
+### Philosophy
+
+Saving Worlds is **a cozy savings game with useful financial tracking**, not a finance app with game graphics added on top. Every screen should make saving feel like growing something. Aim for cozy, warm and welcoming; playful but not childish; premium and polished; calm and motivating; simple; emotionally rewarding; and consistent across screens.
+
+Usability, readability, accessibility and financial accuracy always win over decoration. Every number stays exact, readable and available to VoiceOver.
+
+### Visual identity (reuse, do not reinvent)
+
+| Element | Use | Where it comes from |
+| --- | --- | --- |
+| Warm cream background | Every screen | `canvas` |
+| Deep forest-green text and actions | Titles, amounts, primary buttons | `textPrimary`, `actionPrimary` |
+| Soft gold accents | Progress, milestones, souvenirs, celebration highlights | `accent`, `accentText`, `accentSurface`, `accentDecorative` (decorative only) |
+| Pastel tiles | Row and empty-state icons | `IconTile` colors (D68) |
+| Gentle gradients | Behind world pictures only | the `sceneSky*` gradient (D79) |
+| Rounded white surfaces with a soft shadow | Cards that hold a world or a key number | `Card`, `radii.lg`, `elevation.card` |
+| Illustrated worlds | The emotional content of Home, Collection, empty states, paywall and theme picker | the approved Island export (later Garden) through `WorldScene`; no new art required |
+| Calm, purposeful motion | Feedback for what the person did | Reanimated, `WORLD_MOTION`, `AmbientFloat`/`AmbientSparkles`, `motion` tokens |
+
+No new palette, font, icon set or styling engine. A new token still needs a repeated need and a contrast test (Conventions above). Challenges, Collection, the paywall, Statistics, Settings and every empty state use this same identity: the app is one world, not a set of templates.
+
+### Patterns
+
+1. **World pictures before icons.** When a screen or empty state has an emotional moment, show a world (`WorldScene`, `decorative` when text beside it says the same) before reaching for an icon tile.
+   - Use the person's own goal world at its real stage when one exists, otherwise the stage 0 Island.
+   - A picture never replaces a number or an action.
+   - Plain icon tiles remain right for utility rows (Settings, History rows, lists).
+2. **Empty states are invitations, not absences.** Each one:
+   - says what will grow here and the one next step, in an encouraging sentence;
+   - uses a world picture or the matching icon tile;
+   - floats gently (`AmbientFloat`, D69);
+   - offers at most one action.
+   No "No data", no "Nothing here yet" as the whole message, no "will appear here". The owner's examples are the targets:
+   - no goal: the empty Island as a starting point (exists);
+   - no transactions: the world is waiting for its first savings;
+   - no completed worlds: an undiscovered gallery of future worlds;
+   - no available challenge: what the person can do next.
+3. **Celebrate in place, once.** A celebration lives in the world or the card it is about (Phase 10's in-scene message, the souvenir moment). Never a toast, never a blocking modal, never required to continue.
+   - One message, one announcement and at most one haptic per action (Haptics above).
+   - Brief and dismissible.
+   - Never replayed after a relaunch or retry.
+   - Under Reduce Motion it is the final state and the words at once.
+4. **Progress is shown, not scored.** Use the shared `ProgressBar` (honey → green, never red, D66), amounts and milestone names. Do not use points, XP, levels, streak counters, ranks, coins, badges collections or leaderboards (v1.2 section 8).
+5. **Encourage, never shame.**
+   - Missed or skipped things are neutral history: neutral badge tone, no red, no "failed", no countdown pressure.
+   - Withdrawals and regressions settle quietly (D85).
+   - Copy speaks to what the person can do next.
+6. **Lists are galleries or grouped rows, never tables.**
+   - Worlds (Collection, theme picker) are picture cards.
+   - Secondary actions and facts are `ListGroup` rows.
+   - No dense multi-column tables or KPI walls.
+7. **Numbers in words first.** Where several amounts appear (Statistics, savings plan), lead with one clear sentence or headline amount, then supporting values. Charts are minimal, soft and accompanied by text (R19/R22).
+8. **Utility screens stay calm.** Settings, forms and Pro restore are tidy grouped rows with the same tiles, tone and spacing. A small world touch is welcome only where it explains something (for example local data living on this iPhone). Never decoration that hides a control.
+
+### Motion budget
+
+- Continuous motion only while its screen is focused and the app is active, and never under Reduce Motion. Use `useAmbientMotion()` for scenes and `AmbientFloat` for pictures.
+- At most one continuous ambient effect per screen besides empty-state floats. Lists of worlds stand still (D90), with one owner exception: Collection card worlds float slowly as a whole, out of step (3 pt over 4.4 s, D100), never pulse.
+- One-shot motion (entrances, pops, count-ups, a sparkle burst on a completed card) is short (≤ ~600 ms per element, ≤ ~1.5 s overall), uses transforms and opacity, coalesces, and ends on the committed state.
+- Button feedback stays the shared pressed states; no bounce on every tap.
+- No SpriteKit, Skia (D86), Lottie, new native module or second animation engine without owner approval.
+- No new Blender art unless genuinely necessary; reuse the Island export and its manifest (stage names, layers).
+- Phase 21 measures the cost on a physical iPhone (D90); anything that costs too much is simplified, never kept at the price of battery or frames.
+
+### Avoid
+
+- Generic finance dashboards and corporate cards.
+- KPI grids and excessive statistics.
+- Repetitive identical lists.
+- Template empty states.
+- Productivity-app task lists (checkboxes, overdue red).
+- Confetti storms, fireworks, screen shakes.
+- Looping attention-seekers.
+- Fake urgency, discounts or countdowns on the paywall.
+- Gamification systems outside v1.2 (XP, levels, currencies, leaderboards, missions).
+- Any visual that implies money was added when it was not.
+
+### Per-screen direction (future phases)
+
+| Screen | Direction | Phase |
+| --- | --- | --- |
+| Challenges | A small set of quests for the selected open goal, not a task manager. One quest card per fixed type (First step, Next milestone, Weekly step), each saying what to do, why it helps the world and its availability in plain words. The Next milestone quest names the object it unlocks ("Bring the Pond to your island", from the manifest's stage name). The current attempt shows the shared `ProgressBar` and amounts from saved entries. Completion is celebrated in its card once (success haptic, D62/D68), never with new money. Past attempts are a calm `ListGroup` with neutral `StatusBadge`s (Completed success; Not completed and Skipped neutral). Empty and unavailable states (no open goal, goal closed, nothing available this week) are encouraging and say what to do next. | 13 |
+| Weekly reminder | One Settings row with the `reminder` tile and the native switch. The permission explanation is warm and short. Notification text is generic and kind ("Your world is ready for this week's savings."), with no amount or title (R17). | 14 |
+| Pro paywall | World-first and honest. A hero with the person's own world (and, from Phase 17, a Garden preview from its approved art); the "Build another world" message (D74 copy). The exact included features as a short list with tiles; the store's localized price; one primary purchase button; Restore as a plain button; the footnote "One-time purchase. No subscription." No comparison tables, discounts, timers or pressure. Every purchase state has calm in-place text, never a toast (D40). | 16 |
+| Theme picker | Island and Garden previews drawn by `WorldScene` at the goal's current stage, as picture cards with the selection haptic. Switching is a brief crossfade on Home; never a replay of milestones. A locked Garden goal is explained kindly (D75). | 17 |
+| Statistics | "Your savings at a glance", not a dashboard. The all-goal total as the headline; this month's deposits and withdrawals in one sentence or two small cards like the savings plan (D84); one soft 30-day line in the accent/green ramp with a text summary and data list; the completed-goal count, linked to Collection (it counts goals whose status is completed, never souvenirs, R19). Exactly the four views. | 18 |
+| Collection (built, D98-D101) | A gallery of achievements: intro line "Every world tells a story of something you achieved.", a featured card for a single world, two measured columns for several, still-picture worlds that float slowly (D100), subtle 1 pt gold frames on completed worlds, captions "Island · {date}". The detail is Home-like (full-bleed sky, D99) with the achievement first (status, saved amount, "Island completed on {date}") and Reopen/Delete. | 11 |
+| Settings and secondary screens | Grouped rows with tiles, one calm explanation per topic (local data on this iPhone, currency lock, Restore Purchases returns Pro only). Same title, spacing and tone as the rest. Phase 19 audits every screen against this section. | 19 |
+| App Store material | Screenshots show the real app in this direction (worlds first, honest numbers); no mock features. | 22 |
+
+### Proposals awaiting owner approval
+
+Proposals become part of the app only once the owner approves them. V01-V04 and V09 were approved and built in Phase 11 (D98); V05-V08 are still open. Each would change an existing, already-accepted screen or add visible behavior. Defaults if not approved: leave as is.
+
+| ID | Proposal | Affects | Notes |
+| --- | --- | --- | --- |
+| V01 | Collection empty state as an "undiscovered gallery": the stage 0 Island (existing asset), softly faded, with copy about future finished worlds, instead of the sparkle tile. | Phase 11 Collection | Copy only plus an existing picture; no new art. **Approved and built (D98).** |
+| V02 | A subtle completion effect in Collection: a short one-shot sparkle (`AmbientSparkles`) over a souvenir world when its detail opens, and a thin gold (`accentDecorative`) frame on completed cards. | Phase 11 Collection | No stored "seen" state; plays on each focus of the detail, off under Reduce Motion. **Approved and built (D98).** |
+| V03 | History's empty state: the goal's own world at stage 0 with "Your island is waiting for its first savings", instead of the clock tile. | Phase 07 History | Existing screen. **Approved and built (D98).** |
+| V04 | Home's empty state while Free's one goal is finished: title "Your world is finished" (instead of "Start a new goal"). | Phase 11 Home empty state | Owner said not to change Home without a request. **Approved and built (D98).** |
+| V05 | Next milestone quest cards show a small crop of the object they unlock, cut from the existing manifest layer bounds. | Phase 13 | New rendering code (a cropped layer view); otherwise the quest names the object in words only. |
+| V06 | Paywall hero uses the person's own current world plus the Garden preview. | Phase 16/17 | Garden art exists only from Phase 17; until then Garden is described in words. |
+| V07 | Statistics wording "finished worlds" for the completed-goal count, with a link to Collection. | Phase 18 | The count stays status = completed (R19). |
+| V08 | Weekly reminder notification text "Your world is ready for this week's savings." | Phase 14 | Generic, no amounts or titles. |
+| V09 | Onboarding opens with the finished Island (still, decorative), the world a goal grows into. | Phase 06 onboarding | **Added by the owner review, approved and built (D98).** |
 
 ## Change policy
 

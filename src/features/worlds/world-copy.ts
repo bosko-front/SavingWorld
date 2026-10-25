@@ -5,6 +5,11 @@ import type { ThemeId } from '@/core/progression';
 
 const WORLD_NOUNS: Record<ThemeId, string> = { island: 'island', garden: 'garden' };
 
+// "island" / "garden", for copy that names the person's world.
+export function worldNoun(themeId: ThemeId): string {
+  return WORLD_NOUNS[themeId];
+}
+
 export type WorldCompleteCopy = { title: string; detail: string };
 
 // Home's milestone card once every unlock is reached (B ≥ T, stage 10).
