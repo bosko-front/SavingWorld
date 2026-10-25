@@ -215,7 +215,7 @@ Researched 23 October 2026 against the locked SDK 58 (`expo/bundledNativeModules
 | `expo-symbols` | ~58.0.4 | SF Symbols in buttons, notices, toasts and rows; replaces the text warning glyph with a real symbol that follows Dynamic Type. | 06 |
 | `expo-haptics` | ~58.0.7 | Light success haptic after a committed deposit/withdrawal and at milestone unlocks; selection feedback in pickers. Never the only feedback. | 07, 10 |
 | `sonner-native` + `react-native-svg` | 0.27.0 (npm, MIT, updated Aug 2026) + 15.16.0 | Toast engine behind `src/shared/ui/toast.tsx`. Peers already installed except `react-native-svg`, which Phase 18 needs anyway. Honors Reduce Motion; does not announce to VoiceOver itself, so the wrapper does. | 06 |
-| `expo-image` | ~58.0.16 | Layered Island/Garden scene images and Collection thumbnails: memory/disk caching, smooth transitions, `accessible={false}` decorative layers. | 09 |
+| `expo-image` (installed, ~58.0.17) | ~58.0.16 | Layered Island/Garden scene images and Collection thumbnails: display-size decoding (`contain` + `enforceEarlyResizing`), `accessible={false}` decorative layers (D77). | 09 |
 | `react-native-svg` | 15.16.0 | Toast icons from Phase 06; minimal 30-day chart in Phase 18. | 06, 18 |
 | `expo-notifications` | ~58.1.6 | The single weekly local reminder. | 14 |
 | `expo-iap` | 6.1.1 (npm) | StoreKit purchase/restore evaluation per D10. | 15 |
@@ -232,17 +232,17 @@ Approved by the owner on 23 October 2026 (DECISIONS D64): Home direction **A "Ca
 
 ### Home composition (Phase 08 builds this on AdaptiveGoalLayout)
 
-1. **Scene region** (primary): the world, framed as a rounded (`radii.xl`) 4:3 box that measures itself (`WorldScene`, `src/features/worlds/world-scene.tsx`; Phase 08 shows a temporary box with the theme name and "n of 10 milestones unlocked", which Phase 09 replaces with licensed Island art).
+1. **Scene region** (primary): the world, full bleed since D80: the sky gradient fills the top of the screen edge to edge, from behind the status bar to just above the goal title, with no frame; before D80 it was a rounded (`radii.xl`) 4:3 box that measures itself (`WorldScene`, `src/features/worlds/world-scene.tsx`). Since Phase 09 it draws the approved layered Island art, framed to the art's tight viewport and fitted between the side gutters below the bars, as large as the width allows (D78, D80) and shown only once a stage's layers have all loaded, on the soft `sceneSky*` gradient (owner choice D79; the `sceneBackground` cream and no backdrop remain inspector options), with no text or icon inside the world; VoiceOver hears "Island world, n of 10 milestones unlocked" and the stage description. A broken manifest or image shows a short message in the region only (D77).
 2. **Controls region** (secondary), top to bottom, gap `spacing.md`–`lg`:
    - Goal title (`title`) with a `StatusBadge` when paused and "Target reached" (success) at 100% or more, and the ⋯ goal menu at the trailing end (native SwiftUI `Menu`: History, Edit goal, Pause/Resume, Delete goal…, New goal; D73, Archive removed by D74); the Pro goal switcher as grouped rows under a `SectionHeader` (selection haptic on a change).
    - Saved amount as the largest text: `AmountText size="display"`, then "saved of {target}" in `textSecondary`.
    - `ProgressBar` (ten milestone segments, fill colored by range: honey, olive, soft green, strong green at 100%; D66), with the floored percent (`progressTextTone`) on the left and "{remaining} to go" on the right, or "{amount} over target" when overfunded (125% stays numeric, the scene stops at 10).
-   - Next-milestone callout on `accentSurface` with the `milestone` icon: "Next milestone: {n}%" and "{amount} more to reach {n}%" (Phase 08; "Next: {stage name}" once the Phase 09 manifest supplies names); at stage 10 "All 10 milestones unlocked".
+   - Next-milestone callout on `accentSurface` with the `milestone` icon: "Next: {stage name}" from the theme manifest (Phase 09; "Next milestone: {n}%" only for a theme without art) and "{amount} more to reach {n}%"; at stage 10 "All 10 milestones unlocked".
    - Deadline card (Phase 08, D72, `src/features/goals/presentation/deadline-card.tsx`): one grouped card with the calendar tile, "Deadline", the date and "30 days left"/"Today" (or an Overdue / Reached badge), then "€23.34 per week" and "€100.00 per month" side by side (wrapping at large text). The calculation is behind an info button (native alert), not printed. Overdue: "€75.00 still to go · choose a new date in Edit goal". Reached: "Nothing more to save by this date". No deadline: an "Add a deadline" row that opens Edit goal.
-   - One primary action: **"+ Add savings"** as a floating pill at the bottom trailing corner (`FloatingActionButton` through the layout's `floatingAction` slot; D72-D73). Above text scale 1.35 only the + shows, with the same spoken name. History uses the same button.
-3. **Settings** is a gear `HeaderIconButton` in Home's navigation bar.
+   - One primary action: **Add savings**, a full-width primary `Button` with the + symbol directly under the progress bar, before the next-milestone callout (owner decision D81; D72/D73's floating pill was removed). History has the same button above its entries.
+3. **Settings** is a gear `HeaderIconButton` in Home's navigation bar. Home has no title: its bar is transparent with no hairline, so only the gear shows above the world (owner, D78; an exception to "one title" below).
 
-Phase 08 completed this composition (DECISIONS D70-D73); Phase 09 replaces the temporary scene and adds stage names.
+Phase 08 completed this composition (DECISIONS D70-D73); Phase 09 replaced the temporary scene with the Island and added stage names (D77). Home without a goal shows the stage-0 Island as a frameless, decorative illustration above the empty-state text (D69). The owner's Home review with the real Island (D73) is pending; it decides the backdrop and which text/cards can go.
 
 ### World-first direction (owner, D73)
 

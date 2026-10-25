@@ -2,6 +2,7 @@ import { deadlineEstimate, type CivilDate, type DeadlineEstimate } from '@/core/
 import { formatMoney, type CurrencyMetadata } from '@/core/money';
 import { MILESTONE_COUNT, nextThresholdMinor, sceneFeedback, type Stage } from '@/core/progression';
 import type { GoalSummary } from '@/data/repositories/goal-repository';
+import { stageName } from '@/features/worlds/registry';
 import { deadlineCopy, type DeadlineCopy } from '@/shared/i18n/deadline-messages';
 import { deviceLocale, formatCivilDate } from '@/shared/i18n/locale';
 
@@ -12,8 +13,9 @@ import { goalAmounts, type GoalAmounts } from './goal-amounts';
 // and the civil date that snapshot was read on. Pure: no clock, no database, no layout.
 
 export type NextMilestone =
-  // The next of the ten unlocks: its percentage and the amount still needed to reach it.
-  | { kind: 'next'; percent: number; toNext: string }
+  // The next of the ten unlocks: its percentage, its name from the theme manifest ("Small house";
+  // null when the theme has no art) and the amount still needed to reach it.
+  | { kind: 'next'; percent: number; name: string | null; toNext: string }
   // All ten unlocked (B ≥ T). Overfunding never adds an eleventh.
   | { kind: 'complete' };
 
@@ -47,7 +49,12 @@ export function homeDashboard(
     next:
       threshold === null
         ? { kind: 'complete' }
-        : { kind: 'next', percent: ((feedback.stage + 1) * 100) / MILESTONE_COUNT, toNext: amount(threshold - balanceMinor) },
+        : {
+            kind: 'next',
+            percent: ((feedback.stage + 1) * 100) / MILESTONE_COUNT,
+            name: stageName(summary.goal.themeId, (feedback.stage + 1) as Stage),
+            toNext: amount(threshold - balanceMinor),
+          },
     estimate,
     deadline: deadlineCopy(estimate, deadlineDate, { amount, date: (date) => formatCivilDate(date, locale) }),
   };

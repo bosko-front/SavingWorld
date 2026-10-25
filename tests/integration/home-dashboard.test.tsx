@@ -99,7 +99,8 @@ function home() {
     pace: screen.queryByTestId('home-pace-weekly')
       ? `${String(screen.getByTestId('home-pace-weekly').props.accessibilityLabel)} ${String(screen.getByTestId('home-pace-monthly').props.accessibilityLabel)}`
       : null,
-    world: text('world-scene-stage'),
+    // The world's spoken stage: "Island world, 2 of 10 milestones unlocked" → "2 of 10 …".
+    world: (screen.getByTestId('world-scene').props.accessibilityLabel as string).replace(/^Island world, /, ''),
   };
 }
 
@@ -151,9 +152,17 @@ describe('Home dashboard numbers', () => {
       '€1,170.00 is still to go over 30 days, counting today and the deadline. Per week is €1,170.00 ÷ 30 × 7, per month is €1,170.00 ÷ 30 × 30, rounded up and never more than what is left. It is a guide, not a plan.',
     );
     expect(screen.getByTestId('world-scene')).toHaveAccessibleName('Island world, 2 of 10 milestones unlocked');
-    // Add savings is the one primary action, a floating + button outside the scrolling column.
-    expect(screen.getByTestId('floating-action-slot')).toContainElement(screen.getByTestId('home-add-savings'));
+    // Add savings is the one primary action, a button in the column right under the progress; nothing
+    // floats (D81).
+    expect(screen.queryByTestId('floating-action-slot')).toBeNull();
+    expect(screen.getByTestId('home-goal')).toContainElement(screen.getByTestId('home-add-savings'));
     expect(screen.getByTestId('home-add-savings')).toHaveAccessibleName('Add savings');
+    // In reading order: progress, then Add savings, then the next milestone.
+    expect(screen.queryAllByTestId(/^home-(progress|add-savings|next-milestone)$/).map((node) => node.props.testID)).toEqual([
+      'home-progress',
+      'home-add-savings',
+      'home-next-milestone',
+    ]);
     expect(goalOptionLabels()).toEqual(['History (2 entries)', 'Edit goal', 'Pause goal', 'New goal', 'Delete goal…']);
     // Home shows the world and progress, not administration (D73).
     expect(screen.queryByText('Free includes one open goal, active or paused. Archive this goal to start another one; it keeps all its records.')).toBeNull();

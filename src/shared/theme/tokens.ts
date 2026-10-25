@@ -48,6 +48,12 @@ export const colors = {
   progressMid: palette.olive600,
   progressHigh: palette.leaf500,
   progressComplete: palette.forest700,
+  // World scene behind the transparent art (Phase 09). sceneSky* draw Home's top-to-bottom gradient
+  // (D79), ending in the canvas color so the full-bleed sky has no visible edge (D80); only the scene
+  // fallback message sits on these, in textPrimary/textSecondary.
+  sceneBackground: palette.sceneCream,
+  sceneSkyTop: palette.skyTop,
+  sceneSkyBottom: palette.cream,
   // Decorative only: never normal text or a necessary control boundary.
   accentDecorative: palette.gold400,
   shadow: palette.forest900,

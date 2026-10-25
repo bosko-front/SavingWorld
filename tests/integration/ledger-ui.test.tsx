@@ -396,8 +396,8 @@ describe('History, corrections and confirmed deletion', () => {
     const goalId = await setupGoal();
     await renderRouter(APP_DIR, { initialUrl: `/history?goalId=${goalId}` });
     expect(screen.getByTestId('history-empty')).toHaveTextContent(/No entries yet/);
-    // The same floating + button as on Home (D72).
-    expect(screen.getByTestId('floating-action-slot')).toContainElement(screen.getByTestId('history-add'));
+    // A button above the entries, as on Home; nothing floats (D81).
+    expect(screen.queryByTestId('floating-action-slot')).toBeNull();
     expect(screen.getByTestId('history-add')).toHaveAccessibleName('Add savings');
     await userEvent.press(screen.getByTestId('history-add'));
     expect(screen).toHavePathname('/entry-form');

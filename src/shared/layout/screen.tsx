@@ -38,6 +38,11 @@ type ScrollingScreenProps = ScreenProps & {
   onViewportLayout?: (event: LayoutChangeEvent) => void;
   // `container` inside the native arrangement, whose host already applies every safe-area inset.
   insets?: 'screen' | 'container';
+  // Full-width content above the column, outside its gutters (AdaptiveGoalLayout's full-bleed
+  // scene). It scrolls with the content and positions itself, e.g. under a transparent bar.
+  bleed?: ReactNode;
+  // Hides the vertical scroll indicator (Home's full-bleed composition, owner decision D82).
+  hideScrollIndicator?: boolean;
 };
 
 // Inset ownership (docs/ADAPTIVE_LAYOUT.md):
@@ -57,6 +62,8 @@ export function ScrollingScreen({
   onViewportLayout,
   insets = 'screen',
   floatingAction,
+  bleed,
+  hideScrollIndicator = false,
 }: ScrollingScreenProps) {
   const form = keyboard === 'form';
   const contained = insets === 'container';
@@ -76,6 +83,7 @@ export function ScrollingScreen({
         }
       }}
       style={styles.scroll}
+      showsVerticalScrollIndicator={!hideScrollIndicator}
       contentInsetAdjustmentBehavior={contained ? 'never' : 'automatic'}
       contentInset={extraBottomInset > 0 ? { bottom: extraBottomInset } : undefined}
       scrollIndicatorInsets={extraBottomInset > 0 ? { bottom: extraBottomInset } : undefined}
@@ -84,6 +92,7 @@ export function ScrollingScreen({
       automaticallyAdjustKeyboardInsets={form}
       keyboardShouldPersistTaps={form ? 'handled' : 'never'}
       keyboardDismissMode={form ? 'interactive' : 'on-drag'}>
+      {bleed}
       <SafeAreaView edges={contained ? CONTAINED_EDGES : SCROLLING_EDGES} style={styles.content}>
         <ContentColumn width={width} minHeight={centered ? centeredContentHeight(viewportHeight, spacing.lg) : undefined}>
           {children}

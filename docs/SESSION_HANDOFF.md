@@ -1,41 +1,59 @@
 # Latest session handoff
 
-Session date: 23 October 2026. Session kind: Phase 08 (Free dashboard and deadline estimates). Result: **Phase 08 VERIFIED COMPLETE**. Next prompt: [PHASE_09](prompts/PHASE_09.md).
+Session date: 25 October 2026. Session kind: Phase 09 (Island theme assets and static world renderer), first session. Result: **Phase 09 IN PROGRESS**, code complete; owner Home review and physical-iPhone checks pending. Next prompt: [PHASE_09](prompts/PHASE_09.md) (continuation).
 
-**Art session addendum (24 October 2026, before Phase 09, not a numbered phase).** The Island art is done: generated in Blender 5.2.3 from the reproducible workspace `assets/worlds/island/` (README there: rebuild, render and export commands, stage-to-collection map, provenance; decision D76). The owner approved all eleven states. The Phase 09 input is `assets/worlds/island/export/`: `island_base.png` and per-object milestone parts in `2048/` and `1536/`, `island_manifest.json` (positions, anchors, names, thresholds, draft descriptions, stage 8 replacement, memory) and `island_layers_review.png`. Checks: `scripts/verify_stages.py` (identical rig/terrain, unlock order, no floating pieces) and `scripts/milestone_report.py` (every step visibly changes) PASS; the export's rebuild check matches every render (mean error ≤ 0.5/255). PHASE_09/PHASE_10 prompts and roadmap gained art notes (scope unchanged). App code and requirements unchanged; committed on `main` ("Island art: reproducible Blender source, milestone renders and layer export (D76)"), nothing pushed.
-
-The previous handoff (Phase 07.5) is superseded; its record remains in [PHASE_07_5 evidence](evidence/PHASE_07_5.md).
+The previous handoff (Phase 08 and the 24 October art addendum) is superseded; its record remains in [PHASE_08 evidence](evidence/PHASE_08.md), DECISIONS D76 and `assets/worlds/island/README.md`.
 
 ## Completed
 
-- Read the full v1.2 DOCX and the required docs. Verified the Phase 04 estimate/progression code and the Phase 07.5 Home. Baseline lint, typecheck and 618 tests were green.
-- Home in direction A on `AdaptiveGoalLayout`: temporary world region (`src/features/worlds/world-scene.tsx`, 4:3, "n of 10 milestones unlocked"), title with Paused / Target reached badges, display amount and target, progress with floored percent and "{remaining} to go" / "{over} over target", next-milestone callout ("Next milestone: 30%", "{amount} more to reach 30%", or "All 10 milestones unlocked"), and a deadline block. The deadline block shows "Deadline {date} · {D} days left", "{weekly} a week or {monthly} a month" and an explanation, or "Deadline today", Overdue with the remaining amount, €0.00 paces when funded, or "No deadline". Add savings and the grouped rows follow.
-- View model `homeDashboard` and copy `deadlineCopy` over the unchanged Phase 04 `deadlineEstimate`; `goalAmounts.over`.
-- Recalculation: the snapshot carries `today`; one injectable `appClock()` serves snapshot, commands and forms; `src/bootstrap/foreground.ts` refreshes once when the civil date changed on return to the foreground. No timers.
-- Query errors: a failed read after the app has opened keeps the navigator; Home shows "Couldn’t load your goals" with Try again, never stale numbers.
-- Goal switcher (Pro): one `haptics.selection()` after a successful change.
-- SE finding and owner decision D70: on the SE Add savings could not sit above the fold under a usable world, so it must stay visible. It was first built as a full-width bar above the tab bar.
-- Simulator regression found and fixed: a drawn wrapper around the scroll view stopped the large title collapsing. The wrapper is now layout-only (Fabric flattens it), and the action overlays a full-frame scroll view with an extra bottom inset.
-- Owner follow-up D72, after seeing the result: (1) the loose deadline text became a deadline card (`deadline-card.tsx`): date and days left, "per week"/"per month" values side by side, the explanation behind an info button, Overdue/Reached badges, and an "Add a deadline" row that opens Edit goal; (2) Add savings is a floating + button (`src/shared/ui/floating-action-button.tsx`) placed through a new `floatingAction` slot on `Screen` and `AdaptiveGoalLayout`, replacing the bar; (3) History uses the same button. Stacked scene cap 40%.
-- Owner review D73, "world first, it looks like a finance app": History, Edit goal, Pause/Resume, Archive and New goal moved off Home into a native ⋯ menu beside the goal title (`goal-menu.tsx`, SwiftUI `Menu`; New goal at the Free limit explains the limit in an alert). The Free footnote and paused sentence left Home. The button now reads "+ Add savings" and shows only the + above text scale 1.35 (same spoken name). Recorded, not built: the real Island as the star of Home plus a Home review once it renders (Phase 09 prompt and roadmap), and the five-step milestone unlock moment (count-up, bar, stage reveal, new object, in-world "New milestone unlocked!", one haptic; Phase 10 prompt, roadmap and acceptance criteria).
-- Owner decision D74, "remove Archive completely": statuses are active, paused and completed. Any goal can be deleted after a native confirmation; a completed goal uses the owner's "Delete completed goal?" text. Free keeps one goal in total. Pro loss keeps all goals (one usable, the others read-only), and a Garden goal then cannot progress until it switches to Island. Code: `deleteGoal` (one exclusive transaction; a completed goal is set back to paused inside it so schema 1's closed-goal triggers allow deleting its entries), schema 2 `0002-goal-deletion` (drops `goals_no_delete`, archived → paused), `goalLimit`/`hasGoalSlot`/`withinGoalLimit`, `goal_limit`, Delete goal… in Home's ⋯ menu, Delete and Reopen for completed goals in Collection, "Build another world" alert. Native G07/G08 and reworked G01-G06/L08/S01-S05/S17/R2. A docs subagent applied D74 across requirements, data model, reconciliation, test plan, release checklist, roadmap and prompts 09-22; I reviewed it and added the Phase 12 `deleteGoal` extension.
-- Tests: `tests/unit/home-dashboard.test.ts` (20), `tests/integration/home-dashboard.test.tsx` (8), layout, menu (`tests/support/goal-menu.ts`) and History tests, a two-mode button test. Simulator screenshots in `docs/evidence/phase-08/` (7).
-- Docs: evidence, DECISIONS D70-D73, DESIGN_SYSTEM (Home composition, World-first direction), ADAPTIVE_LAYOUT, ARCHITECTURE, TEST_PLAN, roadmap 08/09/10 notes, PHASE_09 and PHASE_10 prompts, CLAUDE.md, PROJECT_STATUS, this file.
+- Read the full v1.2 DOCX and the required docs; verified Phase 08 and the D76 art export (approved, provenance in the workspace README). Baseline: clean tree on 7515e02.
+- Copied the approved export unchanged into `assets/themes/island/` (manifest + 33 PNGs at 1536; README there). Tests prove byte identity with `assets/worlds/island/export/`.
+- `src/features/worlds/`: `manifest.ts` (ASSET_SPEC contract, `validateManifest`, `visibleLayers`, `unlockAt`, `sceneDescription`), `theme-export.ts` (export JSON → typed manifest, explicit replacement, problems instead of throws), `themes/island-assets.ts` (static `require` per PNG), `registry.ts` (validated once, `stageName`, Garden → fallback), `world-scene.tsx` (layered renderer with `expo-image`, measured 4:3 box, no text in the world, label kept and stage description as value, scene-only fallback with Try again for load/render failures).
+- Home: "Next: {stage name}" callout; empty Home shows the stage-0 Island (decorative, frameless). `EmptyState` gained an `illustration` slot.
+- Tokens `sceneBackground` (preview cream, default), `sceneSkyTop`/`sceneSkyBottom`; 9 contrast pairs for the fallback text.
+- Development-only World inspector (`/dev-world`, Settings → Development only): stage stepper, backdrops, contact sheet, layer ids, decoded estimate; absent from the release bundle.
+- `expo-image` ~58.0.17 installed with `npx expo install` (+ config plugin); EAS development simulator build **405064a9-5b87-4292-a407-c943256db4f8**, installed on SE, 17 Pro Max, Duo and iPhone 17.
+- Tests: `tests/unit/world-manifest.test.ts` (22), `tests/integration/world-scene.test.tsx` (9), Home tests updated.
+- Native: Home on SE (default and largest text), 17 Pro Max, Duo open; empty Home after a fresh install on iPhone 17; all eleven states on the 17 Pro Max aligned against the approved renders at offset 0,0 (mean ≤ 1.2/255); simulator memory 303 → 305-306 MB stage 0 → 10. Screenshots in `docs/evidence/phase-09/`.
+- Docs: evidence PHASE_09, DECISIONS D77, DESIGN_SYSTEM (scene, callout, expo-image), ARCHITECTURE, ADAPTIVE_LAYOUT, CLAUDE.md, PROJECT_STATUS, this file. `.claude/launch.json` added (Metro for the preview tool).
+
+## Owner review part 1 (D78, same session)
+
+- Owner asked: visual progress capped at 100% with money at 120% (already so), Completed offered rather than automatic (already so; Finish button is Phase 11), Island 10-15% larger without a taller section, no piece-by-piece loading on their iPhone, no "Home" title.
+- Done: `sceneViewport` framing (~11%, nothing cut off, same box size), all-at-once stage display in `world-scene.tsx` (previous complete stage stays while the next loads), Home bar transparent with only the gear (pushed screens say "Back"). Tests 698 PASS; screenshots `docs/evidence/phase-09/d78-*`.
+
+## Owner review part 2 (D79)
+
+- The owner chose the soft sky gradient; `WorldScene` defaults to it (Home), checked on SE, 17 Pro Max and Duo; 699 tests PASS; screenshots `docs/evidence/phase-09/d79-*`.
+
+## Owner review part 3 (D80)
+
+- Full-bleed sky (no box edges) from the top of the screen to the goal title; Island from a tight art viewport, as wide as the gutters allow, kept below the bars. Layout: `AdaptiveGoalLayout sceneBleed`/`sceneBleedColor`, `useSceneInsets()`; `WorldScene fill`; `worldArtAspect`. 701 tests PASS; SE, 17 Pro Max, Duo open, SE largest text checked; screenshots `d80-*`. Duo landscape not run.
+
+## Owner review part 4 (D81)
+
+- Add savings no longer floats: full-width primary button under the progress on Home and above the entries on History. 701 tests PASS; SE, iPhone 17, Duo checked; screenshots `d81-*`.
+
+## Owner review part 5 (D82)
+
+- Home hides its scroll indicator; a pull-down shows sky above the Island instead of the canvas. 701 tests PASS; SE mid-pull screenshot `d82-se-pull-down.jpg`.
 
 ## Decisions
 
-D75 (owner, after the commit): a Garden goal is never switched to Island automatically after losing Pro; it stays visible and locked, the person may switch it to Island themselves, and may choose Garden again if Pro returns (scene from current progress). Deleting and losing Pro never cause data loss automatically; deletion is only a confirmed user action. Docs only. D70 (owner: keep Add savings visible on short windows), D72 (owner: deadline card; floating button on Home and History, replacing D70's bar), D73 (owner: world first; admin into the ⋯ menu; "+ Add savings"; Island as star and milestone unlock moment for Phases 09/10), D74 (owner: no Archive, goal deletion, Free one goal in total, loss-of-Pro and Garden rules; overrides v1.2 on goals) and D71 (engineering: `today` in the snapshot, app clock, foreground date reconciliation, failed-read behavior, view model and copy modules, percent-only callout until Phase 09, temporary `WorldScene`, Target reached / Overdue badges, switcher haptic). No product rule changed.
+D82 (owner): no scroll indicator, sky on pull-down. D81 (owner): Add savings in the content, not floating. D80 (owner): full-bleed sky, largest Island. D79 (owner): sky gradient backdrop. D78 (owner): larger Island via viewport framing, no piecewise loading, no Home title. D77 (engineering): expo-image with display-size decoding; one app resolution 1536; manifest/export mapping (English names, hides → removes, z numbering, base anchor, preview = stage 10); scene-only fallback; "Next: {name}"; stage-0 empty-state illustration; backdrop tokens with cream as default pending the owner; World inspector. No product rule changed.
 
 ## Checks
 
-lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (25 suites, 654 tests). `npm run test:db` PASS on SE iOS 18.5, 17 Pro Max iOS 26.1 and Duo iOS 27.1 (37/37 + restart, schema 2; each app database upgraded in place, the SE goal and entries kept). The simulator walkthrough passed on the SE iOS 18.5 (default and largest text, deadline card, info alert, ⋯ menu → History, History's button opening Add savings), the 17 Pro Max iOS 26.1 (default; de-DE checked with the D72 version, numbers unchanged since) and the Duo iOS 27.1 open (native arrangement). The 17 Pro Max at the largest size was checked only with the earlier bar design. `deps:check` and `doctor` were not run: there was no dependency or native change. The release export check was not run (no development-only code added). VoiceOver: NOT RUN, carried by the physical-device gate (D60/D63).
+lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (27 suites, 701 tests after D80). `npm run test:db` PASS on SE iOS 18.5, 17 Pro Max iOS 26.1, Duo iOS 27.1 (37/37 + restart) with build 405064a9. Release export PASS (no inspector code, 33 Island PNGs). `deps:check`/`doctor` FAIL 19/20: six installed packages have newer SDK 58 patch releases since Phase 08 (`@expo/ui`, `expo`, `expo-dev-client`, `expo-font`, `expo-router`, `expo-sqlite`); not caused by this phase, not upgraded. Physical-iPhone memory/frames and VoiceOver: NOT RUN (no device build).
 
 ## Incomplete work and blockers
 
-1. Not blockers: Duo closed/landscape and rotation were not re-shot; split view and VoiceOver stay physical-device gates. The world region and the stage names wait for Phase 09.
-2. Phase 08 is committed on `main` (4cf1a59), with its code, docs and `docs/evidence/phase-08/` screenshots. Nothing pushed.
-3. Simulator state: the SE "Summer trip" RSD goal has a deadline of today (23 Oct 2026), so it shows Overdue from tomorrow. The 17 Pro Max's locale was switched to de-DE for the check and then restored (`en_US@rg=rszzzz`; languages en-US, sr-RS, sr-Latn-RS). Text sizes are back to default. Metro (pid 46517) is still running.
+1. **Rest of the owner Home review (D73; parts done as D78-D82)**: which text/cards can go. Apply in `src/features/worlds/`, Home or `src/shared/layout/`.
+2. **Physical iPhone:** decoded memory and frames base → complete, and VoiceOver of the scene label/value and fallback. Needs a physical-device development build (owner's Apple Developer credentials and device registration) or an owner decision moving it to the Phase 19/21 device gate (as D60/D63).
+3. Optional: an SDK 58 patch update for the six packages as its own reviewed change with a new build.
+4. The Phase 09 work so far (renderer, art, D77-D82, evidence) is committed on `main` ("Phase 09: Island renderer and Home review D77-D82 (in progress)"). Nothing pushed.
+5. Simulator state: Metro runs from this folder via the preview tool (`.claude/launch.json` "metro"; the old Metro pid 46517 was stopped). The iPhone 17 (iOS 26.0) simulator got a fresh install (uninstalled first without checking for earlier test data) and now has RSD onboarding done and no goal. The SE's text size was returned to default. SE, 17 Pro Max and Duo kept their goals.
 
 ## Exact next session
 
-1. In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_09.md` (Island theme assets and static world renderer). Replace the inside of `src/features/worlds/world-scene.tsx`, keeping its props, `WORLD_SCENE_ASPECT` and accessibility label, and supply stage names for Home's callout from the manifest. Respect D74 (no Archive; deletion exists; Free one goal in total). Follow D73: the Island is the star of Home (game feel, world first), then review Home with the owner and remove text/cards that are no longer needed; do not polish cards before that. Island art is approved and exported in `assets/worlds/island/export/` (D76); copy it to `assets/themes/island/` and build the manifest and renderer from `island_manifest.json`.
+In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_09.md`. Verify the renderer and evidence above, then do only the remaining items: apply the owner's Home review decisions (D73) and record them, and run or formally defer the physical-iPhone memory/frame and VoiceOver checks. When both are settled, mark Phase 09 VERIFIED COMPLETE and name `docs/prompts/PHASE_10.md`.

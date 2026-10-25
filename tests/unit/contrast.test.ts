@@ -111,6 +111,15 @@ const pairs: Pair[] = [
     minimum: TEXT,
   })),
   { usage: 'selected tab tint on light bar', foreground: colors.actionPrimary, background: colors.surface, minimum: NON_TEXT },
+  // Phase 09 scene fallback: its message and Try again sit on the scene backdrop (cream, or either end
+  // of the sky gradient).
+  ...Object.entries({ sceneBackground: colors.sceneBackground, sceneSkyTop: colors.sceneSkyTop, sceneSkyBottom: colors.sceneSkyBottom }).flatMap(
+    ([name, background]) => [
+      { usage: `scene fallback title on ${name}`, foreground: colors.textPrimary, background, minimum: TEXT },
+      { usage: `scene fallback message on ${name}`, foreground: colors.textSecondary, background, minimum: TEXT },
+      { usage: `scene Try again on ${name}`, foreground: colors.actionPrimary, background, minimum: TEXT },
+    ],
+  ),
 ];
 
 describe('contrast formula', () => {

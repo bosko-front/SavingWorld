@@ -37,6 +37,7 @@ const DEVELOPMENT_LINKS: { title: string; href: Href }[] = [
   { title: 'Component gallery', href: '/dev-gallery' },
   { title: 'Layout lab', href: '/dev-layout' },
   { title: 'Home directions', href: '/dev-home' },
+  { title: 'World inspector', href: '/dev-world' },
   { title: 'Database tests', href: '/dev-db' },
   { title: 'Detail screen', href: '/details' },
   { title: 'Sample form', href: '/sample-form' },

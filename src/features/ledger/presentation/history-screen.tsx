@@ -14,7 +14,6 @@ import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
-import { FloatingActionButton } from '@/shared/ui/floating-action-button';
 import { IconTile } from '@/shared/ui/icon-tile';
 import { ListGroup } from '@/shared/ui/list-row';
 import { Notice } from '@/shared/ui/notice';
@@ -26,7 +25,8 @@ import { KIND_LABEL } from './ledger-copy';
 // Current transaction History for one goal (v1.2 section 6): the saved entries as they are now,
 // newest first, each opening the shared form to correct or delete it. There is no change log, no
 // previous versions and no audit detail: a correction overwrites, a deletion removes. Add savings is
-// the same floating + button as on Home (D72). Closed goals show the same list read-only until Reopen. The list re-reads SQLite after every commit.
+// a full-width button above the entries, as on Home (D81). Closed goals show the same list
+// read-only until Reopen. The list re-reads SQLite after every commit.
 //
 // Rows are rendered inside the shared scrolling Screen rather than a virtualized list; a single
 // person's manual ledger stays small (hundreds of rows), and Phase 21 profiles large histories.
@@ -61,15 +61,7 @@ export function HistoryScreen({ goalId }: { goalId: string }) {
   const rows = newestFirst(entries);
 
   return (
-    <Screen
-      testID="history"
-      floatingAction={
-        open ? (
-          <Link href={{ pathname: '/entry-form', params: { goalId: goal.id } }} asChild>
-            <FloatingActionButton icon="add" label="Add savings" testID="history-add" />
-          </Link>
-        ) : undefined
-      }>
+    <Screen testID="history">
       <Stack.Screen options={{ title: 'History' }} />
       <Card variant="soft">
         <AppText role="headline" accessibilityRole="header">
@@ -81,7 +73,12 @@ export function HistoryScreen({ goalId }: { goalId: string }) {
           {open ? ' · Tap an entry to correct or delete it.' : ''}
         </AppText>
       </Card>
-      {open ? null : (
+      {/* The screen's one primary action, above the entries (D81: no floating button). */}
+      {open ? (
+        <Link href={{ pathname: '/entry-form', params: { goalId: goal.id } }} asChild>
+          <Button label="Add savings" icon="add" testID="history-add" />
+        </Link>
+      ) : (
         <Notice
           tone="info"
           title="This goal is closed"

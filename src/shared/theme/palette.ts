@@ -32,4 +32,9 @@ export const palette = {
   // Progress stages (owner request after Phase 07.5): olive between honey and the greens.
   olive600: '#857516',
   leaf500: '#4F8A4B',
+  // World scene backdrops (Phase 09): the Island preview cream from the Blender workspace
+  // (assets/worlds/island/scripts/swi/rig.py BACKDROP) and the top of the soft sky gradient, which
+  // ends in `cream` so the full-bleed sky melts into the screen (D80).
+  sceneCream: '#FBF3E4',
+  skyTop: '#CFE6EE',
 } as const;

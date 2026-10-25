@@ -1,11 +1,12 @@
 import { act, fireEvent, render, screen, userEvent } from '@testing-library/react-native';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { HeaderHeightContext } from 'expo-router/react-navigation';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { LayoutLab } from '@/dev/layout-lab';
 import { resetMountCounts } from '@/dev/mount-count';
 import { SampleFormSheet } from '@/dev/sample-form-sheet';
-import { AdaptiveGoalLayout, FormScreen, resolveArrangementMode, Screen } from '@/shared/layout';
+import { AdaptiveGoalLayout, FormScreen, resolveArrangementMode, Screen, useSceneInsets } from '@/shared/layout';
 import { arrangementViewAvailable } from '@/shared/layout/arrangement-adapter';
 
 // Layout behavior through the React tree. Jest cannot lay out native views, so region sizes are
@@ -149,6 +150,44 @@ describe('AdaptiveGoalLayout fallback composition', () => {
 
     await layout('goal-layout', 390, 300);
     expect(sceneHeight()).toBe(120);
+  });
+
+  it('full-bleed scene (D80): full width, up under the bars, art sized from the window width and kept clear of the bars', async () => {
+    function InsetProbe() {
+      const insets = useSceneInsets();
+      return <Text testID="scene-insets">{JSON.stringify(insets)}</Text>;
+    }
+    const tree = (
+      <SafeAreaProvider initialMetrics={{ frame: { x: 0, y: 0, width: 375, height: 667 }, insets: { top: 20, right: 0, bottom: 0, left: 0 } }}>
+        <HeaderHeightContext.Provider value={64}>
+          <AdaptiveGoalLayout
+            testID="goal-layout"
+            arrangement="fallback"
+            sceneAspectRatio={1.2}
+            sceneBleed
+            sceneBleedColor="#CFE6EE"
+            scene={<InsetProbe />}
+            controls={<Text>Controls</Text>}
+          />
+        </HeaderHeightContext.Provider>
+      </SafeAreaProvider>
+    );
+    await render(tree);
+    await layout('goal-layout', 375, 618);
+    const region = screen.getByTestId('adaptive-scene-region');
+    // Outside the padded column, pulled up by the header height (status bar included).
+    expect(screen.getByTestId('goal-layout')).toContainElement(region);
+    // Art: (375 − 16 − 16) / 1.2 = 285.8 → 286, under half of 618; plus the 64 + 4 pt top inset.
+    expect(region).toHaveStyle({ width: '100%', marginTop: -64, height: 68 + 286 });
+    expect(JSON.parse(String(screen.getByTestId('scene-insets').props.children))).toEqual({ top: 68, right: 16, bottom: 0, left: 16 });
+
+    // No scroll indicator over the world; a pull-down shows the sky's top color above it (D82).
+    expect(scrollProps().showsVerticalScrollIndicator).toBe(false);
+    expect(screen.getByTestId('adaptive-overscroll-sky')).toHaveStyle({ position: 'absolute', bottom: '100%', height: 618, backgroundColor: '#CFE6EE' });
+
+    // A short window caps the art at half the visible height.
+    await layout('goal-layout', 667, 300);
+    expect(region).toHaveStyle({ height: 68 + 150 });
   });
 
   it('floats the primary action at the bottom trailing corner, above the tab bar', async () => {

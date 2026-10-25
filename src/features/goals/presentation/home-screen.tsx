@@ -5,14 +5,13 @@ import { StyleSheet, View } from 'react-native';
 import { currentCapabilities, goalCommandDeps, refreshAppData, useAppDataStore } from '@/bootstrap/app-data';
 import { hasGoalSlot } from '@/core/access';
 import { isOpenStatus, type GoalSummary } from '@/data/repositories/goal-repository';
-import { WORLD_SCENE_ASPECT, WorldScene } from '@/features/worlds/world-scene';
+import { WorldScene, worldArtAspect } from '@/features/worlds/world-scene';
 import { AdaptiveGoalLayout, Screen } from '@/shared/layout';
 import { colors, radii, spacing } from '@/shared/theme';
 import { AmountText } from '@/shared/ui/amount-text';
 import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
-import { FloatingActionButton } from '@/shared/ui/floating-action-button';
 import { haptics } from '@/shared/ui/haptics';
 import { Icon } from '@/shared/ui/icon';
 import { ListGroup, ListRow } from '@/shared/ui/list-row';
@@ -33,10 +32,10 @@ import { useGoalAction } from './use-goal-action';
 // dashboard): the world first, then progress. The controls show the goal title with its options
 // menu (⋯: History, Edit, Pause/Resume, New goal, Delete), the saved amount as the largest text,
 // the target, a milestone progress bar with the floored percent and the remaining (or overfunded)
-// amount, the next milestone and the deadline card. The one primary action is the floating
-// "+ Add savings" button (D72, D73). Every number comes from the committed snapshot (balance
-// recomputed from the ledger) and the civil date it was read on; a commit or a new date re-reads
-// it. Settings is in the navigation bar. Free shows at most one open goal; with more open goals (Pro) a simple list chooses
+// amount, Add savings (the one primary action, a full-width button under the progress since owner
+// decision D81; D72/D73 had it floating), the next milestone and the deadline card. Every number
+// comes from the committed snapshot (balance recomputed from the ledger) and the civil date it was
+// read on; a commit or a new date re-reads it. Settings is in the navigation bar. Free shows at most one open goal; with more open goals (Pro) a simple list chooses
 // which one Home shows. The choice is stored, and after a restart a missing or closed choice falls
 // back to the oldest open goal.
 export function HomeScreen() {
@@ -87,7 +86,7 @@ export function HomeScreen() {
 type SelectedGoalHomeProps = { summary: GoalSummary; dashboard: HomeDashboard; open: GoalSummary[]; canCreate: boolean };
 
 // The selected goal on AdaptiveGoalLayout: the world, then the numbers and the deadline card; goal
-// administration is in the ⋯ menu and Add savings is the floating button (owner direction D73).
+// administration is in the ⋯ menu and Add savings sits under the progress (D73, D81).
 function SelectedGoalHome({ summary, dashboard, open, canCreate }: SelectedGoalHomeProps) {
   const { goal } = summary;
   const action = useGoalAction();
@@ -96,16 +95,15 @@ function SelectedGoalHome({ summary, dashboard, open, canCreate }: SelectedGoalH
   return (
     <AdaptiveGoalLayout
       testID="home"
-      sceneAspectRatio={WORLD_SCENE_ASPECT}
-      scene={<WorldScene themeId={goal.themeId} stage={dashboard.stage} />}
-      floatingAction={
-        <Link href={{ pathname: '/entry-form', params: { goalId: goal.id } }} asChild>
-          <FloatingActionButton icon="add" label="Add savings" disabled={busy} testID="home-add-savings" />
-        </Link>
-      }
+      sceneAspectRatio={worldArtAspect(goal.themeId)}
+      // The sky fills the top of the screen edge to edge down to the goal title; the Island stays
+      // clear of the bars and the side gutters (owner decision D80).
+      sceneBleed
+      sceneBleedColor={colors.sceneSkyTop}
+      scene={<WorldScene themeId={goal.themeId} stage={dashboard.stage} fill />}
       controls={
         <View style={styles.controls}>
-          <GoalNumbers summary={summary} dashboard={dashboard} menu={<GoalMenu summary={summary} canCreate={canCreate} busy={busy} run={action.run} onDelete={() => confirmDelete(goal)} />} />
+          <GoalNumbers summary={summary} dashboard={dashboard} busy={busy} menu={<GoalMenu summary={summary} canCreate={canCreate} busy={busy} run={action.run} onDelete={() => confirmDelete(goal)} />} />
           {open.length > 1 ? <GoalSwitcher open={open} selectedId={goal.id} /> : null}
         </View>
       }
@@ -132,10 +130,16 @@ function LoadFailed() {
 
 // No open goal. A finished goal (Phase 11) still counts toward Free's one goal (D74), so Free is told
 // where it is and what the two ways forward are instead of being sent to a form that would refuse.
+// The picture is the empty Island (stage 0), which Phase 10 animates gently (D69).
 function EmptyHome({ completedCount, canCreate }: { completedCount: number; canCreate: boolean }) {
   return (
     <EmptyState
       icon="milestone"
+      illustration={
+        <View style={styles.emptyWorld} testID="home-empty-world">
+          <WorldScene themeId="island" stage={0} backdrop="none" decorative />
+        </View>
+      }
       title={completedCount > 0 ? 'Start a new goal' : 'Start your first goal'}
       message="Name something you are saving for and set a target. Each amount you record grows a small world.">
       <View style={styles.emptyActions}>
@@ -156,8 +160,9 @@ function EmptyHome({ completedCount, canCreate }: { completedCount: number; canC
   );
 }
 
-// Title and status, saved amount and target, progress, next milestone and the deadline card.
-function GoalNumbers({ summary, dashboard, menu }: { summary: GoalSummary; dashboard: HomeDashboard; menu: ReactElement }) {
+// Title and status, saved amount and target, progress, Add savings, next milestone and the deadline
+// card.
+function GoalNumbers({ summary, dashboard, busy, menu }: { summary: GoalSummary; dashboard: HomeDashboard; busy: boolean; menu: ReactElement }) {
   const { goal } = summary;
   const { amounts, deadline } = dashboard;
   const paused = goal.status === 'paused';
@@ -189,16 +194,22 @@ function GoalNumbers({ summary, dashboard, menu }: { summary: GoalSummary; dashb
           </AppText>
         </View>
       </View>
+      {/* The one primary action, in the flow right under the progress it changes (owner decision
+          D81: it no longer floats). */}
+      <Link href={{ pathname: '/entry-form', params: { goalId: goal.id } }} asChild>
+        <Button label="Add savings" icon="add" disabled={busy} testID="home-add-savings" />
+      </Link>
       <MilestoneCallout next={dashboard.next} />
       <DeadlineCard copy={deadline} goalId={goal.id} />
     </View>
   );
 }
 
-// The next of the ten unlocks and the amount still needed for it, on the warm accent surface. Stage
-// names come from the theme manifest in Phase 09; until then the callout names the percentage.
+// The next of the ten unlocks and the amount still needed for it, on the warm accent surface. The
+// name comes from the theme manifest; a theme without art falls back to the percentage.
 function MilestoneCallout({ next }: { next: NextMilestone }) {
-  const title = next.kind === 'next' ? `Next milestone: ${next.percent}%` : 'All 10 milestones unlocked';
+  const title =
+    next.kind === 'complete' ? 'All 10 milestones unlocked' : next.name ? `Next: ${next.name}` : `Next milestone: ${next.percent}%`;
   const detail = next.kind === 'next' ? `${next.toNext} more to reach ${next.percent}%` : 'Your world is complete.';
   return (
     <View style={styles.milestone} accessible accessibilityLabel={`${title}. ${detail}`} testID="home-next-milestone">
@@ -281,6 +292,13 @@ const styles = StyleSheet.create({
   },
   switcher: {
     gap: spacing.sm,
+  },
+  // The empty island floats on the screen background; wide enough to read as a world, small enough
+  // that the title, message and button stay in view on the SE.
+  emptyWorld: {
+    width: '100%',
+    maxWidth: 360,
+    aspectRatio: worldArtAspect('island'),
   },
   emptyActions: {
     gap: spacing.md,

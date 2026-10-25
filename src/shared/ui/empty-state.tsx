@@ -9,6 +9,8 @@ import { IconTile, type TileColor } from './icon-tile';
 
 type EmptyStateProps = {
   icon: IconName;
+  // A picture that replaces the icon tile (Home's empty state shows the stage 0 world, D69).
+  illustration?: ReactNode;
   iconColor?: TileColor;
   title: string;
   message: string;
@@ -20,12 +22,14 @@ type EmptyStateProps = {
 // What a screen or section shows when it has nothing yet: an icon, a short title that says what
 // belongs here and one sentence on how it fills, plus an optional action. No "will appear here"
 // placeholder copy.
-export function EmptyState({ icon, iconColor = 'green', title, message, children, testID }: EmptyStateProps) {
+export function EmptyState({ icon, illustration, iconColor = 'green', title, message, children, testID }: EmptyStateProps) {
   return (
     <View style={styles.container} testID={testID}>
-      <View style={styles.icon}>
-        <IconTile name={icon} color={iconColor} role="largeTitle" />
-      </View>
+      {illustration ?? (
+        <View style={styles.icon}>
+          <IconTile name={icon} color={iconColor} role="largeTitle" />
+        </View>
+      )}
       <AppText role="title" accessibilityRole="header" style={styles.centered}>
         {title}
       </AppText>

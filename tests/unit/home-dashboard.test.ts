@@ -62,14 +62,14 @@ describe('dashboard numbers match the ledger balance', () => {
     });
     expect(view.stage).toBe(0);
     expect(view.fraction).toBe(0);
-    expect(view.next).toEqual({ kind: 'next', percent: 10, toNext: '€150.00' });
+    expect(view.next).toEqual({ kind: 'next', percent: 10, name: 'First tree', toNext: '€150.00' });
   });
 
   it('partial: €330.00 of €1,500.00 is 22%, stage 2, €120.00 more to reach 30%', () => {
     const view = dashboard(33_000, 150_000);
     expect(view.amounts).toMatchObject({ saved: '€330.00', remaining: '€1,170.00', percent: 22, funded: false, over: null });
     expect(view.stage).toBe(2);
-    expect(view.next).toEqual({ kind: 'next', percent: 30, toNext: '€120.00' });
+    expect(view.next).toEqual({ kind: 'next', percent: 30, name: 'Flowers and bushes', toNext: '€120.00' });
   });
 
   it('one minor unit short is 99%, stage 9 and never "Target reached"', () => {
@@ -77,7 +77,7 @@ describe('dashboard numbers match the ledger balance', () => {
     expect(view.amounts).toMatchObject({ remaining: '€0.01', percent: 99, funded: false, over: null });
     expect(view.stage).toBe(9);
     expect(view.fraction).toBeLessThan(1);
-    expect(view.next).toEqual({ kind: 'next', percent: 100, toNext: '€0.01' });
+    expect(view.next).toEqual({ kind: 'next', percent: 100, name: 'Completed island', toNext: '€0.01' });
   });
 
   it('exactly complete: 100%, stage 10, nothing to go, no next milestone', () => {
@@ -115,7 +115,7 @@ describe('dashboard numbers match the ledger balance', () => {
     });
     expect(plainSpaces(homeDashboard(summary(1, 3, '2026-10-29'), KWD, TODAY, 'en-US'))).toMatchObject({
       amounts: { saved: 'KWD 0.001', remaining: 'KWD 0.002', percent: 33 },
-      next: { kind: 'next', percent: 40, toNext: 'KWD 0.001' },
+      next: { kind: 'next', percent: 40, name: 'Small house', toNext: 'KWD 0.001' },
       // R = 2, D = 7: weekly ceil(14 / 7) = 2, monthly min(2, ceil(60 / 7)) = 2.
       estimate: { kind: 'pace', days: 7, weeklyMinor: 2, monthlyMinor: 2 },
     });
