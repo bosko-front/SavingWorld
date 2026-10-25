@@ -37,6 +37,8 @@ beforeAll(() => {
 });
 
 beforeEach(async () => {
+  // Listeners of earlier tests' screens are gone with them; emitAppState calls this test's only.
+  jest.mocked(AppState.addEventListener).mockClear();
   setLocalTime(2026, 10, 23, 12, 0);
   await freshAppDatabase('home-dashboard');
   await chooseCurrency('EUR');
@@ -115,13 +117,17 @@ async function addThroughForm(kind: 'deposit' | 'withdrawal', amount: string) {
 }
 
 // The most recent AppState listener the app registered (the root navigator's foreground hook).
+// Every registered AppState listener hears the change, as on the device (the foreground
+// reconciliation and, since Phase 10, the motion hooks that pause in the background).
 function emitAppState(next: AppStateStatus) {
-  const calls = jest.mocked(AppState.addEventListener).mock.calls.filter(([event]) => event === 'change');
-  const listener = calls.at(-1)?.[1] as ((state: AppStateStatus) => void) | undefined;
-  if (!listener) {
+  const listeners = jest
+    .mocked(AppState.addEventListener)
+    .mock.calls.filter(([event]) => event === 'change')
+    .map(([, listener]) => listener as (state: AppStateStatus) => void);
+  if (listeners.length === 0) {
     throw new Error('no AppState listener registered');
   }
-  listener(next);
+  listeners.forEach((listener) => listener(next));
 }
 
 describe('Home dashboard numbers', () => {

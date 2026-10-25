@@ -23,6 +23,7 @@ The original 19-phase plan expanded to 21 for early style/adaptive layout, then 
 | 08 | Free dashboard and deadline estimates | [PHASE_08](prompts/PHASE_08.md) |
 | 09 | Island theme assets and static world renderer | [PHASE_09](prompts/PHASE_09.md) |
 | 10 | World transitions and progress feedback | [PHASE_10](prompts/PHASE_10.md) |
+| 10.5 | Living Island ambient motion (owner-added) | [PHASE_10_5](prompts/PHASE_10_5.md) |
 | 11 | Permanent souvenirs Finish Reopen and Collection | [PHASE_11](prompts/PHASE_11.md) |
 | 12 | Three fixed challenge rules and attempt engine | [PHASE_12](prompts/PHASE_12.md) |
 | 13 | Fixed challenge catalog and attempt UX | [PHASE_13](prompts/PHASE_13.md) |
@@ -716,6 +717,63 @@ Every acceptance criterion above has evidence; required dependencies are verifie
 
 [Full implementation prompt](prompts/PHASE_10.md).
 
+## Phase 10.5 Living Island ambient motion
+
+## Objective
+
+Make the Home Island feel alive with quiet ambient motion (drifting clouds, a soft water shimmer, gently swaying trees) at a cost low enough to keep; owner request D90 (25 October 2026). Phase 21 decides on a physical iPhone whether it ships; a static Island is an accepted fallback.
+
+## Dependencies and decision gates
+
+Phase 10 (verified complete, D88). Clouds, stream, waterfall and foam are baked into the base layer (`SW_00_Base_EmptyIsland`), so separate layers come from a Blender re-export (D76); the owner approves the re-exported art and the motion on the simulator.
+
+## Exact scope
+
+- Owner rules (D90): ambient only (clouds, water shimmer, trees); 30 fps is enough, no JavaScript frame limiter (Reanimated on the UI thread); runs only while Home is focused and the app is active; off under Reduce Motion; transforms and opacity on a few layers, never re-rendering the scene; if it costs too much, simplify the water first, then switch ambient motion off.
+- Blender export of cloud layers and a water layer/highlight mask (a tree canopy only if whole-layer sway looks wrong); stacking still reproduces the eleven approved renders; copy to `assets/themes/island/`.
+- Ambient marks in the manifest contract (cloud, water, sway) with validation; ASSET_SPEC updated.
+- Ambient driver in `src/features/worlds/`: long slow cloud drift, water opacity pulse, sub-degree tree sway around anchors with staggered periods; one gate (`useAmbientMotion`); rest pose when stopped; composed with the Phase 10 reveal so a popping tree does not fight its sway.
+- Global and per-effect kill switches; World inspector toggles for review and Phase 21 measurement builds.
+- Skia only with a recorded gap and an owner decision (D86).
+
+## Expected files and modules
+
+These are planned code paths, not claims that the files exist. Reuse the actual repository structure if equivalent modules already exist, and document any mapping. Do not create duplicate implementations just to match a proposed name.
+
+- `assets/worlds/island/scripts/ and assets/themes/island/ re-export with ambient layers`
+- `src/features/worlds/ manifest ambient marks, ambient driver, flags`
+- `src/dev/world-inspector.tsx ambient toggles`
+- `tests/ ambient gating, rest pose, flags, manifest validation, reveal coexistence`
+- `docs/evidence/PHASE_10_5.md art verification, simulator recordings, owner approval`
+
+## Technical requirements
+
+- Presentation only; the committed stage stays the only source of what is drawn.
+- No ambient motion off Home, in the background, under Reduce Motion or in lists of worlds; decorative only for VoiceOver.
+- Decoded memory within the ASSET_SPEC budget; the static Island with ambient off identical to the approved renders.
+
+## Acceptance criteria
+
+- Re-exported Island reproduces all eleven renders with ambient off; provenance updated.
+- Owner-approved ambient motion on the simulator that stops and resumes correctly (leave Home, background, Reduce Motion).
+- The Phase 10 unlock moment still works with ambient on and ends on the committed stage.
+- Kill switches work; standard checks and new deterministic tests pass.
+
+## Tests and verification
+
+- Lint, typecheck, Jest, release export; Blender stacking verification and app-vs-render comparison; simulator recordings (SE, a large iPhone, Duo open).
+- Performance is measured in Phase 21 on a physical iPhone (energy, memory, smoothness, ambient on vs off, Xcode Instruments); not decided on the simulator.
+
+## Definition of Done
+
+Every acceptance criterion above has evidence; required dependencies are verified; relevant automated/native/manual checks pass; no known critical regression remains; documentation and handoff reflect actual state. Owner approval of art and motion is mandatory. The physical-iPhone measurement is a Phase 21 gate (D90).
+
+## Out of scope
+
+- Souvenirs and Collection (Phase 11), Garden and its ambient motion (Phase 17), new objects, particles, weather, day/night, sounds, Skia without an owner decision, the device measurement (Phase 21).
+
+[Full implementation prompt](prompts/PHASE_10_5.md).
+
 ## Phase 11 Permanent souvenirs Finish Reopen and Collection
 
 ## Objective
@@ -724,7 +782,7 @@ Award one permanent world souvenir per goal independently of explicit Finish/Reo
 
 ## Dependencies and decision gates
 
-Phase 10; verify Phase 06 lifecycle and Phase 07 atomic ledger mutation boundary.
+Phase 10.5 (which depends on Phase 10); verify Phase 06 lifecycle and Phase 07 atomic ledger mutation boundary.
 
 Q03 is resolved by v1.2. No retention/award reapproval is needed. D74 decides souvenir deletion: a souvenir is deleted only together with its goal.
 
@@ -1241,6 +1299,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 - Manual iPhone VoiceOver/text-size/Reduce Motion checklist with screen-by-screen evidence.
 - Carried from Phase 06 (DECISIONS D60): on a physical iPhone, run the VoiceOver walkthrough of onboarding, Create/Edit Goal (inline errors read with the field), Home Pause/Resume and Delete goal (Archive was removed by D74), Collection Reopen and Delete and the Settings currency lock; each confirmation toast is announced once and never takes focus.
 - Carried from Phase 07 (DECISIONS D63): on a physical iPhone, run the VoiceOver walkthrough of the Add/Edit Entry form (`/entry-form`: amount/note labels and inline errors read with their field, the Deposit/Withdrawal control, the date picker, the delete confirmation) and History (`/history`: rows read as "Deposit/Withdrawal, signed amount, date, note", closed-goal read-only state); each ledger toast is announced once and never takes focus. Feel the haptics: one success after each committed write, one warning per rule rejection, none otherwise.
+- Carried from Phase 10 (DECISIONS D88): on a physical iPhone, VoiceOver hears "New milestone unlocked! {stage}." (or "{n} milestones unlocked! …") exactly once after an unlocking deposit, can focus the in-scene message and dismiss it with a double-tap; nothing is announced for a withdrawal or a deposit inside one interval. Also: the milestone haptic is felt once for an unlocking deposit and the success haptic is not (felt haptics, Phase 19 haptics check).
 - Carried from Phase 09 (DECISIONS D83): on a physical iPhone, VoiceOver of the world scene on Home: one image element read as "Island world, n of 10 milestones unlocked" with the stage description as its value, decorative layers silent, the empty-state Island hidden, the scene fallback ("Your world can’t be shown right now", Try again) and the milestone card at 100% ("Your island is complete!"). Mandatory before release; deferred from Phase 09, not passed.
 - Formatting tests for at least two numeric/date locales, currency exponents and all user-facing catalog keys.
 - Contrast/touch/layout review, relevant interaction regressions and standard checks.
@@ -1370,6 +1429,8 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 - Run interruption/rollback/migration scenarios and device memory/launch/frame profiling; record build identifier and fixture size.
 - Carried from Phase 09 (DECISIONS D83): on a physical iPhone (oldest supported and one recent), decoded image memory and frame observations of the Island scene from stage 0 to the complete Island, stage changes on Home and the full-bleed scroll, against the ASSET_SPEC budgets (~32 MiB per world, 60 fps). Phase 09 recorded only simulator footprints (303 → 305-306 MB). Mandatory before release; deferred from Phase 09, not passed.
 - Carried from Phase 09 (DECISIONS D83): repeat the world-scene VoiceOver check from Phase 19 on the release candidate.
+- Carried from Phase 10 (DECISIONS D88): on a physical iPhone, a recording with frame inspection of the D73 unlock moment (count-up, bar, stage reveal, object pop, stage 8 crossfade, message), of rapid repeated deposits and of navigating away/backgrounding mid-moment; the scene always ends on the committed stage and nothing replays. Repeat the Phase 19 unlock VoiceOver/haptic check on the release candidate.
+- Phase 10.5 ambient motion (DECISIONS D90): on a physical iPhone with Xcode Instruments, compare Home with ambient motion on and off (Energy Log/Power Profiler, memory, Animation Hitches or Core Animation frame pacing) over a few minutes idle on Home and during an unlock; confirm it stops off Home, in the background and under Reduce Motion. Keep ambient motion only if it passes; otherwise simplify the water first, then switch it off (static Island). Record the numbers and the decision.
 - Run full regression only now after integration, not repeatedly after every unchanged earlier phase; update requirements traceability.
 
 ## Definition of Done

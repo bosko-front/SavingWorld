@@ -44,6 +44,8 @@ Initial engineering budgets, to confirm on the oldest supported device: no more 
 
 Layers may provide a short reveal preset (fade, slight scale, gentle lift), but state eligibility comes exclusively from the shared engine. Every ten-percent boundary and a tiny between-stage deposit needs feedback. Run no network request or SQL write on an animation frame. A large deposit uses one bounded sequence; rapid revisions supersede older sequences; a withdrawal settles to current state. Reduced Motion uses an immediate stable composition and text feedback.
 
+Ambient motion (Phase 10.5, D90): only drifting clouds, a gentle water shimmer and swaying trees, from separately exported cloud and water layers and the existing tree layers marked in the manifest; transforms and opacity on the UI thread, 30 fps is enough, no JavaScript frame limiter; only while Home is visible and the app is active, off under Reduce Motion; kept in the release only if the Phase 21 physical-iPhone measurement passes, otherwise water simplified first, then a static Island.
+
 Use Reanimated first. A Skia or Lottie addition requires a measured rendering gap or an actual approved animation asset, a compatibility check, device memory/frame evidence and an ADR. Do not add either merely because it is popular.
 
 ## Art readiness and verification

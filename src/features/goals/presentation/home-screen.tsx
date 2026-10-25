@@ -4,13 +4,19 @@ import { StyleSheet, View } from 'react-native';
 
 import { currentCapabilities, goalCommandDeps, refreshAppData, useAppDataStore } from '@/bootstrap/app-data';
 import { hasGoalSlot } from '@/core/access';
+import { progressPercent, sceneFeedback } from '@/core/progression';
 import { isOpenStatus, type GoalSummary } from '@/data/repositories/goal-repository';
+import { UnlockBanner } from '@/features/worlds/unlock-banner';
+import { useWorldMotion, type WorldMotion } from '@/features/worlds/use-world-motion';
 import { WorldScene, worldArtAspect } from '@/features/worlds/world-scene';
+import { WORLD_MOTION } from '@/features/worlds/world-transition';
 import { AdaptiveGoalLayout, Screen } from '@/shared/layout';
 import { colors, radii, spacing } from '@/shared/theme';
 import { AmountText } from '@/shared/ui/amount-text';
+import { AmbientSparkles, type SparkleSpot } from '@/shared/ui/ambient-float';
 import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
+import { useCountUp } from '@/shared/ui/count-up';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { haptics } from '@/shared/ui/haptics';
 import { Icon } from '@/shared/ui/icon';
@@ -87,9 +93,19 @@ type SelectedGoalHomeProps = { summary: GoalSummary; dashboard: HomeDashboard; o
 
 // The selected goal on AdaptiveGoalLayout: the world, then the numbers, the milestone and the
 // savings plan; goal administration is in the ⋯ menu and Add savings sits under the progress (D73,
-// D81).
+// D81). After a committed change the world motion (Phase 10) moves the amount, the bar and the
+// scene from what was shown to the committed values, with the unlock moment when a deposit crosses
+// a threshold; everything else on Home shows the committed values at once.
 function SelectedGoalHome({ summary, dashboard, open, canCreate }: SelectedGoalHomeProps) {
   const { goal } = summary;
+  const revision = useAppDataStore((store) => store.version);
+  const motion = useWorldMotion({
+    goalId: goal.id,
+    themeId: goal.themeId,
+    balanceMinor: summary.balanceMinor,
+    targetMinor: goal.targetMinor,
+    revision,
+  });
   const action = useGoalAction();
   const { deleting, confirmDelete } = useDeleteGoal();
   const busy = action.pending?.goalId === goal.id || deleting === goal.id;
@@ -101,10 +117,17 @@ function SelectedGoalHome({ summary, dashboard, open, canCreate }: SelectedGoalH
       // clear of the bars and the side gutters (owner decision D80).
       sceneBleed
       sceneBleedColor={colors.sceneSkyTop}
-      scene={<WorldScene themeId={goal.themeId} stage={dashboard.stage} fill />}
+      // No text field on Home: the entry sheet's keyboard must not scroll the world away under the
+      // sheet, or the unlock moment would play off screen.
+      keyboard="none"
+      scene={
+        <WorldScene themeId={goal.themeId} stage={motion.stage} upcomingStage={motion.upcomingStage} reveal={motion.reveal} fill>
+          {motion.banner ? <UnlockBanner banner={motion.banner} onDismiss={motion.dismissBanner} /> : null}
+        </WorldScene>
+      }
       controls={
         <View style={styles.controls}>
-          <GoalNumbers summary={summary} dashboard={dashboard} busy={busy} menu={<GoalMenu summary={summary} canCreate={canCreate} busy={busy} run={action.run} onDelete={() => confirmDelete(goal)} />} />
+          <GoalNumbers summary={summary} dashboard={dashboard} motion={motion} busy={busy} menu={<GoalMenu summary={summary} canCreate={canCreate} busy={busy} run={action.run} onDelete={() => confirmDelete(goal)} />} />
           {open.length > 1 ? <GoalSwitcher open={open} selectedId={goal.id} /> : null}
         </View>
       }
@@ -131,7 +154,8 @@ function LoadFailed() {
 
 // No open goal. A finished goal (Phase 11) still counts toward Free's one goal (D74), so Free is told
 // where it is and what the two ways forward are instead of being sent to a form that would refuse.
-// The picture is the empty Island (stage 0), which Phase 10 animates gently (D69).
+// The picture is the empty Island (stage 0, D76 base layer), floating gently with a soft sparkle while
+// Home is visible (D69, Phase 10).
 function EmptyHome({ completedCount, canCreate }: { completedCount: number; canCreate: boolean }) {
   return (
     <EmptyState
@@ -139,9 +163,11 @@ function EmptyHome({ completedCount, canCreate }: { completedCount: number; canC
       illustration={
         <View style={styles.emptyWorld} testID="home-empty-world">
           <WorldScene themeId="island" stage={0} backdrop="none" decorative />
+          <AmbientSparkles spots={EMPTY_ISLAND_SPARKLES} testID="home-empty-sparkles" />
         </View>
       }
       title={completedCount > 0 ? 'Start a new goal' : 'Start your first goal'}
+      testID="home-empty"
       message="Name something you are saving for and set a target. Each amount you record grows a small world.">
       <View style={styles.emptyActions}>
         {canCreate ? (
@@ -161,13 +187,28 @@ function EmptyHome({ completedCount, canCreate }: { completedCount: number; canC
   );
 }
 
+// Where the empty Island sparkles, as fractions of its picture (over the meadow and the shore).
+const EMPTY_ISLAND_SPARKLES: readonly SparkleSpot[] = [
+  { x: 0.3, y: 0.32, delayMs: 0 },
+  { x: 0.66, y: 0.26, delayMs: 950 },
+  { x: 0.52, y: 0.58, delayMs: 1900 },
+];
+
+type GoalNumbersProps = { summary: GoalSummary; dashboard: HomeDashboard; motion: WorldMotion; busy: boolean; menu: ReactElement };
+
 // Title and status, saved amount and target, progress, Add savings, the milestone card and, when the
-// goal has a deadline, the savings plan cards (D84).
-function GoalNumbers({ summary, dashboard, busy, menu }: { summary: GoalSummary; dashboard: HomeDashboard; busy: boolean; menu: ReactElement }) {
+// goal has a deadline, the savings plan cards (D84). The saved amount, the percent and the bar show
+// the world motion's values (counting up after a deposit); their VoiceOver labels always say the
+// committed values.
+function GoalNumbers({ summary, dashboard, motion, busy, menu }: GoalNumbersProps) {
   const { goal } = summary;
   const { amounts } = dashboard;
   const paused = goal.status === 'paused';
   const progressDetail = amounts.over ? `${amounts.over} over target` : `${amounts.remaining} to go`;
+  const count = { enabled: motion.countUp, durationMs: WORLD_MOTION.countMs, resetKey: goal.id };
+  const savedMinor = useCountUp(motion.balanceMinor, count);
+  const shownPercent = progressPercent(motion.balanceMinor, motion.targetMinor);
+  const percent = useCountUp(shownPercent, count);
   return (
     <View style={styles.summary} testID="home-goal">
       <View style={styles.titleRow}>
@@ -179,17 +220,23 @@ function GoalNumbers({ summary, dashboard, busy, menu }: { summary: GoalSummary;
         <View style={styles.menu}>{menu}</View>
       </View>
       <View style={styles.amount} accessible accessibilityLabel={`Saved ${amounts.saved} of ${amounts.target}`} testID="home-amount">
-        <AmountText formatted={amounts.saved} size="display" testID="home-saved" />
+        <AmountText formatted={dashboard.format(savedMinor)} size="display" testID="home-saved" />
         <AppText tone="secondary" testID="home-target">{`saved of ${amounts.target}`}</AppText>
       </View>
       <View style={styles.progress}>
-        <ProgressBar fraction={dashboard.fraction} percent={amounts.percent} />
+        <ProgressBar
+          fraction={sceneFeedback(motion.balanceMinor, motion.targetMinor).overall}
+          percent={shownPercent}
+          durationMs={WORLD_MOTION.countMs}
+          resetKey={goal.id}
+          testID="home-progress-bar"
+        />
         <View
           style={styles.progressText}
           accessible
           accessibilityLabel={`${amounts.percent}%, ${progressDetail}`}
           testID="home-progress">
-          <AppText role="label" tone={progressTextTone(amounts.percent)}>{`${amounts.percent}%`}</AppText>
+          <AppText role="label" tone={progressTextTone(percent)} testID="home-percent">{`${percent}%`}</AppText>
           <AppText role="footnote" tone="secondary" testID="home-remaining">
             {progressDetail}
           </AppText>

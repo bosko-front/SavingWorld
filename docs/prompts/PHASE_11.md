@@ -18,7 +18,7 @@ Award one permanent world souvenir per goal independently of explicit Finish/Reo
 
 ## Dependencies and decision gates
 
-Phase 10; verify Phase 06 lifecycle and Phase 07 atomic ledger mutation boundary.
+Phase 10.5 (which depends on Phase 10); verify Phase 06 lifecycle and Phase 07 atomic ledger mutation boundary. Lists of worlds in Collection never run ambient motion (D90).
 
 Q03 is resolved by v1.2. No retention/award reapproval is needed. D74 decides souvenir deletion: a souvenir is deleted only together with its goal.
 

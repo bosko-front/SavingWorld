@@ -42,7 +42,7 @@ src/data/db/                     connection, versioned migrations, write seriali
 src/data/repositories/           SQLite goal, ledger, completion and challenge adapters
 src/features/goals/              domain, application, presentation
 src/features/ledger/             commands, history and correction UI
-src/features/worlds/             manifests, shared renderer (exists, Phase 09) and animation coordinator (Phase 10)
+src/features/worlds/             manifests, shared renderer (Phase 09), transition planner and motion coordinator (Phase 10)
 src/features/collection/         souvenir and completed-goal views (Reopen, Delete)
 src/features/challenges/         three fixed rules, attempts, calculated progress and UI
 src/features/reminders/          persisted preferences and OS scheduling adapter
@@ -104,7 +104,7 @@ The pure engine returns milestone 0-10 from the current net amount and target. S
 
 A static typed manifest declares a 0% base and ten threshold definitions with stable layer IDs, placement, z-order, reveal/hide/replacement sets, accessible scene description and static asset references. The 80% Island replacement hides the small house and reveals the larger house; do not simply accumulate every layer forever. No dynamic file-path require or remote asset download.
 
-A multi-threshold deposit settles on the correct final scene, with one bounded reveal sequence. Decreases remove/reverse the affected layers with a quiet transition. Target edits can change stage; switching theme keeps stage. Rapid commits cancel/coalesce older animations by revision. Offscreen scenes stop ambient work. Reduced Motion updates immediately with a short accessible status message.
+A multi-threshold deposit settles on the correct final scene, with one bounded reveal sequence. Decreases remove/reverse the affected layers with a quiet transition. Target edits can change stage; switching theme keeps stage. Rapid commits cancel/coalesce older animations by revision. Offscreen scenes stop ambient work. Reduced Motion updates immediately with a short accessible status message. Implemented in Phase 10 (D85): `world-transition.ts` is the pure planner and state machine (the revision is the app-data snapshot version), `use-world-motion.ts` runs its timeline on Home only while Home is focused and the app is active, and `WorldScene` animates layers from the manifest anchors (`reveal`, `upcomingStage`).
 
 A collectible stores the theme/version at the first saved >=100% mutation, uniquely per goal including Free. Optional immutable title/target captions describe that moment; currency remains global. It persists even if the first entry was a mistake. A live 60% world and its permanent finished souvenir are both valid. No correction, withdrawal, theme/target change, Finish or Reopen removes/replaces it; only deleting its goal does (D74). Reaching 100% does not close the goal: explicit Finish sets completed, and Reopen sets active while within the Free limit without auto-Finish. Completed goals are read-only. Collection also lists completed goals honestly, with Reopen and Delete, keeping souvenir and current status distinct. Free keeps its one finished world.
 

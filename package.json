@@ -70,7 +70,9 @@
     ],
     "moduleNameMapper": {
       "^sonner-native$": "<rootDir>/tests/support/sonner-native-fake.tsx",
-      "^expo-haptics$": "<rootDir>/tests/support/expo-haptics-fake.ts"
-    }
+      "^expo-haptics$": "<rootDir>/tests/support/expo-haptics-fake.ts",
+      "^\\./installUIRuntimeBindings$": "<rootDir>/tests/support/gesture-handler-ui-runtime-fake.ts"
+    },
+    "resolver": "react-native-reanimated/jest/resolver"
   }
 }

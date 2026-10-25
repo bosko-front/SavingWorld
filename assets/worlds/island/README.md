@@ -2,7 +2,7 @@
 
 Source art for the Free **Island** theme (docs/ASSET_SPEC.md, PRODUCT_REQUIREMENTS R10). This folder holds the editable Blender scene and the scripts that generate it. It is **not** read by the app: approved exports for the app go to the planned `assets/themes/island/` folder in Phase 09, with a manifest.
 
-Status: **all eleven states approved by the owner (24 October 2026, D76) and exported as layers for Phase 09.** Milestone renders and layer exports have not been made yet.
+Status: **all eleven states approved by the owner (24 October 2026, D76) and exported as layers for Phase 09.** The approved milestone renders are in `renders/milestones/` and the layer export in `export/`; the app bundles that export unchanged in `assets/themes/island/` (Phase 09). Next art change: Phase 10.5 (DECISIONS D90, `docs/prompts/PHASE_10_5.md`) exports clouds and water as separate layers for ambient motion; every approved stage must still stack to the same image.
 
 ## Layout
 

@@ -9,6 +9,7 @@ import { borders, colors, elevation, layout, motion, radii, spacing } from '@/sh
 
 import { AppText } from './app-text';
 import { Icon } from './icon';
+import { isReduceMotionEnabled, useReduceMotion } from './motion-preferences';
 
 // Transient confirmations (docs/DESIGN_SYSTEM.md "Transient feedback (toasts)", DECISIONS D40).
 // Screens call `showToast` only after a write has committed, for an outcome the screen also shows.
@@ -36,11 +37,12 @@ const ERROR_MIN_DURATION_MS = 6000;
 const MAX_DURATION_MS = 8000;
 const CHARACTERS_IN_BASE = 40;
 const MS_PER_EXTRA_CHARACTER = 60;
-// Below a standard navigation bar (top safe area + one bar height), so the toast never covers the
-// back button, the tab bar, the keyboard or a form's Save action. The engine ignores the safe area
-// when an offset is given, so the inset is added here (Phase 07.5: the toast covered Back).
+// Below a standard navigation bar (top safe area + one bar height) with a clear gap, so the toast
+// never touches the back button or Home's gear, nor covers the tab bar, the keyboard or a form's
+// Save action (owner request D89: lower, not at the very top). The engine ignores the safe area when
+// an offset is given, so the inset is added here (Phase 07.5: the toast covered Back).
 export function toastTopOffset(safeAreaTop: number): number {
-  return safeAreaTop + layout.minTouchTarget + spacing.sm;
+  return safeAreaTop + layout.minTouchTarget + spacing.xxl;
 }
 
 // About four seconds, longer for longer text, capped so a toast never lingers.
@@ -76,33 +78,9 @@ function forget(id: string | number): void {
   }
 }
 
-// Reduce Motion as the OS reports it, tracked by the Toaster host from app start, so a card knows
-// the setting on its first frame instead of flashing before a late answer arrives.
-let reduceMotionEnabled = false;
-
-function useTrackReduceMotion(): void {
-  useEffect(() => {
-    let mounted = true;
-    AccessibilityInfo.isReduceMotionEnabled()
-      .then((value) => {
-        if (mounted) {
-          reduceMotionEnabled = value;
-        }
-      })
-      .catch(() => undefined);
-    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', (value) => {
-      reduceMotionEnabled = value;
-    });
-    return () => {
-      mounted = false;
-      subscription.remove();
-    };
-  }, []);
-}
-
 function ToastCard({ tone, title, message }: ToastOptions) {
   // With Reduce Motion the engine drops its slide; the card fades in briefly instead.
-  const [fade] = useState(() => (reduceMotionEnabled ? new Animated.Value(0) : null));
+  const [fade] = useState(() => (isReduceMotionEnabled() ? new Animated.Value(0) : null));
   useEffect(() => {
     if (fade) {
       Animated.timing(fade, { toValue: 1, duration: motion.standard, useNativeDriver: true }).start();
@@ -142,7 +120,8 @@ function OverlayWrapper({ children }: { children: ReactNode }) {
 // Host rendered once in the root layout. One toast at a time, near the top, swipe up or tap to
 // dismiss, text that grows with Dynamic Type.
 export function Toaster() {
-  useTrackReduceMotion();
+  // Tracks Reduce Motion from app start, so a card (and any screen) knows it on its first frame.
+  useReduceMotion();
   const insets = useSafeAreaInsets();
   return (
     <SonnerToaster

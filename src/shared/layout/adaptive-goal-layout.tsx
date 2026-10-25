@@ -37,6 +37,9 @@ type AdaptiveGoalLayoutProps = {
   // there and the backdrop continues up to the top of the screen without an edge. In the stacked
   // composition it fills the space above the scene that a pull-down (overscroll) reveals (D82).
   sceneBleedColor?: string;
+  // 'none' for a screen without text fields (Home): its scroll view then ignores a keyboard shown
+  // over it in a sheet, instead of growing its inset and scrolling the world away (Phase 10).
+  keyboard?: 'form' | 'none';
   // Tests and the development layout lab only. Product screens never choose a mode.
   arrangement?: 'automatic' | 'fallback';
   testID?: string;
@@ -52,6 +55,7 @@ export function AdaptiveGoalLayout({
   sceneAspectRatio,
   sceneBleed = false,
   sceneBleedColor,
+  keyboard = 'form',
   arrangement = 'automatic',
   testID,
 }: AdaptiveGoalLayoutProps) {
@@ -96,7 +100,7 @@ export function AdaptiveGoalLayout({
           }
           secondary={
             <View style={styles.region} testID="adaptive-controls-region">
-              <ScrollingScreen keyboard="form" insets="container" floatingAction={floatingAction}>
+              <ScrollingScreen keyboard={keyboard} insets="container" floatingAction={floatingAction}>
                 {controls}
               </ScrollingScreen>
             </View>
@@ -114,6 +118,7 @@ export function AdaptiveGoalLayout({
       sceneAspectRatio={sceneAspectRatio}
       sceneBleed={sceneBleed}
       sceneBleedColor={sceneBleedColor}
+      keyboard={keyboard}
     />
   );
 }
@@ -133,7 +138,7 @@ type StackedCompositionProps = Omit<AdaptiveGoalLayoutProps, 'arrangement'>;
 // first and the controls below it. The scene takes the column width at its aspect ratio but at most
 // part of the visible height, so the saved amount and actions start close to the top. A floating
 // action stays at the bottom trailing corner while both scroll.
-function StackedComposition({ scene, controls, floatingAction, sceneAspectRatio, sceneBleed, sceneBleedColor, testID }: StackedCompositionProps) {
+function StackedComposition({ scene, controls, floatingAction, sceneAspectRatio, sceneBleed, sceneBleedColor, keyboard = 'form', testID }: StackedCompositionProps) {
   const [viewport, onViewportLayout] = useMeasuredSize();
   const [column, onColumnLayout] = useMeasuredSize();
   if (sceneBleed) {
@@ -145,6 +150,7 @@ function StackedComposition({ scene, controls, floatingAction, sceneAspectRatio,
         floatingAction={floatingAction}
         sceneAspectRatio={sceneAspectRatio}
         sceneBleedColor={sceneBleedColor}
+        keyboard={keyboard}
         viewport={viewport}
         onViewportLayout={onViewportLayout}
       />
@@ -156,7 +162,7 @@ function StackedComposition({ scene, controls, floatingAction, sceneAspectRatio,
     sceneAspectRatio,
   );
   return (
-    <ScrollingScreen keyboard="form" testID={testID} onViewportLayout={onViewportLayout} floatingAction={floatingAction}>
+    <ScrollingScreen keyboard={keyboard} testID={testID} onViewportLayout={onViewportLayout} floatingAction={floatingAction}>
       <View onLayout={onColumnLayout} testID="adaptive-scene-region" style={[styles.stackedScene, { height: sceneHeight }]}>
         {scene}
       </View>
@@ -181,7 +187,17 @@ type BleedCompositionProps = Omit<StackedCompositionProps, 'sceneBleed'> & {
 // bar included) so its backdrop starts at the top of the screen, and tells the scene how much of
 // it the bars cover. Side insets: the window's side safe area or the screen gutter, whichever is
 // larger, like every other column.
-function BleedComposition({ scene, controls, floatingAction, sceneAspectRatio, sceneBleedColor, viewport, onViewportLayout, testID }: BleedCompositionProps) {
+function BleedComposition({
+  scene,
+  controls,
+  floatingAction,
+  sceneAspectRatio,
+  sceneBleedColor,
+  keyboard = 'form',
+  viewport,
+  onViewportLayout,
+  testID,
+}: BleedCompositionProps) {
   const headerHeight = useContext(HeaderHeightContext) ?? 0;
   const safe = useSafeAreaInsets();
   const left = Math.max(safe.left, layout.screenGutter);
@@ -191,7 +207,7 @@ function BleedComposition({ scene, controls, floatingAction, sceneAspectRatio, s
   const insets = { top, right, bottom: 0, left };
   return (
     <ScrollingScreen
-      keyboard="form"
+      keyboard={keyboard}
       testID={testID}
       onViewportLayout={onViewportLayout}
       floatingAction={floatingAction}

@@ -1,6 +1,7 @@
 import { Image, type ImageProps } from 'expo-image';
-import { Component, useMemo, useState, type ReactNode } from 'react';
-import { StyleSheet, View, type ImageStyle, type ViewStyle } from 'react-native';
+import { Component, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
+import Animated, { cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming } from 'react-native-reanimated';
 
 import { MILESTONE_COUNT, type Stage, type ThemeId } from '@/core/progression';
 import { fitAspect, useFontScale, useMeasuredSize, useSceneInsets } from '@/shared/layout';
@@ -10,6 +11,7 @@ import { Button } from '@/shared/ui/button';
 
 import { sceneDescription, sceneViewport, visibleLayers, type ManifestResult, type Rect, type SceneLayer, type ThemeManifest } from './manifest';
 import { themeManifest } from './registry';
+import { layerMotion, WORLD_MOTION, type LayerEntrance, type LayerExit, type LayerMotion, type SceneReveal } from './world-transition';
 
 // The world region of Home (DESIGN_SYSTEM "Visual direction", owner direction D73: the world is the
 // star). One renderer for every theme: it measures its own region, fits the art's 4:3 viewport into
@@ -62,9 +64,25 @@ type WorldSceneProps = {
   decorative?: boolean;
   // Development inspection and tests only: a manifest other than the bundled one.
   manifest?: ManifestResult;
+  // Phase 10: a later stage whose layers load invisibly ahead of an unlock, and how the change to
+  // `stage` animates (null or absent: the stage is shown directly, as after a launch).
+  upcomingStage?: Stage | null;
+  reveal?: SceneReveal | null;
+  // Shown over the scene region (Home's "New milestone unlocked!" message).
+  children?: ReactNode;
 };
 
-export function WorldScene({ themeId, stage, backdrop = 'sky', fill = false, decorative = false, manifest }: WorldSceneProps) {
+export function WorldScene({
+  themeId,
+  stage,
+  backdrop = 'sky',
+  fill = false,
+  decorative = false,
+  manifest,
+  upcomingStage = null,
+  reveal = null,
+  children,
+}: WorldSceneProps) {
   const [area, onAreaLayout] = useMeasuredSize();
   const insets = useSceneInsets();
   const result = manifest ?? themeManifest(themeId);
@@ -95,67 +113,193 @@ export function WorldScene({ themeId, stage, backdrop = 'sky', fill = false, dec
           style={[styles.scene, fill ? null : [styles.framed, backdropStyle(backdrop)], { width: box.width, height: box.height }]}
           testID="world-scene">
           {showArt && box.width > 0 ? (
-            <SceneErrorBoundary key={attempt} onError={() => setFailed(true)}>
-              <SceneLayers manifest={result.manifest} stage={stage} boxWidth={box.width} onError={() => setFailed(true)} />
+            <SceneErrorBoundary key={`${themeId}-${attempt}`} onError={() => setFailed(true)}>
+              <SceneLayers
+                manifest={result.manifest}
+                stage={stage}
+                upcomingStage={upcomingStage}
+                reveal={reveal}
+                boxWidth={box.width}
+                onError={() => setFailed(true)}
+              />
             </SceneErrorBoundary>
           ) : null}
           {showArt ? null : <SceneFallback canRetry={result.ok} onRetry={retry} decorative={decorative} />}
         </View>
       </View>
+      {children}
     </View>
   );
 }
 
-type SceneLayersProps = { manifest: ThemeManifest; stage: Stage; boxWidth: number; onError: () => void };
+type SceneLayersProps = {
+  manifest: ThemeManifest;
+  stage: Stage;
+  upcomingStage: Stage | null;
+  reveal: SceneReveal | null;
+  boxWidth: number;
+  onError: () => void;
+};
+
+// What animates during one revealed stage change; the layers in `leaving` stay drawn while they fade.
+type LayerAnimation = { revision: number; motion: LayerMotion; leaving: SceneLayer[] };
 
 // Every layer of a stage at its canvas position, scaled from the viewport to the measured box. A
 // stage appears only once all of its layers have loaded, so the world never builds up piece by
 // piece (owner review, D78): until then the previous complete stage stays on screen (nothing on the
 // first load), and the incoming layers wait invisibly. Keys are layer ids, so a stage change mounts
 // only new layers and later unmounts removed ones (the stage 4 cabin from 8 on).
-function SceneLayers({ manifest, stage, boxWidth, onError }: SceneLayersProps) {
+//
+// Phase 10: when the change to a new complete stage comes with a `reveal`, its new layers pop from
+// their anchors (an unlock) or fade (a quiet change), the stage 8 house crossfades with the cabin and
+// removed layers fade out; without one the stage simply replaces the old one. The layers of
+// `upcomingStage` load invisibly in advance, so an unlock does not wait for its images.
+function SceneLayers({ manifest, stage, upcomingStage, reveal, boxWidth, onError }: SceneLayersProps) {
   const viewport = useMemo(() => sceneViewport(manifest, VIEWPORT_MARGIN), [manifest]);
   const scale = boxWidth / viewport.width;
   const [loaded, setLoaded] = useState<ReadonlySet<string>>(() => new Set());
   const [shownStage, setShownStage] = useState<Stage | null>(null);
+  const [animation, setAnimation] = useState<LayerAnimation | null>(null);
   const target = visibleLayers(manifest, stage);
   const ready = target.every((layer) => loaded.has(layer.id));
+
+  // Derived state, updated during render (React's "adjusting state when a prop changes"): a newly
+  // complete stage starts its reveal, if it has one; a reveal that was withdrawn (superseded,
+  // navigation away, background) ends at once, so a removed layer can never come back.
+  if (ready && shownStage !== stage) {
+    if (shownStage !== null && reveal) {
+      const motion = layerMotion(manifest, shownStage, stage, reveal.mode);
+      const leaving = visibleLayers(manifest, shownStage).filter((layer) => motion.exits.has(layer.id));
+      setAnimation({ revision: reveal.revision, motion, leaving });
+    } else if (animation) {
+      setAnimation(null);
+    }
+    setShownStage(stage);
+  } else if (animation && animation.revision !== reveal?.revision) {
+    setAnimation(null);
+  }
+
   const shown = ready ? target : shownStage === null ? [] : visibleLayers(manifest, shownStage);
   const shownIds = new Set(shown.map((layer) => layer.id));
-  const mounted = [...shown, ...target.filter((layer) => !shownIds.has(layer.id))].sort((a, b) => a.z - b.z);
-  const mountedIds = new Set(mounted.map((layer) => layer.id));
+  const leaving = (animation?.leaving ?? []).filter((layer) => !shownIds.has(layer.id));
+  const upcoming = upcomingStage === null ? [] : visibleLayers(manifest, upcomingStage);
+  const mounted = new Map<string, SceneLayer>();
+  [...shown, ...leaving, ...target, ...upcoming].forEach((layer) => mounted.set(layer.id, layer));
+  const ordered = [...mounted.values()].sort((a, b) => a.z - b.z);
 
-  // Derived state, updated during render (React's "adjusting state when a prop changes"): remember
-  // the last complete stage, and forget layers that unmounted, which must load again when they
-  // return (stage 8 → 7 brings the cabin back).
-  if (ready && shownStage !== stage) {
-    setShownStage(stage);
-  }
-  if ([...loaded].some((id) => !mountedIds.has(id))) {
-    setLoaded(new Set([...loaded].filter((id) => mountedIds.has(id))));
+  // Forget layers that unmounted; they must load again when they return (stage 8 → 7 brings the
+  // cabin back).
+  if ([...loaded].some((id) => !mounted.has(id))) {
+    setLoaded(new Set([...loaded].filter((id) => mounted.has(id))));
   }
 
   const markLoaded = (id: string) => setLoaded((current) => (current.has(id) ? current : new Set(current).add(id)));
 
-  return mounted.map((layer) => (
-    <Image
+  return ordered.map((layer) => (
+    <SceneLayerView
       key={layer.id}
+      layer={layer}
       source={manifest.assets[layer.file] as ImageProps['source']}
-      style={[layerStyle(layer, viewport, scale), shownIds.has(layer.id) ? null : styles.waiting]}
-      // Each export keeps its crop's aspect ratio, so `contain` fills the box exactly and still lets
-      // the image be decoded at the displayed size instead of the file size.
-      contentFit="contain"
-      enforceEarlyResizing
-      transition={null}
-      accessible={false}
+      viewport={viewport}
+      scale={scale}
+      shown={shownIds.has(layer.id)}
+      entrance={shownIds.has(layer.id) ? animation?.motion.entrances.get(layer.id) : undefined}
+      exit={shownIds.has(layer.id) ? undefined : animation?.motion.exits.get(layer.id)}
       onLoad={() => markLoaded(layer.id)}
       onError={onError}
-      testID={`world-layer-${layer.id}`}
     />
   ));
 }
 
-function layerStyle(layer: SceneLayer, viewport: Rect, scale: number): ImageStyle {
+type SceneLayerViewProps = {
+  layer: SceneLayer;
+  source: ImageProps['source'];
+  viewport: Rect;
+  scale: number;
+  // Part of the complete stage on screen (false while it loads or waits for its stage).
+  shown: boolean;
+  entrance: LayerEntrance | undefined;
+  exit: LayerExit | undefined;
+  onLoad: () => void;
+  onError: () => void;
+};
+
+// One layer: the image in a box at its canvas position. The box scales from the layer's anchor (where
+// the object meets the ground), so a new object grows out of the ground; the art already carries its
+// shadow and outline (D76). A layer mounted while waiting starts invisible and appears with its
+// entrance, or at once without one; a superseded entrance jumps to the end.
+function SceneLayerView({ layer, source, viewport, scale, shown, entrance, exit, onLoad, onError }: SceneLayerViewProps) {
+  const [visibleAtMount] = useState(shown);
+  const opacity = useSharedValue(visibleAtMount ? 1 : 0);
+  const grow = useSharedValue(1);
+
+  useEffect(() => {
+    cancelAnimation(opacity);
+    cancelAnimation(grow);
+    if (exit) {
+      const duration = exit.kind === 'crossfade' ? WORLD_MOTION.crossfadeMs : WORLD_MOTION.quietMs;
+      opacity.value = withDelay(exit.delayMs, withTiming(0, { duration, easing: Easing.inOut(Easing.quad) }));
+      return;
+    }
+    if (!shown) {
+      return;
+    }
+    if (!entrance) {
+      opacity.value = 1;
+      grow.value = 1;
+      return;
+    }
+    opacity.value = 0;
+    switch (entrance.kind) {
+      case 'pop':
+        // Pop, grow a little past full size, settle (D73: short, not a cutscene).
+        grow.value = 0.35;
+        opacity.value = withDelay(entrance.delayMs, withTiming(1, { duration: 160 }));
+        grow.value = withDelay(
+          entrance.delayMs,
+          withSequence(
+            withTiming(1.08, { duration: 320, easing: Easing.out(Easing.cubic) }),
+            withTiming(1, { duration: WORLD_MOTION.popMs - 320, easing: Easing.inOut(Easing.quad) }),
+          ),
+        );
+        break;
+      case 'crossfade':
+        grow.value = 1;
+        opacity.value = withDelay(entrance.delayMs, withTiming(1, { duration: WORLD_MOTION.crossfadeMs, easing: Easing.inOut(Easing.quad) }));
+        break;
+      case 'fade':
+        grow.value = 1;
+        opacity.value = withDelay(entrance.delayMs, withTiming(1, { duration: WORLD_MOTION.quietMs }));
+        break;
+    }
+  }, [shown, entrance, exit, opacity, grow]);
+
+  const animated = useAnimatedStyle(() => ({ opacity: opacity.value, transform: [{ scale: grow.value }] }));
+  const box = layerBox(layer, viewport, scale);
+
+  return (
+    <Animated.View
+      style={[box, { transformOrigin: [(layer.anchor.x - layer.x) * scale, (layer.anchor.y - layer.y) * scale, 0] }, animated]}
+      pointerEvents="none"
+      testID={`world-box-${layer.id}`}>
+      <Image
+        source={source}
+        style={[StyleSheet.absoluteFill, shown || exit ? null : styles.waiting]}
+        // Each export keeps its crop's aspect ratio, so `contain` fills the box exactly and still lets
+        // the image be decoded at the displayed size instead of the file size.
+        contentFit="contain"
+        enforceEarlyResizing
+        transition={null}
+        accessible={false}
+        onLoad={onLoad}
+        onError={onError}
+        testID={`world-layer-${layer.id}`}
+      />
+    </Animated.View>
+  );
+}
+
+function layerBox(layer: SceneLayer, viewport: Rect, scale: number): ViewStyle {
   return {
     position: 'absolute',
     left: (layer.x - viewport.x) * scale,

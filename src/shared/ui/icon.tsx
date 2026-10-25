@@ -39,6 +39,9 @@ export const ICON_SYMBOLS = {
   device: 'iphone',
   // Phase 08: the floating Add savings button and New goal in Home's goal menu.
   add: 'plus',
+  // Phase 10: the milestone unlock message and the empty-state sparkle.
+  unlocked: 'sparkles',
+  sparkle: 'sparkle',
 } as const satisfies Record<string, SFSymbol>;
 
 export type IconName = keyof typeof ICON_SYMBOLS;

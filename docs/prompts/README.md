@@ -15,6 +15,7 @@ All 22 independent prompts use [MVP plan v1.2](../Saving_Worlds_MVP_Plan_v1_2.do
 | 08 | Free dashboard and deadline estimates | [PHASE_08](PHASE_08.md) |
 | 09 | Island theme assets and static world renderer | [PHASE_09](PHASE_09.md) |
 | 10 | World transitions and progress feedback | [PHASE_10](PHASE_10.md) |
+| 10.5 | Living Island ambient motion (owner-added, D90) | [PHASE_10_5](PHASE_10_5.md) |
 | 11 | Permanent souvenirs Finish Reopen and Collection | [PHASE_11](PHASE_11.md) |
 | 12 | Three fixed challenge rules and attempt engine | [PHASE_12](PHASE_12.md) |
 | 13 | Fixed challenge catalog and attempt UX | [PHASE_13](PHASE_13.md) |

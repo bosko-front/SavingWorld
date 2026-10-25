@@ -16,7 +16,7 @@ Product authority is the local [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx)
 3. [Phase 03](prompts/PHASE_03.md): global screen/container behavior and native iPhone Duo adaptation.
 4. [Phase 04](prompts/PHASE_04.md): exact financial/date/progression domain, followed by the remaining feature phases.
 
-The current plan has 22 numbered phases plus an owner-added checkpoint, [Phase 07.5](prompts/PHASE_07_5.md) (visual direction and design review before the Home dashboard). EAS Build/Update setup belongs to Phase 01; [Phase 20](prompts/PHASE_20.md) proves preview OTA/recovery, followed by final QA in 21 and release preparation in 22. Initial setup uses the latest stable SDK at execution time, then locks it for reproducible sessions. The current SDK verified during planning is 58; do not treat the planning number as a permanent latest-version guarantee. No package has been installed in this documentation task.
+The current plan has 22 numbered phases plus two owner-added checkpoints, [Phase 07.5](prompts/PHASE_07_5.md) (visual direction and design review before the Home dashboard) and [Phase 10.5](prompts/PHASE_10_5.md) (Living Island ambient motion, kept only if it performs; D90). EAS Build/Update setup belongs to Phase 01; [Phase 20](prompts/PHASE_20.md) proves preview OTA/recovery, followed by final QA in 21 and release preparation in 22. Initial setup uses the latest stable SDK at execution time, then locks it for reproducible sessions. The current SDK verified during planning is 58; do not treat the planning number as a permanent latest-version guarantee. No package has been installed in this documentation task.
 
 ## First Claude Code session
 

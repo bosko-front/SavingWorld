@@ -79,8 +79,9 @@ function ToasterInApp() {
 describe('toast placement', () => {
   it('sits below the status bar and one navigation bar, never over the back button', () => {
     // The engine ignores the safe area when it gets an offset, so the offset must include it.
-    expect(toastTopOffset(59)).toBe(59 + 44 + 8);
-    expect(toastTopOffset(20)).toBe(72);
+    // A 32 pt gap under the bar (D89).
+    expect(toastTopOffset(59)).toBe(59 + 44 + 32);
+    expect(toastTopOffset(20)).toBe(96);
   });
 });
 
@@ -112,6 +113,8 @@ describe('Icon', () => {
       currency: 'banknote',
       device: 'iphone',
       add: 'plus',
+      unlocked: 'sparkles',
+      sparkle: 'sparkle',
     });
   });
 

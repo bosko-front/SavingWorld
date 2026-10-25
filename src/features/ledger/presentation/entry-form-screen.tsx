@@ -8,6 +8,7 @@ import { formatMoney, type CurrencyMetadata, type EntryKind } from '@/core/money
 import { randomUuid } from '@/data/ids';
 import { isOpenStatus, type GoalRecord } from '@/data/repositories/goal-repository';
 import type { LedgerEntryRecord } from '@/data/repositories/ledger-repository';
+import { unlocksStage } from '@/features/worlds/world-transition';
 import { amountMessage } from '@/shared/i18n/amount-messages';
 import { deviceLocale, deviceSeparators, formatCivilDate } from '@/shared/i18n/locale';
 import { FormScreen } from '@/shared/layout';
@@ -174,11 +175,15 @@ function EntryForm({ currency, goal, balanceMinor, entry }: FormProps) {
     }
   };
 
-  const committed = async (action: LedgerAction, kind: EntryKind) => {
+  // `afterMinor` is the goal's balance after this commit. When it unlocks a stage, Home's unlock
+  // moment plays the one haptic of this action (`milestone`, Phase 10) as the new object appears.
+  const committed = async (action: LedgerAction, kind: EntryKind, afterMinor: number) => {
     router.back();
     await refreshAppData();
     showToast({ tone: 'success', title: committedToastTitle(action, kind) });
-    haptics.success();
+    if (!unlocksStage(balanceMinor, afterMinor, goal.targetMinor)) {
+      haptics.success();
+    }
   };
 
   const save = async () => {
@@ -204,7 +209,8 @@ function EntryForm({ currency, goal, balanceMinor, entry }: FormProps) {
       showFailure(original ? 'correct' : 'create', result.error);
       return;
     }
-    await committed(original ? 'correct' : 'create', values.value.kind);
+    const signedMinor = values.value.kind === 'withdrawal' ? -values.value.amountMinor : values.value.amountMinor;
+    await committed(original ? 'correct' : 'create', values.value.kind, balanceMinor - (original?.signedAmountMinor ?? 0) + signedMinor);
   };
 
   const remove = async () => {
@@ -225,7 +231,7 @@ function EntryForm({ currency, goal, balanceMinor, entry }: FormProps) {
       showFailure('delete', result.error);
       return;
     }
-    await committed('delete', original.signedAmountMinor < 0 ? 'withdrawal' : 'deposit');
+    await committed('delete', original.signedAmountMinor < 0 ? 'withdrawal' : 'deposit', balanceMinor - original.signedAmountMinor);
   };
 
   // Deleting needs a native confirmation first; there is no Undo, because no entry history is kept.

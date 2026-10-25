@@ -23,6 +23,9 @@ export type NextMilestone =
 
 export type HomeDashboard = {
   amounts: GoalAmounts;
+  // Formats any amount of this goal's currency the way `amounts` are (Phase 10: the saved amount
+  // while it counts up).
+  format: (minor: number) => string;
   // Scene stage 0-10 from the shared stage function.
   stage: Stage;
   // Visual position of the progress bar, from sceneFeedback(); never decides a value.
@@ -50,6 +53,7 @@ export function homeDashboard(
   const plan = savingsPlan(deadlineInput);
   return {
     amounts: goalAmounts(summary, currency, locale),
+    format: amount,
     stage: feedback.stage,
     fraction: feedback.overall,
     next:

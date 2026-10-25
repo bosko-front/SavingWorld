@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { spacing } from '@/shared/theme';
 
+import { AmbientFloat } from './ambient-float';
 import { AppText } from './app-text';
 import { type IconName } from './icon';
 import { IconTile, type TileColor } from './icon-tile';
@@ -21,14 +22,18 @@ type EmptyStateProps = {
 
 // What a screen or section shows when it has nothing yet: an icon, a short title that says what
 // belongs here and one sentence on how it fills, plus an optional action. No "will appear here"
-// placeholder copy.
+// placeholder copy. The picture floats gently while the screen is visible (D69, Phase 10).
 export function EmptyState({ icon, illustration, iconColor = 'green', title, message, children, testID }: EmptyStateProps) {
   return (
     <View style={styles.container} testID={testID}>
-      {illustration ?? (
-        <View style={styles.icon}>
+      {illustration ? (
+        <AmbientFloat style={styles.illustration} testID={testID ? `${testID}-picture` : undefined}>
+          {illustration}
+        </AmbientFloat>
+      ) : (
+        <AmbientFloat style={styles.icon} testID={testID ? `${testID}-picture` : undefined}>
           <IconTile name={icon} color={iconColor} role="largeTitle" />
-        </View>
+        </AmbientFloat>
       )}
       <AppText role="title" accessibilityRole="header" style={styles.centered}>
         {title}
@@ -50,6 +55,10 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginBottom: spacing.xs,
+  },
+  illustration: {
+    alignSelf: 'stretch',
+    alignItems: 'center',
   },
   centered: {
     textAlign: 'center',

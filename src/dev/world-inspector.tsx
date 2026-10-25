@@ -5,6 +5,7 @@ import { MILESTONE_COUNT, type Stage } from '@/core/progression';
 import { sceneDescription, unlockAt, visibleLayers } from '@/features/worlds/manifest';
 import { themeManifest } from '@/features/worlds/registry';
 import { WorldScene, worldArtAspect, type SceneBackdrop } from '@/features/worlds/world-scene';
+import type { SceneReveal } from '@/features/worlds/world-transition';
 import { Screen } from '@/shared/layout';
 import { spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
@@ -31,6 +32,13 @@ export function WorldInspector(props: WorldInspectorProps) {
   const [stage, setStage] = useState<Stage>(props.stage);
   const [backdrop, setBackdrop] = useState<SceneBackdrop>(props.backdrop);
   const [view, setView] = useState(props.view);
+  // Phase 10: each step plays the transition Home would (+ as an unlock, − as a quiet change).
+  const [animate, setAnimate] = useState(true);
+  const [reveal, setReveal] = useState<SceneReveal | null>(null);
+  const step = (next: Stage) => {
+    setReveal(animate ? { revision: Date.now(), mode: next > stage ? 'unlock' : 'quiet' } : null);
+    setStage(next);
+  };
   const result = themeManifest('island');
   if (!result.ok) {
     return (
@@ -57,11 +65,12 @@ export function WorldInspector(props: WorldInspectorProps) {
       {view === 'single' ? (
         <>
           <View style={styles.scene}>
-            <WorldScene themeId="island" stage={stage} backdrop={backdrop} />
+            <WorldScene themeId="island" stage={stage} backdrop={backdrop} reveal={reveal} />
           </View>
           <View style={styles.row}>
-            <Button label="−" variant="secondary" disabled={stage === 0} onPress={() => setStage((stage - 1) as Stage)} />
-            <Button label="+" variant="secondary" disabled={stage === MILESTONE_COUNT} onPress={() => setStage((stage + 1) as Stage)} />
+            <Button label="−" variant="secondary" disabled={stage === 0} onPress={() => step((stage - 1) as Stage)} />
+            <Button label="+" variant="secondary" disabled={stage === MILESTONE_COUNT} onPress={() => step((stage + 1) as Stage)} />
+            <Button label={animate ? 'Animated' : 'Instant'} variant="secondary" onPress={() => setAnimate(!animate)} testID="dev-world-animate" />
           </View>
           <AppText role="headline">{`Stage ${stage}: ${unlockAt(manifest, stage)?.name ?? manifest.base.name}`}</AppText>
           <AppText tone="secondary">{sceneDescription(manifest, stage)}</AppText>

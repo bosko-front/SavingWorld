@@ -75,7 +75,7 @@ describe('WorldScene', () => {
     if (!result.ok) throw new Error('island invalid');
     const viewport = sceneViewport(result.manifest, 12);
     const scale = width / viewport.width;
-    expect(screen.getByTestId('world-layer-first_tree_1')).toHaveStyle({
+    expect(screen.getByTestId('world-box-first_tree_1')).toHaveStyle({
       position: 'absolute',
       left: (684 - viewport.x) * scale,
       top: (44 - viewport.y) * scale,
@@ -282,7 +282,8 @@ describe('Home shows the ledger’s stage', () => {
 
   it('with no goal, Home’s empty state shows the empty island as a picture', async () => {
     await renderRouter(APP_DIR, { initialUrl: '/' });
-    expect(screen.getByTestId('home-empty-world')).toBeOnTheScreen();
+    // Decorative: inside the floating empty-state picture, hidden from VoiceOver (Phase 10, D69).
+    expect(screen.getByTestId('home-empty-world', { includeHiddenElements: true })).toBeOnTheScreen();
     await measure(320, 240);
     expect(shownLayers()).toEqual(['empty_island']);
     expect(screen.getByTestId('world-scene', { includeHiddenElements: true }).props.accessible).toBe(false);

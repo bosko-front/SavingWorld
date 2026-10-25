@@ -1,68 +1,45 @@
 # Latest session handoff
 
-Session date: 25 October 2026. Session kind: Phase 09 (Island theme assets and static world renderer) with the owner's Home review. Result: **Phase 09 VERIFIED COMPLETE** (D83: Home approved; physical-iPhone memory/frames deferred to Phase 21 and VoiceOver to Phase 19/21, mandatory before release, not passed). Next prompt: [PHASE_10](prompts/PHASE_10.md). Not started.
+Session date: 25 October 2026. Session kind: Phase 10 (world transitions and progress feedback). Result: **Phase 10 VERIFIED COMPLETE**: lint, typecheck, 755 Jest tests, release export and simulator recordings PASS; the three physical-iPhone checks are deferred by the owner to Phases 19/21 (D88), not passed, mandatory before release. Next prompt: [PHASE_10_5](prompts/PHASE_10_5.md) (owner-added, D90), then [PHASE_11](prompts/PHASE_11.md).
 
-The previous handoff (Phase 08 and the 24 October art addendum) is superseded; its record remains in [PHASE_08 evidence](evidence/PHASE_08.md), DECISIONS D76 and `assets/worlds/island/README.md`.
+The previous handoff (Phase 09) is superseded; its record remains in [PHASE_09 evidence](evidence/PHASE_09.md) and DECISIONS D77-D84.
 
 ## Completed
 
-- Read the full v1.2 DOCX and the required docs; verified Phase 08 and the D76 art export (approved, provenance in the workspace README). Baseline: clean tree on 7515e02.
-- Copied the approved export unchanged into `assets/themes/island/` (manifest + 33 PNGs at 1536; README there). Tests prove byte identity with `assets/worlds/island/export/`.
-- `src/features/worlds/`: `manifest.ts` (ASSET_SPEC contract, `validateManifest`, `visibleLayers`, `unlockAt`, `sceneDescription`), `theme-export.ts` (export JSON → typed manifest, explicit replacement, problems instead of throws), `themes/island-assets.ts` (static `require` per PNG), `registry.ts` (validated once, `stageName`, Garden → fallback), `world-scene.tsx` (layered renderer with `expo-image`, measured 4:3 box, no text in the world, label kept and stage description as value, scene-only fallback with Try again for load/render failures).
-- Home: "Next: {stage name}" callout; empty Home shows the stage-0 Island (decorative, frameless). `EmptyState` gained an `illustration` slot.
-- Tokens `sceneBackground` (preview cream, default), `sceneSkyTop`/`sceneSkyBottom`; 9 contrast pairs for the fallback text.
-- Development-only World inspector (`/dev-world`, Settings → Development only): stage stepper, backdrops, contact sheet, layer ids, decoded estimate; absent from the release bundle.
-- `expo-image` ~58.0.17 installed with `npx expo install` (+ config plugin); EAS development simulator build **405064a9-5b87-4292-a407-c943256db4f8**, installed on SE, 17 Pro Max, Duo and iPhone 17.
-- Tests: `tests/unit/world-manifest.test.ts` (22), `tests/integration/world-scene.test.tsx` (9), Home tests updated.
-- Native: Home on SE (default and largest text), 17 Pro Max, Duo open; empty Home after a fresh install on iPhone 17; all eleven states on the 17 Pro Max aligned against the approved renders at offset 0,0 (mean ≤ 1.2/255); simulator memory 303 → 305-306 MB stage 0 → 10. Screenshots in `docs/evidence/phase-09/`.
-- Docs: evidence PHASE_09, DECISIONS D77, DESIGN_SYSTEM (scene, callout, expo-image), ARCHITECTURE, ADAPTIVE_LAYOUT, CLAUDE.md, PROJECT_STATUS, this file. `.claude/launch.json` added (Metro for the preview tool).
+- Read the full v1.2 DOCX and the required docs; verified Phase 09 in code (manifest anchors, `incidental` layers, stage 8 `removes`). Baseline: clean tree on 1477708.
+- Pure planner and state machine `src/features/worlds/world-transition.ts` (unlock / quiet / progress, coalesce, supersede, leave, settle, stale revisions ignored, per-layer plan with anchor pops and the stage 8 crossfade, message copy, timings).
+- Coordinator `use-world-motion.ts` on Home; renderer animation in `world-scene.tsx` (`reveal`, `upcomingStage`); in-scene message `unlock-banner.tsx`.
+- `useCountUp` and the animated `ProgressBar` (range color blend `fillColorStops`); `motion-preferences.ts` (Reduce Motion shared with the toast, app active, ambient gate); floating empty-state pictures and empty-Island sparkles (`ambient-float.tsx`).
+- Entry form: an unlocking commit leaves the haptic to Home's moment (`unlocksStage`).
+- Home's layout ignores the keyboard (`AdaptiveGoalLayout keyboard="none"`), found on the simulator (D87).
+- World inspector: "Animated" stepping. Icons `unlocked`, `sparkle`.
+- Jest: Reanimated resolver + `setUpTests()`, Gesture Handler jestSetup and a mapped no-op for its UI-runtime bindings, Reduce Motion on by default; `tests/unit/world-transition.test.ts` (36), `tests/integration/world-motion.test.tsx` (9).
+- Simulator (17 Pro Max iOS 26.1, build 405064a9): single unlock, two-threshold unlock, relaunch without replay, Reduce Motion, quiet withdrawal, floating empty state. Recordings and frame sheets in `docs/evidence/phase-10/`.
+- Docs: evidence PHASE_10, DECISIONS D85-D87, DESIGN_SYSTEM (motion, ProgressBar, EmptyState, haptics, icons, toast note), ARCHITECTURE, CLAUDE.md, PROJECT_STATUS, this file.
 
-## Owner review part 1 (D78, same session)
+## Owner follow-up (same session)
 
-- Owner asked: visual progress capped at 100% with money at 120% (already so), Completed offered rather than automatic (already so; Finish button is Phase 11), Island 10-15% larger without a taller section, no piece-by-piece loading on their iPhone, no "Home" title.
-- Done: `sceneViewport` framing (~11%, nothing cut off, same box size), all-at-once stage display in `world-scene.tsx` (previous complete stage stays while the next loads), Home bar transparent with only the gear (pushed screens say "Back"). Tests 698 PASS; screenshots `docs/evidence/phase-09/d78-*`.
+- D88: the owner deferred the three physical-iPhone checks; added to the Phase 19/21 prompts, the roadmap and RELEASE_CHECKLIST.
+- D89: the owner asked for the toast at the bottom app-wide (built and checked above the tab bar), then reverted to the top but lower: `toastTopOffset` = top safe area + 44 + 32 pt (was + 8). Checked on the 17 Pro Max (`docs/evidence/phase-10/d89-toast-lower-17promax.png`); toast test updated; full suite PASS.
 
-## Owner review part 2 (D79)
+## Planning addition (same session, docs only)
 
-- The owner chose the soft sky gradient; `WorldScene` defaults to it (Home), checked on SE, 17 Pro Max and Duo; 699 tests PASS; screenshots `docs/evidence/phase-09/d79-*`.
-
-## Owner review part 3 (D80)
-
-- Full-bleed sky (no box edges) from the top of the screen to the goal title; Island from a tight art viewport, as wide as the gutters allow, kept below the bars. Layout: `AdaptiveGoalLayout sceneBleed`/`sceneBleedColor`, `useSceneInsets()`; `WorldScene fill`; `worldArtAspect`. 701 tests PASS; SE, 17 Pro Max, Duo open, SE largest text checked; screenshots `d80-*`. Duo landscape not run.
-
-## Owner review part 4 (D81)
-
-- Add savings no longer floats: full-width primary button under the progress on Home and above the entries on History. 701 tests PASS; SE, iPhone 17, Duo checked; screenshots `d81-*`.
-
-## Owner review part 5 (D82)
-
-- Home hides its scroll indicator; a pull-down shows sky above the Island instead of the canvas. 701 tests PASS; SE mid-pull screenshot `d82-se-pull-down.jpg`.
-
-## Owner approval and final changes (D83)
-
-- Owner approved the Home direction. Removed the "Add a deadline" row from Home (deadline set in Edit goal); a compact deadline line (`deadline-indicator.tsx`, replacing `deadline-card.tsx`) shows only when a deadline exists, with the same values, labels and info alert; the milestone card at ≥ 100% reads "Your island is complete!" / "You’ve unlocked every part of your world." via `worldCompleteCopy(themeId)` (Garden: "Your garden is complete!").
-- Deferred by the owner, not passed, mandatory before release: physical-iPhone memory/frames of the Island → Phase 21; physical-iPhone VoiceOver of the scene → Phase 19 (repeated in 21). Added to both prompts, the roadmap and RELEASE_CHECKLIST.
-- 702 tests PASS; simulator: SE (no deadline, overdue line), 17 Pro Max (pace line), iPhone 17 (island complete at 120%), Duo closed landscape; screenshots `d83-*`.
-
-## Follow-up: savings plan cards (D84)
-
-- The owner replaced the compact deadline line with a "Savings plan" section: Deadline card (date, "29 days left"/"Tomorrow"/"Today"/"Deadline passed") and Savings needed card (remaining amount, one honest per-period amount from 14 days / 60 days, or Target reached; passed deadline points to Edit goal). Logic in `src/core/calendar/savings-plan.ts` and `savingsPlanCopy`; UI `savings-plan-cards.tsx` (replaces `deadline-indicator.tsx`). 710 tests PASS; SE default/largest text and 17 Pro Max checked (`d84-*`).
+- D90: the owner added Phase 10.5 "Living Island ambient motion" with rules (clouds, water shimmer, trees only; 30 fps enough, no JavaScript frame limiter; Home visible and app active only; off under Reduce Motion; transforms and opacity; simplify water first, then switch off if it costs too much; static Island fallback). New prompt `docs/prompts/PHASE_10_5.md`, roadmap entry and index rows, Phase 11 now depends on 10.5, Phase 21 prompt/roadmap and RELEASE_CHECKLIST gained the Instruments on/off measurement, ASSET_SPEC and DESIGN_SYSTEM notes. No code changed.
 
 ## Decisions
 
-D84 (owner): savings plan KPI cards with honest per-period amounts. D83 (owner): Home approved, compact deadline line, theme-worded completion card, device checks deferred to Phases 19/21. D82 (owner): no scroll indicator, sky on pull-down. D81 (owner): Add savings in the content, not floating. D80 (owner): full-bleed sky, largest Island. D79 (owner): sky gradient backdrop. D78 (owner): larger Island via viewport framing, no piecewise loading, no Home title. D77 (engineering): expo-image with display-size decoding; one app resolution 1536; manifest/export mapping (English names, hides → removes, z numbering, base anchor, preview = stage 10); scene-only fallback; "Next: {name}"; stage-0 empty-state illustration; backdrop tokens with cream as default pending the owner; World inspector. No product rule changed.
+D85 (engineering): world motion design, target edits quiet, one action one haptic, timings, ambient empty states. D86 (engineering): no Skia, D09 unchanged. D87 (engineering fix): Home ignores the keyboard. D88 (owner): Phase 10 device checks deferred to Phases 19/21. D89 (owner): toast at the top, 32 pt below the bar, app-wide. D90 (owner): Phase 10.5 ambient motion, kept only if the Phase 21 measurement passes. No product rule changed.
 
 ## Checks
 
-lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (28 suites, 710 tests after D84). `npm run test:db` PASS on SE iOS 18.5, 17 Pro Max iOS 26.1, Duo iOS 27.1 (37/37 + restart) with build 405064a9. Release export PASS after D83 (no inspector code, 33 Island PNGs). `deps:check`/`doctor` FAIL 19/20: six installed packages have newer SDK 58 patch releases since Phase 08 (`@expo/ui`, `expo`, `expo-dev-client`, `expo-font`, `expo-router`, `expo-sqlite`); not caused by this phase, not upgraded. Physical-iPhone memory/frames and VoiceOver: DEFERRED by D83 (Phase 21 / Phase 19 and 21), not passed.
+lint PASS, typecheck PASS, `npm test -- --runInBand` PASS (30 suites, 755 tests). Release export PASS (56 assets, no inspector code). `test:db`, `deps:check`, `doctor`: NOT RUN (no persistence or dependency change; Phase 09 results stand). Simulator scenarios PASS (see evidence). Physical iPhone: NOT RUN.
 
 ## Incomplete work and blockers
 
-1. No Phase 09 blocker. Carried, mandatory before release: physical-iPhone memory/frames (Phase 21) and VoiceOver of the scene (Phase 19, repeated in 21) (D83).
-2. Optional: an SDK 58 patch update for the six packages behind the `deps:check`/`doctor` failure, as its own reviewed change with a new build.
-3. Git: Phase 09 is committed on `main`: a1464ca (through D82) and "Phase 09: complete Home review D83-D84 and close the phase" (D83, D84, closing docs). Nothing pushed.
-4. Simulator state: Metro is the owner's own `expo start` from this folder (the session's preview-tool Metro was stopped). The iPhone 17 (iOS 26.0) simulator was reinstalled earlier in the session (any earlier test data removed) and now holds the owner's "summer" goal at 1,200/1,000 RSD. The Duo was last seen closed in landscape. SE text size is default; SE, 17 Pro Max and Duo kept their goals.
+1. No Phase 10 blocker. Carried, mandatory before release: the D88 checks (Phase 19: VoiceOver of the milestone message, felt milestone haptic; Phase 21: device recording/frames of the unlock, rapid deposits and backgrounding, repeated VoiceOver/haptic) and the D83 checks.
+2. Not re-shot: the banner on the SE/largest text and the Duo arrangement.
+3. Git: all Phase 10 changes are uncommitted in the working tree. Simulator state: the 17 Pro Max test goal "Summer trip12.345" is at RWF 4,050 (stage 3) after this session's deposits and withdrawal; the SE has an unsaved Add savings sheet open with "10" typed (nothing saved). Reduce Motion is off. Metro is the owner's own `expo start`.
 
 ## Exact next session
 
-In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_10.md` (world transitions and progress feedback). Verify Phase 09 from this file and [PHASE_09 evidence](evidence/PHASE_09.md) first. Keep the approved Home direction (D78-D83) and animate from the Phase 09 manifest (layer anchors, stage 8 crossfade, stage-0 empty-state Island). Do not redo Phase 09.
+In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_10_5.md` (Living Island ambient motion). Verify Phase 10 from this file and [PHASE_10 evidence](evidence/PHASE_10.md) first; do not redo it. The art changes happen in the Blender workspace (`assets/worlds/island/`, separate cloud and water layers) and are re-exported; the owner approves art and motion. After it, `docs/prompts/PHASE_11.md` (souvenirs; it replaces the first-100% `milestone` haptic with `success`).
