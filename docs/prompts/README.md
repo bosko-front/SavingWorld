@@ -29,4 +29,6 @@ All 22 independent prompts use [MVP plan v1.2](../Saving_Worlds_MVP_Plan_v1_2.do
 | 21 | Resilience performance and release candidate | [PHASE_21](PHASE_21.md) |
 | 22 | App Store release preparation and final handoff | [PHASE_22](PHASE_22.md) |
 
+Parallel art workstream (not a phase): [GARDEN_ART](GARDEN_ART.md), the owner's Garden brief (Blender art in steps with owner approvals, then the layer export Phase 17 integrates; D114).
+
 Read [handoff](../SESSION_HANDOFF.md), the full v1.2 source and inspected dependency evidence. All implementation phases are NOT STARTED. First prompt is PHASE_01.md; it authorizes setup only when the owner starts implementation, not during this documentation alignment.

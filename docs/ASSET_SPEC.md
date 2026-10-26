@@ -54,6 +54,8 @@ Use Reanimated first. A Skia or Lottie addition requires a measured rendering ga
 
 ## Art readiness and verification
 
+Garden art workstream (D114, [GARDEN_ART](prompts/GARDEN_ART.md)): the Garden is generated in Blender from `assets/worlds/garden/` on the Island's frozen rig and storybook pass (shared `swi` modules, imported read-only), so camera, light, horizon and shadows match the Island by construction. Status 26 October 2026: the completed Garden (100%) is submitted for owner approval; milestone renders, the layer export and the manifest follow only after approval. The Garden column of the stage table above is still v1.2; the owner is deciding between v1.2, the brief's proposed order and the recommended order (Garden README "Milestone sequence"). Separate objects for ambient motion are planned from the start (per-tree trunk and canopy, water surfaces with Flow UV, koi, butterflies, lantern glows, clouds).
+
 Phase 09 accepts Island only after all eleven states have approved assets and correct alignment. Phase 17 does the same for Garden and confirms equivalent progression after theme switching. If art is missing, implementable independent validation/registry work may proceed, but visual acceptance stays pending and the same phase prompt remains next.
 
 Verification includes contact sheets, all threshold boundaries, house replacement, tiny and large deposits, 100%-to-90% regression, rapid repeated writes, background/resume, high-density screens, small/large iPhones, memory and Reduce Motion. Scene descriptions must communicate progress without relying on visual inspection. Store provenance and measured budgets in phase evidence; do not claim that a renderer benchmark proves the art itself is approved.

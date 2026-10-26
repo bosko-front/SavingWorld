@@ -4,6 +4,15 @@ Session date: 26 October 2026. Session kind: Phase 14 (global weekly local remin
 
 The previous handoff (Phase 13) is superseded; its record remains in [PHASE_13 evidence](evidence/PHASE_13.md) and DECISIONS D104-D107.
 
+## Parallel workstream: Garden art (26 October 2026)
+
+A separate session in the `claude/garden-theme-56e130` worktree ran Steps 1-2 of the owner's Garden brief ([GARDEN_ART](prompts/GARDEN_ART.md), D114). It changed no app code and nothing in Phase 15's area.
+
+- Built: `assets/worlds/garden/` (README, `scripts/swg/` on the Island's shared rig, storybook pass and shaders, `source/garden.blend` with `SWG_00`-`SWG_10` and `SWG_Ambient`), the 100% review render and a reference comparison in `renders/review/`.
+- Waiting on the owner: (1) visual approval of the completed Garden; (2) the milestone order (v1.2, the brief's proposal or the recommended order; Garden README "Milestone sequence"). v1.2 stays authoritative until then.
+- Next for this workstream after approval: brief Step 3 (0%, 50% and 100% renders, consistency check). Step 4 (all eleven states, layer export, manifest) and Step 5 (Phase 17 integration) follow only on further approval.
+- Not run: milestone renders, export, any app check (none apply yet).
+
 ## Completed
 
 - Read the v1.2 DOCX (sections 2, 3, 6, 7) and the required docs. Verified goal statuses, lifecycle commands and their `refreshAppData()` calls, the settings table and the foreground hook in code. Baseline: clean `main` at ebb12be.
