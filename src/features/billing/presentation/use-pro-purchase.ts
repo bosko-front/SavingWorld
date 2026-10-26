@@ -104,7 +104,10 @@ export function usePurchaseActions(): PurchaseActions {
     const result = await restorePurchasesFromApp();
     const outcome: RestoreOutcome = result?.outcome ?? 'failed';
     finish();
-    show(restoreLine(outcome));
+    const line = restoreLine(outcome);
+    if (line) {
+      show(line);
+    }
     return outcome;
   };
 

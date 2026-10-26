@@ -35,6 +35,7 @@ After seeing the first version the owner asked for a polish pass (no logic chang
 - Purchase block as a pinned footer: new `footer` on the shared `FormScreen`/`Screen` (`src/shared/layout/screen.tsx`, `pinFooter`/`PINNED_FOOTER_MAX_SHARE` = 0.35 and `footerEdges` in `metrics.ts`). Buy with the StoreKit price, the footnote directly under it, Restore Purchases and Not now as plain buttons side by side (wrapping at large text). Above 35% of the screen height the footer moves to the end of the content. The first try measured the wrapper view with `onLayout`, which made the wrapper a real native view and the sheet's scroll content disappeared on iOS 26; the final version measures only the scroll viewport and the footer, so the wrapper stays layout-only (as the floating-action wrapper).
 - The long Restore explanation is no longer on the paywall; Settings keeps a one-line note with its info alert.
 - Owner follow-up (D126): Restore appeared twice (Settings row and the paywall it opens); the Settings row was removed. Settings now has one "Saving Worlds Pro" row (opens the Pro screen, "Active" while Pro is on) and the line "Restore Purchases is on the Pro screen. It brings back Pro, not savings data." Screenshot `phase-16/08`.
+- Owner follow-up (D127): a cancelled Restore shows no line; checked by `billing-copy.test.ts` and `paywall-ui.test.tsx` (both PASS).
 - Item 1 of the owner's list (Garden as hero) is not done by owner decision D121: the hero stays the person's current world; Phase 17 adds a compact completed-Garden preview.
 
 ## Checks

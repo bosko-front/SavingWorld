@@ -1,6 +1,6 @@
 # Project status
 
-Updated 26 October 2026 after the Phase 16 session (Pro paywall and capability enforcement; IN PROGRESS: code, Jest 1080/1080, `test:db` 51/51 + restart and a simulator look PASS; the owner's iPhone purchase walkthrough and VoiceOver pending; D117, D121, D122, D125, D126). Functional scope is fixed by the local [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx).
+Updated 26 October 2026 after the Phase 16 session (Pro paywall and capability enforcement; IN PROGRESS: code, Jest 1080/1080, `test:db` 51/51 + restart and a simulator look PASS; the owner's iPhone purchase walkthrough and VoiceOver pending; D117, D121, D122, D125, D126, D127). Functional scope is fixed by the local [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx).
 
 ## Current state
 

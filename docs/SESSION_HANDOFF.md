@@ -29,7 +29,7 @@ A separate session in the `claude/garden-theme-56e130` worktree ran Steps 1-2 of
 
 ## Decisions
 
-- D117 (engineering), D121, D122, D125, D126 (owner; D126: one Restore, on the paywall). Q07 now only needs App Store product metadata/review text (Phase 22).
+- D117 (engineering), D121, D122, D125, D126, D127 (owner; D126: one Restore, on the paywall; D127: a cancelled Restore shows nothing). Q07 now only needs App Store product metadata/review text (Phase 22).
 
 ## Checks
 

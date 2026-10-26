@@ -78,15 +78,19 @@ describe('purchase and restore results', () => {
     expect(line.tone).toBe(outcome === 'purchased' ? 'success' : 'info');
   });
 
-  it.each(RESTORE_OUTCOMES)('restore %s has a calm title and message', (outcome) => {
+  it.each(RESTORE_OUTCOMES.filter((outcome) => outcome !== 'cancelled'))('restore %s has a calm title and message', (outcome) => {
     const line = restoreLine(outcome);
-    expect(line.title.length).toBeGreaterThan(5);
-    expect(line.tone).toBe(outcome === 'restored' ? 'success' : 'info');
+    expect(line?.title.length).toBeGreaterThan(5);
+    expect(line?.tone).toBe(outcome === 'restored' ? 'success' : 'info');
+  });
+
+  it('shows nothing for a Restore the person cancelled (D127)', () => {
+    expect(restoreLine('cancelled')).toBeNull();
   });
 
   it('says Restore is about Pro, not savings data', () => {
-    expect(restoreLine('restored').message).toMatch(/savings on this iPhone are unchanged/);
-    expect(restoreLine('nothing_to_restore').message).toMatch(/not savings data/);
+    expect(restoreLine('restored')?.message).toMatch(/savings on this iPhone are unchanged/);
+    expect(restoreLine('nothing_to_restore')?.message).toMatch(/not savings data/);
     // The long explanation lives in Settings, not on the paywall (D125).
     expect(JSON.stringify(PAYWALL_COPY)).not.toMatch(/savings data/);
     expect(PRO_SETTINGS_COPY.footnote).toBe('Restore Purchases is on the Pro screen. It brings back Pro, not savings data.');

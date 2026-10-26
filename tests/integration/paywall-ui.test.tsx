@@ -175,6 +175,14 @@ describe('paywall deep link and Restore (R21)', () => {
     await waitFor(() => expect(screen.getByTestId('paywall-result')).toHaveTextContent(/^No Pro purchase found/));
     expect(toastTitles()).toEqual([]);
     expect(hapticTypes()).toEqual([]);
+
+    // Cancelling the App Store sign-in shows nothing at all, also clearing the earlier line (D127).
+    fakeStore.failures = { sync: 'user-cancelled' };
+    await userEvent.press(screen.getByTestId('paywall-restore'));
+    await waitFor(() => expect(screen.getByTestId('paywall-restore')).toBeEnabled());
+    expect(screen.queryByTestId('paywall-result')).toBeNull();
+    expect(toastTitles()).toEqual([]);
+    expect(hapticTypes()).toEqual([]);
   });
 
   it('Settings opens the paywall, whose Restore works the same way', async () => {

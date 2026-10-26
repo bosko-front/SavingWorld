@@ -108,8 +108,10 @@ export function purchaseLine(outcome: PurchaseOutcome): ResultLine {
   }
 }
 
-// What Restore Purchases ended as. It returns the Pro right only, never savings data.
-export function restoreLine(outcome: RestoreOutcome): ResultLine {
+// What Restore Purchases ended as. It returns the Pro right only, never savings data. A Restore the
+// person cancelled in the App Store sheet shows nothing (owner decision D127): only a result or a
+// problem gets a line.
+export function restoreLine(outcome: RestoreOutcome): ResultLine | null {
   switch (outcome) {
     case 'restored':
       return { tone: 'success', title: 'Pro is restored', message: 'Your goals and savings on this iPhone are unchanged.' };
@@ -128,7 +130,7 @@ export function restoreLine(outcome: RestoreOutcome): ResultLine {
     case 'offline':
       return { tone: 'info', title: 'You’re offline', message: 'The App Store can’t be reached. Check your connection and try again.' };
     case 'cancelled':
-      return { tone: 'info', title: 'Restore cancelled', message: 'Nothing changed.' };
+      return null;
     case 'failed':
       return { tone: 'info', title: 'Restore didn’t finish', message: 'Nothing changed. Try again in a moment.' };
   }
