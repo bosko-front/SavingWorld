@@ -48,6 +48,8 @@ function ambientValue(layer: SceneLayer): number {
       return Number(style.transform?.[0]?.translateX ?? 0);
     case 'sway':
       return Number.parseFloat(String(style.transform?.[0]?.skewX ?? '0deg'));
+    default:
+      throw new Error(`no Island ambient kind ${layer.ambient!.kind}`);
   }
 }
 

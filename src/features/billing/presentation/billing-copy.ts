@@ -141,7 +141,7 @@ export function restoreLine(outcome: RestoreOutcome): ResultLine | null {
 export const READ_ONLY_COPY = {
   badge: 'Read-only',
   sentence: 'Kept just as it is until Pro returns. Nothing here was changed.',
-  gardenSentence: 'This Garden is kept just as it is. With Pro it can keep growing.',
+  gardenSentence: 'This Garden is kept just as it is. Grow it as an Island to keep saving here, or keep the Garden growing with Pro.',
   chooseTitle: 'Choose the goal you keep saving in',
   chooseMessage:
     'Pro isn’t active on this iPhone, and all your goals and savings are still here. Pick one goal to keep using; the others stay read-only until Pro returns.',

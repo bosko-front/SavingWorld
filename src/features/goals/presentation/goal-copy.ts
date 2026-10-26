@@ -3,7 +3,7 @@ import { amountMessage as sharedAmountMessage } from '@/shared/i18n/amount-messa
 
 import type { GoalRecord } from '@/data/repositories/goal-repository';
 
-import type { CreateGoalError, DeleteGoalError, EditGoalError, LifecycleError } from '../application/goal-commands';
+import type { ChangeThemeError, CreateGoalError, DeleteGoalError, EditGoalError, LifecycleError } from '../application/goal-commands';
 import type { LifecycleAction } from '../domain/goal-lifecycle';
 
 // English copy for goal forms and lifecycle actions. Every command error code has a message that
@@ -43,7 +43,7 @@ export function goalCommandMessage(error: CreateGoalError | EditGoalError): Form
       return { field: 'deadline', message: 'Choose today or a later date.' };
     case 'invalid_theme':
     case 'theme_unavailable':
-      return { field: 'theme', message: 'This world isn’t available for this goal. Island is.' };
+      return { field: 'theme', message: 'The Garden is part of Pro. Choose the Island, or unlock Pro for the Garden.' };
     case 'goal_limit':
       return { field: null, message: FREE_LIMIT };
     case 'currency_missing':
@@ -99,6 +99,30 @@ export function lifecycleMessage(action: LifecycleAction, error: LifecycleError)
     case 'invalid_operation_id':
     case 'storage_failure':
       return SAVE_FAILED;
+  }
+}
+
+// Why Change Theme refused, in the picker (inline, the world shown is unchanged).
+export function themeChangeMessage(error: ChangeThemeError): string {
+  switch (error.code) {
+    case 'theme_unavailable':
+    case 'invalid_theme':
+      return 'The Garden is part of Pro. Your goal keeps its world.';
+    case 'theme_unchanged':
+      return 'Your goal already grows this world.';
+    case 'goal_read_only':
+      return READ_ONLY_MESSAGE;
+    case 'goal_closed':
+      return 'This goal is closed. Reopen it from Collection to change its world.';
+    case 'stale_goal':
+      return 'This goal changed in the meantime. Its latest world is shown; try again if you still want to.';
+    case 'goal_not_found':
+    case 'invalid_reference':
+      return 'This goal couldn’t be found. Close this screen and try again.';
+    case 'operation_conflict':
+    case 'invalid_operation_id':
+    case 'storage_failure':
+      return 'Couldn’t change the world. Nothing was changed. Try again.';
   }
 }
 

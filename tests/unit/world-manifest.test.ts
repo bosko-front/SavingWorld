@@ -173,7 +173,8 @@ describe('stage → visible layers', () => {
     expect(sceneDescription(island(), 4)).toBe('A small wooden cabin stands on the upper terrace.');
     expect(STAGES.slice(1).map((stage) => stageName('island', stage))).toEqual(ISLAND_NAMES);
     expect(stageName('island', 0)).toBeNull();
-    expect(stageName('garden', 1)).toBeNull();
+    // Since Phase 17 the Garden has its own names (tests/unit/garden-manifest.test.ts).
+    expect(stageName('garden', 1)).toBe('First seedlings');
   });
 });
 
@@ -373,7 +374,7 @@ describe('broken exports are refused with reasons, never thrown', () => {
     expect(problemsOf(noName)).toEqual(expect.arrayContaining(['unlocks[4].name must be a string']));
   });
 
-  it('Garden has no art yet, so its scene uses the fallback', () => {
-    expect(themeManifest('garden').ok).toBe(false);
+  it('Garden art is bundled since Phase 17 (tests/unit/garden-manifest.test.ts)', () => {
+    expect(themeManifest('garden').ok).toBe(true);
   });
 });

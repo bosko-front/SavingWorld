@@ -6,6 +6,7 @@ import { AppDatabase } from '@/data/db/database';
 import { LATEST_SCHEMA_VERSION, MIGRATIONS } from '@/data/db/migrations';
 import { getGoal } from '@/data/repositories/goal-repository';
 import {
+  changeGoalTheme,
   createGoal,
   deleteGoal,
   editGoal,
@@ -42,7 +43,7 @@ import { check, equal, type Scenario } from './scenario-harness';
 // lock and Home selection (docs/TEST_PLAN.md T07, T27), changed in Phase 08 by owner decision D74:
 // no Archive, Free keeps one goal in any status, goals can be deleted (G07), schema 2 (G08). Phase
 // 11 replaced the planned-shape souvenir fixture with real souvenirs (schema 3); Phase 12 added G09,
-// deletion with challenge attempts (schema 4). Same dual use as database-scenarios.ts: the iOS
+// deletion with challenge attempts (schema 4); Phase 17 added G10, Change Theme. Same dual use as database-scenarios.ts: the iOS
 // simulator through real Expo SQLite (`npm run test:db`, the evidence) and Jest on host SQLite.
 
 const JPY = getCurrency('JPY') as CurrencyMetadata;
@@ -438,6 +439,69 @@ export const GOAL_SCENARIOS: Scenario[] = [
         // A new goal starts with no history: First step is available again.
         const fresh = await mustCreateGoal(h, deps, 'New start');
         check((await start(fresh, 'first_step')).ok, 'First step on the new goal');
+      }),
+  },
+  {
+    id: 'G10',
+    title: 'Change Theme is metadata only: ledger, target, quests and souvenir kept; closed, Free and read-only guards (Phase 17, D75)',
+    run: (context) =>
+      withSession(context, async (s) => {
+        const h = await s.harness('theme');
+        const pro = { ...h.deps, capabilities: PRO };
+        const free = h.deps;
+        const snapshot = () =>
+          h.db.read(async (r) => ({
+            goal: await r.all('SELECT id, title, target_minor, deadline_date, status, created_at_utc FROM goals'),
+            entries: await r.all('SELECT * FROM ledger_entries ORDER BY id'),
+            souvenirs: await r.all('SELECT * FROM collectibles'),
+            attempts: await r.all('SELECT * FROM challenge_attempts ORDER BY id'),
+          }));
+        const themeOf = async () => (await h.db.read((r) => getGoal(r, h.goalId)))?.themeId;
+        const change = async (deps: GoalCommandDeps, themeId: ThemeId, operationId = h.op()) =>
+          changeGoalTheme(deps, { operationId, goalId: h.goalId, expectedRevision: await revisionOf(h, h.goalId), themeId });
+
+        await mustCreate(h, 'deposit', 50_000, '2026-10-20');
+        check((await startChallenge(h.deps, { operationId: h.op(), goalId: h.goalId, ruleId: 'next_milestone' })).ok, 'start a quest');
+        const before = await snapshot();
+
+        // Free: no Garden.
+        expectError(await change(free, 'garden'), 'theme_unavailable', 'Free cannot choose the Garden');
+        equal(await themeOf(), 'island', 'still the Island');
+
+        // Pro: the Garden, then back, and a replay; nothing else moves.
+        const input = { operationId: h.op(), goalId: h.goalId, expectedRevision: await revisionOf(h, h.goalId), themeId: 'garden' as ThemeId };
+        const first = await changeGoalTheme(pro, input);
+        check(first.ok && !first.value.replayed, 'Pro switches to the Garden');
+        const replay = await changeGoalTheme(pro, input);
+        check(replay.ok && replay.value.replayed, 'the same operation ID replays');
+        equal(await snapshot(), before, 'ledger, target, quest and status unchanged');
+        expectError(await change(pro, 'garden'), 'theme_unchanged', 'same world again');
+
+        // A failure before COMMIT leaves the world as it was.
+        h.hooks.failBeforeCommit = true;
+        expectError(await change(pro, 'island'), 'storage_failure', 'injected failure');
+        h.hooks.failBeforeCommit = false;
+        equal(await themeOf(), 'garden', 'rolled back');
+
+        // The first 100% on the Garden stores the Garden souvenir; switching keeps it, no second one.
+        const toTarget = await createEntry(pro, { operationId: h.op(), goalId: h.goalId, ...values('deposit', 50_000, '2026-10-21') });
+        check(toTarget.ok && toTarget.value.souvenirAwarded, 'deposit to 100% on the Garden');
+        const souvenir = await h.db.read((r) => r.all('SELECT theme_id, theme_version FROM collectibles'));
+        equal(souvenir, [{ theme_id: 'garden', theme_version: 1 }], 'Garden souvenir, version 1');
+        check((await change(pro, 'island')).ok, 'switch at 100%');
+        equal(await h.db.read((r) => r.all('SELECT theme_id, theme_version FROM collectibles')), souvenir, 'souvenir kept as earned');
+
+        // A Garden goal without Pro may only become an Island (D75), never the reverse.
+        check((await change(pro, 'garden')).ok, 'back to the Garden with Pro');
+        check((await change(free, 'island')).ok, 'Free grows the Garden goal as an Island');
+        expectError(await change(free, 'garden'), 'theme_unavailable', 'never back without Pro');
+
+        // A completed goal needs Reopen first.
+        check((await finishGoal(pro, await lifecycle(h, h.goalId))).ok, 'finish');
+        expectError(await change(pro, 'garden'), 'goal_closed', 'closed goal');
+        check((await reopenGoal(pro, await lifecycle(h, h.goalId))).ok, 'reopen');
+        check((await change(pro, 'garden')).ok, 'open again: the Garden');
+        equal(await statusOf(h, h.goalId), 'active', 'reopened goal stays active');
       }),
   },
   {

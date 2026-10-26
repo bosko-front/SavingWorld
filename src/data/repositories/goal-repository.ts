@@ -156,6 +156,19 @@ export async function updateGoalDetails(
   return result.changes === 1;
 }
 
+// Revision-checked theme change (Phase 17) inside the caller's transaction: the theme is metadata,
+// so nothing else in the row changes. Returns false when the row is missing or changed since
+// `expectedRevision`. The command applies the open-goal and capability guards first.
+export async function updateGoalTheme(tx: SqlExecutor, id: string, themeId: ThemeId, expectedRevision: number, nowUtc: string): Promise<boolean> {
+  const result = await tx.run('UPDATE goals SET theme_id = ?, updated_at_utc = ?, revision = revision + 1 WHERE id = ? AND revision = ?', [
+    themeId,
+    nowUtc,
+    id,
+    expectedRevision,
+  ]);
+  return result.changes === 1;
+}
+
 // Every goal row, oldest first (created_at, id).
 export async function listGoals(executor: SqlExecutor): Promise<GoalRecord[]> {
   const rows = await executor.all(`SELECT ${GOAL_COLUMNS} FROM goals ORDER BY created_at_utc, id`);

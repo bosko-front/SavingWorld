@@ -13,30 +13,54 @@ export type Point = { x: number; y: number };
 
 export type Rect = { x: number; y: number; width: number; height: number };
 
-// Ambient motion (Phase 10.5, D90): what a layer does while Home is visible and the app is active.
-// Clouds drift sideways and back, the water sparkle layers pulse in and out, trees sway around their
-// trunk base. Every value is 0 at rest, so a still scene is exactly the approved picture.
-export type AmbientKind = 'cloud' | 'water' | 'sway';
+// Ambient motion (Phase 10.5, D90; Garden kinds Phase 17, D124): what a layer does while Home is
+// visible and the app is active. Clouds drift sideways and back, water flow layers fade in turn, trees
+// sway around their trunk base; on the Garden koi glide in a small loop, lantern and greenhouse glows
+// warm very slowly, a butterfly now and then takes a short flight and a petal now and then falls.
+// Every value is 0 at rest, so a still scene is exactly the approved picture.
+export type AmbientKind = 'cloud' | 'water' | 'sway' | 'koi' | 'glow' | 'butterfly' | 'petal';
+
+export const AMBIENT_KINDS: readonly AmbientKind[] = ['cloud', 'water', 'sway', 'koi', 'glow', 'butterfly', 'petal'];
 
 export type AmbientMark = {
   kind: AmbientKind;
   // cloud: the farthest drift in canvas units (the sign is the direction; it drifts out and back);
-  // water: the brightest opacity (0 at rest); sway: the largest lean in degrees either side (a skew
-  // from the pivot, so the trunk base stays put and the crown moves sideways).
+  // water and glow: the brightest opacity (0 at rest); sway: the largest lean in degrees either side (a
+  // skew from the pivot, so the trunk base stays put and the crown moves sideways); koi: the radius of
+  // its glide in canvas units; butterfly: how far one flight reaches, petal: how far one petal falls,
+  // both in canvas units.
   amplitude: number;
-  // One full cycle.
+  // One full cycle. Butterflies and petals fly or fall once per cycle and rest unseen in between.
   periodMs: number;
-  // How far into a period the layer waits before it starts (0..1), so layers never move in step.
+  // How far into a period the layer waits before it starts (0..1), so layers never move in step (water
+  // layers, butterflies and petals share one period and take turns).
   phase: number;
-  // sway only: the point the tree turns around (where the trunk meets the ground), in canvas units.
+  // sway: the point the tree turns around (where the trunk meets the ground); koi: the centre of its
+  // glide (where it rests in the approved picture). Canvas units; null for every other kind.
   pivot: Point | null;
 };
 
-// Ranges a mark must stay in: calm motion only (D90).
+// Ranges a mark must stay in: calm motion only (D90, D124: koi within about 60 canvas units).
 export const AMBIENT_LIMITS = {
   periodMs: { min: 2000, max: 120000 },
-  amplitude: { cloud: 160, water: 1, sway: 8 },
+  amplitude: { cloud: 160, water: 1, sway: 8, koi: 60, glow: 1, butterfly: 120, petal: 200 },
 } as const;
+
+// Whether a kind is part of the approved still picture ('visible': it rests where the render shows it)
+// or invisible at rest ('hidden': only motion shows it, and the layer is not drawn at all while its
+// kind is switched off).
+export const AMBIENT_REST: Readonly<Record<AmbientKind, 'visible' | 'hidden'>> = {
+  cloud: 'visible',
+  water: 'hidden',
+  sway: 'visible',
+  koi: 'visible',
+  glow: 'hidden',
+  butterfly: 'hidden',
+  petal: 'hidden',
+};
+
+// Kinds that need a pivot (sway: the trunk base, koi: the glide centre).
+const PIVOT_KINDS: readonly AmbientKind[] = ['sway', 'koi'];
 
 export type SceneLayer = {
   // Stable id, unique within the manifest (Phase 10 animates layers by id).
@@ -184,9 +208,11 @@ export function validateManifest(manifest: ThemeManifest): string[] {
   return problems;
 }
 
-// What is wrong with a layer's ambient mark. Clouds and water belong to the base (always drawn); a
-// sway belongs to one tree of an unlock and turns around a pivot inside its layer. A cloud drifts only
-// inside the art's bounds, so it never leaves the sky the scene frames.
+// What is wrong with a layer's ambient mark. Clouds belong to the base (always drawn); water belongs
+// to the base (Island) or to the unlock that brings it (Garden: the 60% fountain); every other kind
+// belongs to an unlock. A sway turns around a pivot inside its tree, a koi glides around a centre
+// inside its layer. A cloud drifts only inside the art's bounds, so it never leaves the sky the scene
+// frames.
 function ambientProblems(layer: SceneLayer, owner: number, bounds: Rect): string[] {
   const mark = layer.ambient;
   if (!mark) {
@@ -194,7 +220,7 @@ function ambientProblems(layer: SceneLayer, owner: number, bounds: Rect): string
   }
   const problems: string[] = [];
   const { kind, amplitude, periodMs, phase, pivot } = mark;
-  if (!Object.prototype.hasOwnProperty.call(AMBIENT_LIMITS.amplitude, kind)) {
+  if (!AMBIENT_KINDS.includes(kind)) {
     return [`unknown ambient kind ${String(kind)}`];
   }
   const limit = AMBIENT_LIMITS.amplitude[kind];
@@ -208,23 +234,22 @@ function ambientProblems(layer: SceneLayer, owner: number, bounds: Rect): string
   if (!(phase >= 0 && phase < 1)) {
     problems.push(`ambient phase ${phase} outside 0..1`);
   }
-  if (kind === 'sway') {
-    if (owner === 0) {
-      problems.push('a sway belongs to an unlock layer, not the base');
-    }
-    if (layer.incidental) {
-      problems.push('an incidental layer cannot sway');
-    }
-    if (!pivot || pivot.x < layer.x || pivot.x > layer.x + layer.width || pivot.y < layer.y || pivot.y > layer.y + layer.height) {
-      problems.push('sway pivot missing or outside the layer');
-    }
-  } else {
+  if (kind === 'cloud') {
     if (owner !== 0) {
-      problems.push(`a ${kind} layer belongs to the base`);
+      problems.push('a cloud layer belongs to the base');
     }
-    if (pivot) {
-      problems.push(`a ${kind} layer has no pivot`);
+  } else if (kind !== 'water' && owner === 0) {
+    problems.push(`a ${kind} belongs to an unlock layer, not the base`);
+  }
+  if (layer.incidental) {
+    problems.push(`an incidental layer cannot ${kind === 'sway' ? 'sway' : 'move'}`);
+  }
+  if (PIVOT_KINDS.includes(kind)) {
+    if (!pivot || pivot.x < layer.x || pivot.x > layer.x + layer.width || pivot.y < layer.y || pivot.y > layer.y + layer.height) {
+      problems.push(`${kind} pivot missing or outside the layer`);
     }
+  } else if (pivot) {
+    problems.push(`a ${kind} layer has no pivot`);
   }
   if (kind === 'cloud' && (layer.x + Math.min(0, amplitude) < bounds.x || layer.x + layer.width + Math.max(0, amplitude) > bounds.x + bounds.width)) {
     problems.push('cloud drifts outside the art');

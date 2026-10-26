@@ -1,4 +1,4 @@
-import { canReopenGoal, capabilitiesFor, canUseTheme, hasGoalSlot, type Capabilities } from '@/core/access';
+import { canChangeGoalTheme, canReopenGoal, capabilitiesFor, canUseTheme, hasGoalSlot, type Capabilities } from '@/core/access';
 import { parseCivilDate, today, utcTimestamp, validateNewDeadline, type CivilDate, type Clock } from '@/core/calendar';
 import { isPositiveMinorAmount, sumMinor, toMinorAmount } from '@/core/money';
 import { isThemeId, type ThemeId } from '@/core/progression';
@@ -18,6 +18,7 @@ import {
   isOpenStatus,
   updateGoalDetails,
   updateGoalStatus,
+  updateGoalTheme,
   type GoalRecord,
   type GoalStatus,
 } from '@/data/repositories/goal-repository';
@@ -40,9 +41,17 @@ import { readGoalAccessFacts, requireNotReadOnly, requireUsableGoal, type GoalAc
 //   status, D74) in the same transaction.
 // - Edit Goal: the same fields on an open (active or paused) goal only. A changed deadline must be
 //   today or later; an unchanged one may already have passed. Changing the theme of an open goal
-//   is a Pro capability (Phase 17 adds Garden). A target edit that first leaves B >= T stores the
+//   is a Pro capability (`canChangeGoalTheme`); the goal form changes the world through Change
+//   Theme instead. A target edit that first leaves B >= T stores the
 //   goal's souvenir in the same transaction (Phase 11). A read-only goal after a lost Pro
 //   entitlement, or a Garden goal without Pro, accepts no edit (Phase 16, `goal-access.ts`).
+// - Change Theme (Phase 17, R20, D75): the world of an open (active or paused) goal, as metadata only:
+//   target, deadline, status, ledger, quests and souvenir stay exactly as they are, so the scene shows
+//   the same stage in the other world and a souvenir keeps the theme and version it was earned with.
+//   Pro may choose Island or Garden; without Pro the one change allowed is the person's own move of a
+//   Garden goal they can no longer grow to the Island (after the screen's confirmation), never the
+//   reverse. A completed goal needs Reopen first; a read-only goal after a lost entitlement accepts no
+//   change. Nothing calls it automatically.
 // - Lifecycle: Pause, Resume, Finish (only when B ≥ T) and Reopen (within the goal limit or for the
 //   goal kept after a lost entitlement, never an automatic Finish). A read-only goal changes no
 //   status. Archive was removed (D74). No lifecycle change adds, removes or replaces a souvenir: it
@@ -60,7 +69,8 @@ export const GOAL_COMMAND_KINDS = {
   finish: 'goal.finish',
   reopen: 'goal.reopen',
   delete: 'goal.delete',
-} as const satisfies Record<'create' | 'edit' | 'delete' | LifecycleAction, string>;
+  theme: 'goal.theme',
+} as const satisfies Record<'create' | 'edit' | 'delete' | 'theme' | LifecycleAction, string>;
 
 export type GoalCommandDeps = {
   db: AppDatabase;
@@ -137,6 +147,20 @@ export type LifecycleError = CommandFailure<
 >;
 
 export type DeleteGoalInput = LifecycleInput;
+
+export type ChangeThemeInput = LifecycleInput & { themeId: ThemeId };
+
+export type ChangeThemeError = CommandFailure<
+  | OperationIdError
+  | ExistingGoalError
+  | { code: 'invalid_theme' }
+  | { code: 'goal_closed' }
+  | { code: 'goal_read_only' }
+  // The goal already uses this theme (a second tap, or a stale screen).
+  | { code: 'theme_unchanged' }
+  // These capabilities do not allow this change (Garden without Pro, or Island → Garden without Pro).
+  | { code: 'theme_unavailable' }
+>;
 
 export type DeleteGoalError = CommandFailure<OperationIdError | ExistingGoalError>;
 
@@ -329,7 +353,7 @@ export async function editGoal(
     ) {
       reject({ code: 'past_deadline' });
     }
-    if (details.themeId !== goal.themeId && !(capabilities.switchOpenGoalTheme && canUseTheme(capabilities, details.themeId))) {
+    if (!canChangeGoalTheme(capabilities, goal.themeId, details.themeId)) {
       reject({ code: 'theme_unavailable' });
     }
     const nowUtc = utcTimestamp(deps.clock);
@@ -338,6 +362,54 @@ export async function editGoal(
     }
     // A lower target can be the first B >= T: the souvenir records the saved target and theme.
     await awardSouvenirIfFirstFunded(tx, { ...goal, ...details }, await checkedGoalBalance(tx, goal.id), nowUtc);
+    const stored: StoredGoalResult = { goalId: goal.id, revision: input.expectedRevision + 1 };
+    await insertReceipt(tx, input.operationId, kind, hash, stored, nowUtc);
+    return { operationId: input.operationId, replayed: false, ...stored };
+  });
+}
+
+// Changes the world an open goal grows (Phase 17). Revision-checked against the goal the person was
+// looking at, with an operation ID and an identifiers-only receipt like every goal command. Only the
+// theme and the row's revision change; the stage stays the one the shared stage function gives for the
+// goal's balance and target, and no souvenir is awarded, replaced or removed.
+export async function changeGoalTheme(
+  deps: GoalCommandDeps,
+  input: ChangeThemeInput,
+): Promise<Result<GoalCommandResult, ChangeThemeError>> {
+  const operationError = checkOperationId(input.operationId);
+  if (operationError) {
+    return err(operationError);
+  }
+  if (!isEntityId(input.goalId) || !isRevision(input.expectedRevision)) {
+    return err({ code: 'invalid_reference' });
+  }
+  if (!isThemeId(input.themeId)) {
+    return err({ code: 'invalid_theme' });
+  }
+  const capabilities = deps.capabilities ?? capabilitiesFor('free');
+  const kind = GOAL_COMMAND_KINDS.theme;
+  const hash = requestHash(kind, [input.goalId, input.expectedRevision, input.themeId]);
+  return executeCommand(deps.db, async (tx) => {
+    const replay = await replayGoalReceipt(tx, input.operationId, kind, hash);
+    if (replay) {
+      return replay;
+    }
+    const goal = await requireCurrentGoal(tx, input.goalId, input.expectedRevision);
+    if (!isOpenStatus(goal.status)) {
+      reject({ code: 'goal_closed' });
+    }
+    // A theme-locked Garden goal may still move to the Island; a read-only goal changes nothing.
+    await requireNotReadOnly(tx, capabilities, goal);
+    if (goal.themeId === input.themeId) {
+      reject({ code: 'theme_unchanged' });
+    }
+    if (!canChangeGoalTheme(capabilities, goal.themeId, input.themeId)) {
+      reject({ code: 'theme_unavailable' });
+    }
+    const nowUtc = utcTimestamp(deps.clock);
+    if (!(await updateGoalTheme(tx, goal.id, input.themeId, input.expectedRevision, nowUtc))) {
+      reject({ code: 'stale_goal', currentRevision: goal.revision });
+    }
     const stored: StoredGoalResult = { goalId: goal.id, revision: input.expectedRevision + 1 };
     await insertReceipt(tx, input.operationId, kind, hash, stored, nowUtc);
     return { operationId: input.operationId, replayed: false, ...stored };

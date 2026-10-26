@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { MILESTONE_COUNT, type Stage } from '@/core/progression';
+import { MILESTONE_COUNT, THEME_IDS, type Stage, type ThemeId } from '@/core/progression';
 import { AMBIENT_RELEASE_SWITCHES, setAmbientSwitches, useAmbientSwitches, type AmbientSwitches } from '@/features/worlds/ambient';
 import { sceneDescription, unlockAt, visibleLayers } from '@/features/worlds/manifest';
 import { themeManifest } from '@/features/worlds/registry';
@@ -24,26 +24,37 @@ import { SectionHeader } from '@/shared/ui/section-header';
 // Phase 10.5 (D90): the single view plays the Living Island's ambient motion under the same gate as
 // Home, and "Ambient" switches it off entirely or per effect for review and the Phase 21 on/off
 // measurement. The switches apply app-wide (Home too) until the next launch.
+//
+// Phase 17: `?theme=garden` (or the Island/Garden buttons) inspects the Garden the same way, with its
+// own effects (koi, glows, butterflies, petals) among the switches. Switching the theme in the single
+// view plays Home's theme crossfade ("Animated"), or swaps at once ("Instant").
 
 // The export's PNGs are 0.75 of the canvas boxes; RGBA decoding is 4 bytes per pixel.
 const FILE_SCALE = 0.75;
 
 const BACKDROPS: SceneBackdrop[] = ['sky', 'cream', 'none'];
 
-const EFFECTS: { key: keyof Omit<AmbientSwitches, 'enabled'>; label: string }[] = [
+const EFFECTS: { key: keyof Omit<AmbientSwitches, 'enabled'>; label: string; garden?: true }[] = [
   { key: 'clouds', label: 'Clouds' },
   { key: 'water', label: 'Water' },
   { key: 'trees', label: 'Trees' },
+  { key: 'koi', label: 'Koi', garden: true },
+  { key: 'glows', label: 'Glows', garden: true },
+  { key: 'butterflies', label: 'Butterflies', garden: true },
+  { key: 'petals', label: 'Petals', garden: true },
 ];
+
+const THEME_LABELS: Record<ThemeId, string> = { island: 'Island', garden: 'Garden' };
 
 const ALL_STAGES = Array.from({ length: MILESTONE_COUNT + 1 }, (_, stage) => stage as Stage);
 
-type WorldInspectorProps = { stage: Stage; backdrop: SceneBackdrop; view: 'single' | 'sheet' };
+type WorldInspectorProps = { themeId: ThemeId; stage: Stage; backdrop: SceneBackdrop; view: 'single' | 'sheet' };
 
 export function WorldInspector(props: WorldInspectorProps) {
   const [stage, setStage] = useState<Stage>(props.stage);
   const [backdrop, setBackdrop] = useState<SceneBackdrop>(props.backdrop);
   const [view, setView] = useState(props.view);
+  const [themeId, setThemeId] = useState<ThemeId>(props.themeId);
   // Phase 10: each step plays the transition Home would (+ as an unlock, − as a quiet change).
   const [animate, setAnimate] = useState(true);
   const [reveal, setReveal] = useState<SceneReveal | null>(null);
@@ -53,11 +64,11 @@ export function WorldInspector(props: WorldInspectorProps) {
     setReveal(animate ? { revision: Date.now(), mode: next > stage ? 'unlock' : 'quiet' } : null);
     setStage(next);
   };
-  const result = themeManifest('island');
+  const result = themeManifest(themeId);
   if (!result.ok) {
     return (
       <Screen>
-        <Notice tone="error" title="Island manifest is invalid" message={result.problems.join('\n')} />
+        <Notice tone="error" title={`${THEME_LABELS[themeId]} manifest is invalid`} message={result.problems.join('\n')} />
       </Screen>
     );
   }
@@ -67,6 +78,20 @@ export function WorldInspector(props: WorldInspectorProps) {
 
   return (
     <Screen testID="dev-world">
+      <View style={styles.row}>
+        {THEME_IDS.map((option) => (
+          <Button
+            key={option}
+            label={THEME_LABELS[option]}
+            variant={themeId === option ? 'primary' : 'secondary'}
+            onPress={() => {
+              setReveal(null);
+              setThemeId(option);
+            }}
+            testID={`dev-world-theme-${option}`}
+          />
+        ))}
+      </View>
       <View style={styles.row}>
         <Button label="Single" variant={view === 'single' ? 'primary' : 'secondary'} onPress={() => setView('single')} />
         <Button label="Contact sheet" variant={view === 'sheet' ? 'primary' : 'secondary'} onPress={() => setView('sheet')} />
@@ -78,8 +103,8 @@ export function WorldInspector(props: WorldInspectorProps) {
       </View>
       {view === 'single' ? (
         <>
-          <View style={styles.scene}>
-            <WorldScene themeId="island" stage={stage} backdrop={backdrop} reveal={reveal} ambient={ambientMotion} />
+          <View style={[styles.scene, { aspectRatio: worldArtAspect(themeId) }]}>
+            <WorldScene themeId={themeId} stage={stage} backdrop={backdrop} reveal={reveal} ambient={ambientMotion} crossfadeTheme={animate} />
           </View>
           <View style={styles.row}>
             <Button
@@ -88,7 +113,7 @@ export function WorldInspector(props: WorldInspectorProps) {
               onPress={() => setAmbientSwitches({ ...switches, enabled: !switches.enabled })}
               testID="dev-world-ambient"
             />
-            {EFFECTS.map(({ key, label }) => (
+            {EFFECTS.filter((effect) => themeId === 'garden' || !effect.garden).map(({ key, label }) => (
               <Button
                 key={key}
                 label={label}
@@ -101,7 +126,7 @@ export function WorldInspector(props: WorldInspectorProps) {
             <Button label="Reset" variant="plain" onPress={() => setAmbientSwitches(AMBIENT_RELEASE_SWITCHES)} testID="dev-world-ambient-reset" />
           </View>
           <AppText role="footnote" tone="secondary" testID="dev-world-ambient-state">
-            {ambientMotion ? 'Ambient gate open (visible, active, no Reduce Motion)' : 'Ambient gate closed: the Island is still'}
+            {ambientMotion ? 'Ambient gate open (visible, active, no Reduce Motion)' : 'Ambient gate closed: the world is still'}
           </AppText>
           <View style={styles.row}>
             <Button label="−" variant="secondary" disabled={stage === 0} onPress={() => step((stage - 1) as Stage)} />
@@ -121,8 +146,8 @@ export function WorldInspector(props: WorldInspectorProps) {
           <View style={styles.sheet}>
             {ALL_STAGES.map((sheetStage) => (
               <View key={sheetStage} style={styles.cell}>
-                <View style={styles.cellScene}>
-                  <WorldScene themeId="island" stage={sheetStage} backdrop={backdrop} />
+                <View style={[styles.cellScene, { aspectRatio: worldArtAspect(themeId) }]}>
+                  <WorldScene themeId={themeId} stage={sheetStage} backdrop={backdrop} />
                 </View>
                 <AppText role="caption" tone="secondary">
                   {`${sheetStage * 10}% · ${unlockAt(manifest, sheetStage)?.name ?? manifest.base.name}`}
@@ -144,7 +169,6 @@ const styles = StyleSheet.create({
   },
   scene: {
     width: '100%',
-    aspectRatio: worldArtAspect('island'),
   },
   sheet: {
     flexDirection: 'row',
@@ -157,6 +181,5 @@ const styles = StyleSheet.create({
   },
   cellScene: {
     width: '100%',
-    aspectRatio: worldArtAspect('island'),
   },
 });

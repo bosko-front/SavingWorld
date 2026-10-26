@@ -1,5 +1,6 @@
 // Capability contracts and the Free baseline. Pure TypeScript.
 export {
+  canChangeGoalTheme,
   canOpenStatistics,
   canReopenGoal,
   canUseTheme,

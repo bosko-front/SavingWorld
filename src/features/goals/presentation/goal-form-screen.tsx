@@ -2,14 +2,17 @@ import { Stack, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import { StyleSheet, View, type TextInputInstance } from 'react-native';
 
-import { accessView, appClock, goalCommandDeps, refreshAppData, useAppDataStore } from '@/bootstrap/app-data';
+import { accessView, appClock, goalCommandDeps, refreshAppData, useAppDataStore, type AccessView } from '@/bootstrap/app-data';
+import { canUseTheme } from '@/core/access';
 import { today, type CivilDate } from '@/core/calendar';
 import { formatAmountInput, parseAmount, type CurrencyMetadata } from '@/core/money';
-import type { ThemeId } from '@/core/progression';
+import { MILESTONE_COUNT, type ThemeId } from '@/core/progression';
 import { randomUuid } from '@/data/ids';
 import { isOpenStatus, type GoalRecord } from '@/data/repositories/goal-repository';
 import { PaywallScreen } from '@/features/billing/presentation/paywall-screen';
 import { READ_ONLY_COPY } from '@/features/billing/presentation/billing-copy';
+import { ThemeCards } from '@/features/worlds/presentation/theme-cards';
+import { THEME_PICKER_COPY, themeName } from '@/features/worlds/presentation/theme-copy';
 import { deviceSeparators } from '@/shared/i18n/locale';
 import { FormScreen } from '@/shared/layout';
 import { spacing } from '@/shared/theme';
@@ -17,6 +20,7 @@ import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
 import { haptics } from '@/shared/ui/haptics';
 import { ListGroup, ListRow } from '@/shared/ui/list-row';
+import { SectionHeader } from '@/shared/ui/section-header';
 import { Notice } from '@/shared/ui/notice';
 import { TextField } from '@/shared/ui/text-field';
 import { showToast } from '@/shared/ui/toast';
@@ -39,8 +43,14 @@ import { amountMessage, goalCommandMessage, type GoalFormField } from './goal-co
 // menu, its empty state, a deep link). Once Pro is bought the committed snapshot gains the slot and
 // this sheet turns into Create Goal, with one line saying Pro is unlocked (Phase 16). Edit of a goal
 // that is read-only after a lost entitlement explains that instead of showing the form.
-
-const THEME_NAMES: Record<ThemeId, string> = { island: 'Island', garden: 'Garden' };
+//
+// The world (Phase 17, owner decisions D97, D122): Create shows the world picker's two picture cards
+// (the completed worlds, since the goal has no progress yet); without Pro the Garden card is locked and
+// opens the Pro paywall over this sheet, which returns with the draft and the choice unchanged, and
+// after a purchase the Garden can be chosen right here. Edit shows the goal's world as a row that opens
+// the world picker, which saves a change on its own (Change Theme); the form then saves its other
+// fields against the goal's new revision. A Garden goal without Pro explains its state and offers the
+// picker, where the person may grow it as an Island.
 
 type FieldErrors = Partial<Record<GoalFormField, string>>;
 
@@ -70,15 +80,23 @@ export function GoalFormScreen({ goalId }: { goalId: string | null }) {
     return <PaywallScreen entry="another_world" onClose={() => router.back()} />;
   }
   if (goal && isOpenStatus(goal.status) && access.use(goal) !== 'usable') {
+    const locked = access.use(goal) === 'theme_locked';
     return (
       <FormScreen>
         <Stack.Screen options={{ title: 'Edit goal' }} />
         <Notice
           tone="info"
           title={READ_ONLY_COPY.badge}
-          message={access.use(goal) === 'theme_locked' ? READ_ONLY_COPY.gardenSentence : READ_ONLY_COPY.sentence}
+          message={locked ? READ_ONLY_COPY.gardenSentence : READ_ONLY_COPY.sentence}
           testID="goal-form-read-only"
         />
+        {locked ? (
+          <Button
+            label={THEME_PICKER_COPY.chooseButton}
+            onPress={() => router.push({ pathname: '/theme-picker', params: { goalId: goal.id } })}
+            testID="goal-form-choose-world"
+          />
+        ) : null}
       </FormScreen>
     );
   }
@@ -94,17 +112,18 @@ export function GoalFormScreen({ goalId }: { goalId: string | null }) {
       </FormScreen>
     );
   }
-  return <GoalForm currency={currency} goal={goal} unlocked={offeredPro && goal === null} />;
+  return <GoalForm currency={currency} goal={goal} access={access} unlocked={offeredPro && goal === null} />;
 }
 
 type GoalFormProps = {
   currency: CurrencyMetadata;
   goal: GoalRecord | null;
+  access: AccessView;
   // Pro was just bought from the "Build another world" entry in this sheet.
   unlocked: boolean;
 };
 
-function GoalForm({ currency, goal, unlocked }: GoalFormProps) {
+function GoalForm({ currency, goal, access, unlocked }: GoalFormProps) {
   const router = useRouter();
   const separators = deviceSeparators();
   const [todayDate] = useState<CivilDate>(() => today(appClock()));
@@ -114,7 +133,10 @@ function GoalForm({ currency, goal, unlocked }: GoalFormProps) {
     goal ? formatAmountInput(goal.targetMinor, currency.exponent, separators) : '',
   );
   const [deadline, setDeadline] = useState<CivilDate | null>(goal?.deadlineDate ?? null);
-  const themeId: ThemeId = goal?.themeId ?? 'island';
+  // Create: the chosen world (a draft, like the fields). Edit: the goal's world as saved; the picker
+  // changes it on its own.
+  const [draftTheme, setDraftTheme] = useState<ThemeId>('island');
+  const themeId: ThemeId = goal?.themeId ?? draftTheme;
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -206,14 +228,42 @@ function GoalForm({ currency, goal, unlocked }: GoalFormProps) {
             savedDeadline={goal?.deadlineDate ?? null}
             error={errors.deadline}
           />
-          <ListRow title="World" icon="milestone" iconColor="green" value={THEME_NAMES[themeId]} testID="goal-theme" />
+          {editing ? (
+            <ListRow
+              title={THEME_PICKER_COPY.section}
+              icon="milestone"
+              iconColor="green"
+              value={themeName(themeId)}
+              chevron
+              disabled={saving}
+              onPress={() => router.push({ pathname: '/theme-picker', params: { goalId: goal.id } })}
+              accessibilityLabel={`${THEME_PICKER_COPY.section}, ${themeName(themeId)}. ${THEME_PICKER_COPY.screenTitle}`}
+              testID="goal-theme"
+            />
+          ) : null}
         </ListGroup>
-        {errors.theme ? (
-          <AppText role="footnote" tone="error">
-            {errors.theme}
-          </AppText>
-        ) : null}
       </View>
+      {editing ? null : (
+        <View style={styles.group} testID="goal-theme">
+          <SectionHeader title={THEME_PICKER_COPY.section} />
+          <ThemeCards
+            selected={themeId}
+            stage={MILESTONE_COUNT}
+            state={(candidate) => (canUseTheme(access.capabilities, candidate) ? 'selectable' : 'locked')}
+            onSelect={(candidate) => {
+              haptics.selection();
+              setDraftTheme(candidate);
+            }}
+            onLocked={() => router.push('/paywall')}
+            busy={saving}
+          />
+        </View>
+      )}
+      {errors.theme ? (
+        <AppText role="footnote" tone="error">
+          {errors.theme}
+        </AppText>
+      ) : null}
       <Button label={editing ? 'Save changes' : 'Create goal'} onPress={() => void save()} loading={saving} testID="goal-save" />
       <Button label="Cancel" variant="plain" centered onPress={() => router.back()} disabled={saving} testID="goal-cancel" />
     </FormScreen>

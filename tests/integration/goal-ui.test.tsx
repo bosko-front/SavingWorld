@@ -245,7 +245,7 @@ describe('Home lifecycle, Free goal limit and Collection', () => {
     await renderRouter(APP_DIR, { initialUrl: '/' });
     await createGoalThroughForm('Laptop', '900');
     // Goal administration lives in the ⋯ menu, not on Home (D73); Archive is gone (D74).
-    expect(goalOptionLabels()).toEqual(['History', 'Edit goal', 'Pause goal', 'New goal', 'Delete goal…']);
+    expect(goalOptionLabels()).toEqual(['History', 'Edit goal', 'Change world', 'Pause goal', 'New goal', 'Delete goal…']);
     expect(screen.queryByTestId('home-new-goal')).not.toBeOnTheScreen();
     // New goal while Free's one goal exists opens the "Build another world" paywall entry (Phase 16)
     // instead of a form that would be refused; Not now returns to Home.

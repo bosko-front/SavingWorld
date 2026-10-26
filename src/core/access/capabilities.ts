@@ -70,6 +70,21 @@ export function canUseTheme(capabilities: Capabilities, themeId: ThemeId): boole
   return capabilities.themes[themeId];
 }
 
+// Whether an open goal's theme may change from `from` to `to` (v1.2 section 4, R20; D75). With Pro
+// (the switching capability) any theme these capabilities include. Without it only one change exists:
+// the person's own choice to grow a goal whose theme they can no longer use (a Garden goal after Pro
+// was lost) as a theme they have (the Island), never the reverse. Keeping the same theme is always
+// allowed. Nothing calls this on an entitlement change: themes change only by the person's command.
+export function canChangeGoalTheme(capabilities: Capabilities, from: ThemeId, to: ThemeId): boolean {
+  if (from === to) {
+    return true;
+  }
+  if (!canUseTheme(capabilities, to)) {
+    return false;
+  }
+  return capabilities.switchOpenGoalTheme || !canUseTheme(capabilities, from);
+}
+
 // What a person may do with one existing goal (Phase 16, owner decisions D74/D75):
 // - usable: entries, corrections, edits, lifecycle changes and quests as its status allows;
 // - read_only: Pro is not active and there are more goals than Free allows; every goal except the
@@ -77,7 +92,8 @@ export function canUseTheme(capabilities: Capabilities, themeId: ThemeId): boole
 //   corrections, edits, status changes or quests, until Pro returns or the person deletes goals;
 // - theme_locked: the goal uses a theme these capabilities do not include (a Garden goal without
 //   Pro). Its world stays as it is and cannot progress; status changes are still allowed, and the
-//   person may switch it to Island themselves (Phase 17). Nothing ever switches it automatically.
+//   person may switch it to Island themselves (`canChangeGoalTheme`, Phase 17). Nothing ever switches
+//   it automatically.
 // Viewing, History, Collection and deleting the goal are never restricted. Nothing here changes data:
 // it only decides which commands a goal accepts.
 export type GoalUse = 'usable' | 'read_only' | 'theme_locked';

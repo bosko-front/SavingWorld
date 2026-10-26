@@ -1,6 +1,18 @@
 import type { ThemeId } from '@/core/progression';
 
-import { validateManifest, type AmbientKind, type AmbientMark, type ManifestResult, type Milestone, type Point, type SceneAsset, type SceneLayer, type SceneUnlock } from './manifest';
+import {
+  AMBIENT_KINDS,
+  AMBIENT_REST,
+  validateManifest,
+  type AmbientKind,
+  type AmbientMark,
+  type ManifestResult,
+  type Milestone,
+  type Point,
+  type SceneAsset,
+  type SceneLayer,
+  type SceneUnlock,
+} from './manifest';
 
 // Reads a layered art export (`island_manifest.json` from assets/worlds/island/scripts/export_layers.py,
 // copied unchanged to assets/themes/<theme>/) into the typed manifest, then validates it. The JSON
@@ -16,6 +28,12 @@ import { validateManifest, type AmbientKind, type AmbientMark, type ManifestResu
 // the base image, z 1..n, always drawn below every unlock; a part's `ambient: { kind: 'sway', pivot }`
 // → its mark. The export says only what a layer is; how it moves (amplitude, period, phase) comes
 // from AMBIENT_PRESETS here, varied per layer so nothing moves in step.
+//
+// Garden motion (Phase 17, D124): `ambientExtensions.layers` (optional) → layers added by the unlock
+// of their `milestone`, drawn right after the parts of `drawAfterMilestone` (10 = above everything):
+// z = drawAfterMilestone × 1000 + 900 + their order. Kinds water (owned by an unlock), koi (`center` →
+// the glide pivot), glow, butterfly and petal. The export's `rest` must be the kind's own (koi visible,
+// the others hidden), so a layer can never be drawn at rest when it is not part of the approved picture.
 
 type ExportOptions = {
   themeId: ThemeId;
@@ -23,26 +41,40 @@ type ExportOptions = {
   assets: Readonly<Record<string, SceneAsset>>;
 };
 
-// Room for parts per milestone in the z numbering; validated below.
+// Room for parts per milestone in the z numbering; validated below. Extension layers drawn after a
+// milestone take the top of its range.
 const Z_STRIDE = 1000;
+const EXTENSION_Z = 900;
 
 // How each kind of ambient layer moves (D90: calm, fine at 30 fps). Cloud amplitude is in canvas units
 // (90 ≈ 22 pt on an iPhone Home); water is each flow layer's brightest opacity, and its period one full
 // round of the flow layers (they share it, evenly out of phase, D93); sway is the largest lean in degrees
 // (a skew from the trunk base). Tuned on the simulator with the owner, who found 0.7° and then 2.5° of
 // tilt and the water sparkle too faint (D92, D93); the World inspector switches them off.
+// Garden (Phase 17, D124): koi glide around their resting place with this radius in canvas units (about
+// 9 pt on an iPhone Home, inside the "about 60 px" of the export's rule); a glow warms to this opacity
+// and then breathes very slowly a little below it, never back to dark (no pulse); butterflies and petals
+// share one period and take turns, so at most one butterfly flies and one petal falls at a time, each
+// once per period, unseen in between.
 export const AMBIENT_PRESETS: Record<AmbientKind, { amplitude: number; periodMs: number }> = {
   cloud: { amplitude: 90, periodMs: 24000 },
   water: { amplitude: 1, periodMs: 2400 },
   sway: { amplitude: 5, periodMs: 4400 },
+  koi: { amplitude: 36, periodMs: 18000 },
+  glow: { amplitude: 0.9, periodMs: 11000 },
+  butterfly: { amplitude: 70, periodMs: 36000 },
+  petal: { amplitude: 150, periodMs: 27000 },
 };
 
-// Per-layer spread of the period, and a golden-ratio phase step, so clouds and trees drift apart. The
-// water layers are one flow: same period, phases evenly spread in their export order (downstream).
+// Kinds whose layers share one period and take turns (phases evenly spread in export order).
+const TAKING_TURNS: readonly AmbientKind[] = ['water', 'butterfly', 'petal'];
+
+// Per-layer spread of the period, and a golden-ratio phase step, so clouds, trees, koi and glows drift
+// apart.
 const PERIOD_SPREAD = [1, 1.17, 0.88, 1.09, 0.94, 1.23, 0.83, 1.05, 0.97, 1.13];
 const PHASE_STEP = 0.618034;
 
-const AMBIENT_KINDS: readonly AmbientKind[] = ['cloud', 'water', 'sway'];
+const EXTENSION_KINDS: readonly AmbientKind[] = ['water', 'koi', 'glow', 'butterfly', 'petal'];
 
 export function manifestFromExport(raw: unknown, { themeId, name, assets }: ExportOptions): ManifestResult {
   const problems: string[] = [];
@@ -77,9 +109,32 @@ export function manifestFromExport(raw: unknown, { themeId, name, assets }: Expo
     ],
   };
   const counters = new Map<AmbientKind, number>();
-  const waterCount = Array.isArray(root.ambient)
-    ? root.ambient.filter((value: unknown) => (value as { ambient?: { kind?: unknown } } | null)?.ambient?.kind === 'water').length
-    : 0;
+  const extensionsRaw = root.ambientExtensions === undefined ? null : read.object(root.ambientExtensions, 'ambientExtensions');
+  const extensionLayers: unknown[] =
+    extensionsRaw === null ? [] : Array.isArray(extensionsRaw.layers) ? extensionsRaw.layers : (problems.push('ambientExtensions.layers must be a list'), []);
+  // How many layers of a kind take turns, over the base list and the extensions together.
+  const kindOf = (value: unknown, nested: boolean): unknown => {
+    const layer = value as { kind?: unknown; ambient?: { kind?: unknown } } | null;
+    return nested ? layer?.ambient?.kind : layer?.kind;
+  };
+  const turnCount = (kind: AmbientKind) =>
+    (Array.isArray(root.ambient) ? root.ambient.filter((value: unknown) => kindOf(value, true) === kind).length : 0) +
+    extensionLayers.filter((value) => kindOf(value, false) === kind).length;
+  const markOf = (kind: AmbientKind, pivot: Point | null, box: { x: number; width: number }): AmbientMark => {
+    const index = counters.get(kind) ?? 0;
+    counters.set(kind, index + 1);
+    const preset = AMBIENT_PRESETS[kind];
+    // A cloud drifts toward the middle of the canvas and back, so it stays in the sky the scene frames.
+    const inward = box.x + box.width / 2 <= canvas.width / 2 ? 1 : -1;
+    const turns = TAKING_TURNS.includes(kind);
+    return {
+      kind,
+      amplitude: kind === 'cloud' ? preset.amplitude * inward : preset.amplitude,
+      periodMs: turns ? preset.periodMs : Math.round(preset.periodMs * PERIOD_SPREAD[index % PERIOD_SPREAD.length]!),
+      phase: turns ? index / Math.max(1, turnCount(kind)) : (index * PHASE_STEP) % 1,
+      pivot,
+    };
+  };
   const mark = (value: unknown, where: string, box: { x: number; width: number }): AmbientMark | null => {
     if (value === undefined) {
       return null;
@@ -90,21 +145,9 @@ export function manifestFromExport(raw: unknown, { themeId, name, assets }: Expo
       problems.push(`${where}: unknown kind ${kind}`);
       return null;
     }
-    const index = counters.get(kind) ?? 0;
-    counters.set(kind, index + 1);
-    const preset = AMBIENT_PRESETS[kind];
     const pivotRaw = raw?.pivot === undefined ? null : read.object(raw.pivot, `${where}.pivot`);
     const pivot: Point | null = pivotRaw ? { x: read.number(pivotRaw.x, `${where}.pivot.x`), y: read.number(pivotRaw.y, `${where}.pivot.y`) } : null;
-    // A cloud drifts toward the middle of the canvas and back, so it stays in the sky the scene frames.
-    const inward = box.x + box.width / 2 <= canvas.width / 2 ? 1 : -1;
-    const water = kind === 'water';
-    return {
-      kind,
-      amplitude: kind === 'cloud' ? preset.amplitude * inward : preset.amplitude,
-      periodMs: water ? preset.periodMs : Math.round(preset.periodMs * PERIOD_SPREAD[index % PERIOD_SPREAD.length]!),
-      phase: water ? index / Math.max(1, waterCount) : (index * PHASE_STEP) % 1,
-      pivot,
-    };
+    return markOf(kind, pivot, box);
   };
   const ambientRaw = root.ambient === undefined ? [] : Array.isArray(root.ambient) ? root.ambient : (problems.push('ambient must be a list'), []);
   if (ambientRaw.length >= Z_STRIDE) {
@@ -131,7 +174,7 @@ export function manifestFromExport(raw: unknown, { themeId, name, assets }: Expo
     const where = `unlocks[${index}]`;
     const unlock = read.object(value, where);
     const layersRaw = Array.isArray(unlock?.layers) ? unlock.layers : (problems.push(`${where}.layers must be a list`), []);
-    if (layersRaw.length >= Z_STRIDE) {
+    if (layersRaw.length >= EXTENSION_Z) {
       problems.push(`${where}: too many layers`);
     }
     const milestone = read.number(unlock?.milestone, `${where}.milestone`);
@@ -165,6 +208,49 @@ export function manifestFromExport(raw: unknown, { themeId, name, assets }: Expo
       hides,
       hiddenFrom: typeof hiddenFrom === 'number' ? hiddenFrom : null,
     };
+  });
+
+  // Garden motion layers (Phase 17): each joins the unlock of its milestone.
+  if (extensionLayers.length >= Z_STRIDE - EXTENSION_Z) {
+    problems.push('ambientExtensions: too many layers');
+  }
+  extensionLayers.forEach((value, index) => {
+    const at = `ambientExtensions.layers[${index}]`;
+    const layer = read.object(value, at);
+    const box = read.box(layer, at);
+    const kind = read.string(layer?.kind, `${at}.kind`) as AmbientKind;
+    if (!EXTENSION_KINDS.includes(kind)) {
+      problems.push(`${at}: unknown kind ${kind}`);
+      return;
+    }
+    const milestone = read.number(layer?.milestone, `${at}.milestone`);
+    const after = read.number(layer?.drawAfterMilestone, `${at}.drawAfterMilestone`);
+    const owner = parsed.find((entry) => entry.unlock.milestone === milestone);
+    if (!owner) {
+      problems.push(`${at}: milestone ${milestone} is not an unlock`);
+      return;
+    }
+    if (!(Number.isInteger(after) && after >= milestone && after <= parsed.length)) {
+      problems.push(`${at}: drawAfterMilestone ${after} must be ${milestone}..${parsed.length}`);
+      return;
+    }
+    const rest = read.string(layer?.rest, `${at}.rest`);
+    if (rest !== AMBIENT_REST[kind]) {
+      problems.push(`${at}: a ${kind} rests ${AMBIENT_REST[kind]}, not ${rest}`);
+    }
+    const centerRaw = layer?.center === undefined ? null : read.object(layer.center, `${at}.center`);
+    const center: Point | null = centerRaw ? { x: read.number(centerRaw.x, `${at}.center.x`), y: read.number(centerRaw.y, `${at}.center.y`) } : null;
+    owner.unlock.adds.push({
+      ...box,
+      id: read.string(layer?.id, `${at}.id`),
+      file: read.string(layer?.file, `${at}.file`),
+      // These have no ground point; the glide centre (koi) or the box centre stands in for the anchor.
+      anchor: center ?? { x: box.x + box.width / 2, y: box.y + box.height / 2 },
+      z: after * Z_STRIDE + EXTENSION_Z + index,
+      incidental: false,
+      // Only a koi's centre is a pivot (it glides around it); a glow's centre is just where it shines.
+      ambient: markOf(kind, kind === 'koi' ? center : null, box),
+    });
   });
 
   // Replacement: `hides` names whole unlocks; both sides of the export must agree on it.

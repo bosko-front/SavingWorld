@@ -12,7 +12,7 @@ export function isThemeId(value: unknown): value is ThemeId {
 // The art version a souvenir earned today records (v1.2 "Collectible: themeVersion"). It must equal
 // the version of the bundled manifest (tests/unit/world-manifest.test.ts checks Island); a later art
 // revision raises it and keeps every stored version renderable (docs/ASSET_SPEC.md). Island is at
-// version 2 since the Living Island export (D91, D94); Garden art arrives in Phase 17 as version 1.
+// version 2 since the Living Island export (D91, D94); Garden at version 1 since Phase 17 (D120, D123).
 export const CURRENT_THEME_VERSIONS: Readonly<Record<ThemeId, number>> = Object.freeze({ island: 2, garden: 1 });
 
 export function currentThemeVersion(themeId: ThemeId): number {

@@ -119,7 +119,7 @@ describe('Collection (Phase 11)', () => {
     ]);
 
     // Finish is offered at B ≥ T, next to Pause, and closes the goal.
-    expect(goalOptionLabels()).toEqual(['History (2 entries)', 'Edit goal', 'Pause goal', 'Finish goal', 'New goal', 'Delete goal…']);
+    expect(goalOptionLabels()).toEqual(['History (2 entries)', 'Edit goal', 'Change world', 'Pause goal', 'Finish goal', 'New goal', 'Delete goal…']);
     await chooseGoalOption('Finish goal');
     await waitFor(() => expect(toastTitles()).toEqual(['Goal finished']));
     expect(hapticTypes()).toEqual(['success', 'success']);

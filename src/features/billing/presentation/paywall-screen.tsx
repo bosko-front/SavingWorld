@@ -25,7 +25,9 @@ import { useProProduct, usePurchaseActions } from './use-pro-purchase';
 // and Restore Purchases and Not now as small plain buttons. The purchase block is a footer pinned to
 // the bottom while the content scrolls (owner polish D125); with large text or a short window the
 // shared layout places it at the end of the content instead. No comparison table, discount, timer or pressure; every purchase state is calm
-// text in place, never a toast. Garden is described in words until Phase 17 brings its art (V06).
+// text in place, never a toast. The person's world stays the hero (D121); since Phase 17 the Garden
+// feature carries a small still picture of the completed Garden (stage 10 from the registry, V06), so
+// the Pro benefit is seen without making the paywall longer than a feature row.
 //
 // - `another_world`: Free tried to create a second goal (D74). It opens with the owner's "Build
 //   another world" entry and "Explore Pro"; Explore Pro shows the offer in the same sheet. The goal
@@ -121,7 +123,10 @@ function Offer({ hero, pro, onClose }: { hero: ReactNode; pro: boolean; onClose:
   const productLine = productMessage(product);
   const price = product.kind === 'ready' ? product.displayPrice : null;
   const footer = pro ? (
-    <Button label={PAYWALL_COPY.done} onPress={onClose} testID="paywall-done" />
+    // One short word: a compact centered button, not a bar across the sheet (owner feedback).
+    <View style={styles.done}>
+      <Button label={PAYWALL_COPY.done} onPress={onClose} testID="paywall-done" />
+    </View>
   ) : (
     <View style={styles.purchase} testID="paywall-purchase">
       {productLine ? (
@@ -181,7 +186,8 @@ function Offer({ hero, pro, onClose }: { hero: ReactNode; pro: boolean; onClose:
 }
 
 // The exact Release 1.0 features, each a tile, a short title and one line (D97: a short list, no
-// comparison table).
+// comparison table). The Garden feature shows the completed Garden in place of its tile (D121): much
+// smaller than the hero, still, and decorative to VoiceOver, because the feature's label says it.
 function Features() {
   return (
     <View style={styles.features}>
@@ -190,7 +196,7 @@ function Features() {
         {PRO_FEATURES.map((feature) => (
           <ListCell key={feature.key}>
             <View style={styles.feature} accessible accessibilityLabel={`${feature.title}. ${feature.detail}`}>
-              <IconTile name={feature.icon} color={feature.color} />
+              {feature.key === 'garden' ? <GardenPreview /> : <IconTile name={feature.icon} color={feature.color} />}
               <View style={styles.flexText}>
                 <AppText role="label">{feature.title}</AppText>
                 <AppText role="footnote" tone="secondary">
@@ -201,6 +207,15 @@ function Features() {
           </ListCell>
         ))}
       </ListGroup>
+    </View>
+  );
+}
+
+// The completed Garden, small, beside "Unlock the Garden".
+function GardenPreview() {
+  return (
+    <View style={[styles.gardenPreview, { aspectRatio: worldArtAspect('garden') }]} testID="paywall-garden-preview">
+      <WorldScene themeId="garden" stage={MILESTONE_COUNT} fill decorative />
     </View>
   );
 }
@@ -229,6 +244,12 @@ const styles = StyleSheet.create({
   purchase: {
     gap: spacing.sm,
   },
+  // The button stretches to this width; it grows with large text up to the column width.
+  done: {
+    alignSelf: 'center',
+    minWidth: 200,
+    maxWidth: '100%',
+  },
   secondary: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -248,6 +269,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
+  },
+  gardenPreview: {
+    width: 88,
+    borderRadius: radii.md,
+    overflow: 'hidden',
   },
   flexText: {
     flexShrink: 1,

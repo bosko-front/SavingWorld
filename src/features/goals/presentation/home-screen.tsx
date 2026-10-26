@@ -9,7 +9,9 @@ import type { CollectibleRecord } from '@/data/repositories/collectible-reposito
 import { isOpenStatus, type GoalSummary } from '@/data/repositories/goal-repository';
 import { ANOTHER_WORLD, READ_ONLY_COPY } from '@/features/billing/presentation/billing-copy';
 import { themeManifestAt } from '@/features/worlds/registry';
+import { THEME_PICKER_COPY } from '@/features/worlds/presentation/theme-copy';
 import { UnlockBanner } from '@/features/worlds/unlock-banner';
+import { useShownTheme } from '@/features/worlds/use-shown-theme';
 import { useWorldMotion, type WorldMotion } from '@/features/worlds/use-world-motion';
 import { worldNoun } from '@/features/worlds/world-copy';
 import { WorldScene, worldArtAspect } from '@/features/worlds/world-scene';
@@ -138,6 +140,8 @@ function SelectedGoalHome({ summary, dashboard, open, access, souvenir }: Select
   // Living Island (Phase 10.5, D90): clouds, water sparkle and trees move only while Home is focused,
   // the app is active and Reduce Motion is off.
   const ambientMotion = useAmbientMotion();
+  // A changed world (Phase 17) crosses over once Home is seen again.
+  const world = useShownTheme(goal.themeId);
   const action = useGoalAction();
   const { deleting, confirmDelete } = useDeleteGoal();
   const busy = action.pending?.goalId === goal.id || deleting === goal.id;
@@ -145,7 +149,7 @@ function SelectedGoalHome({ summary, dashboard, open, access, souvenir }: Select
   return (
     <AdaptiveGoalLayout
       testID="home"
-      sceneAspectRatio={worldArtAspect(goal.themeId)}
+      sceneAspectRatio={worldArtAspect(world.themeId)}
       // The sky fills the top of the screen edge to edge down to the goal title; the Island stays
       // clear of the bars and the side gutters (owner decision D80).
       sceneBleed
@@ -155,11 +159,12 @@ function SelectedGoalHome({ summary, dashboard, open, access, souvenir }: Select
       keyboard="none"
       scene={
         <WorldScene
-          themeId={goal.themeId}
+          themeId={world.themeId}
           stage={motion.stage}
           upcomingStage={motion.upcomingStage}
           reveal={motion.reveal}
           ambient={ambientMotion}
+          crossfadeTheme={world.crossfade}
           fill>
           {motion.banner ? <UnlockBanner banner={motion.banner} onDismiss={motion.dismissBanner} /> : null}
         </WorldScene>
@@ -332,7 +337,7 @@ function GoalNumbers({ summary, dashboard, motion, busy, use, needsKeptChoice, m
           <Button label="Add savings" icon="add" disabled={busy} testID="home-add-savings" />
         </Link>
       ) : (
-        <ReadOnlyNote use={use} />
+        <ReadOnlyNote use={use} goalId={goal.id} />
       )}
       <MilestoneCallout next={dashboard.next} />
       <SavingsPlanCards copy={dashboard.planCopy} />
@@ -359,13 +364,21 @@ function KeptGoalChoice() {
   );
 }
 
-// One sentence for a goal that accepts no entries now (D74, D75), and the way back to Pro.
-function ReadOnlyNote({ use }: { use: GoalUse }) {
+// One sentence for a goal that accepts no entries now (D74, D75), and the way back to Pro. A Garden
+// goal without Pro (Phase 17, D75) also offers the world picker, where the person may grow it as an
+// Island themselves; nothing switches it for them.
+function ReadOnlyNote({ use, goalId }: { use: GoalUse; goalId: string }) {
+  const locked = use === 'theme_locked';
   return (
     <View style={styles.readOnly} testID="home-read-only-note">
       <AppText role="footnote" tone="secondary">
-        {use === 'theme_locked' ? READ_ONLY_COPY.gardenSentence : READ_ONLY_COPY.sentence}
+        {locked ? READ_ONLY_COPY.gardenSentence : READ_ONLY_COPY.sentence}
       </AppText>
+      {locked ? (
+        <Link href={{ pathname: '/theme-picker', params: { goalId } }} asChild>
+          <Button label={THEME_PICKER_COPY.chooseButton} testID="home-choose-world" />
+        </Link>
+      ) : null}
       <Link href="/paywall" asChild>
         <Button label={READ_ONLY_COPY.explorePro} variant="plain" centered testID="home-explore-pro" />
       </Link>

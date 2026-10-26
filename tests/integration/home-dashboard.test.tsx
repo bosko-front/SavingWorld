@@ -168,7 +168,7 @@ describe('Home dashboard numbers', () => {
       'home-add-savings',
       'home-next-milestone',
     ]);
-    expect(goalOptionLabels()).toEqual(['History (2 entries)', 'Edit goal', 'Pause goal', 'New goal', 'Delete goal…']);
+    expect(goalOptionLabels()).toEqual(['History (2 entries)', 'Edit goal', 'Change world', 'Pause goal', 'New goal', 'Delete goal…']);
     // Home shows the world and progress, not administration (D73).
     expect(screen.queryByText('Free includes one open goal, active or paused. Archive this goal to start another one; it keeps all its records.')).toBeNull();
     expect(screen.queryByTestId('home-funded')).toBeNull();

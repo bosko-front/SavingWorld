@@ -23,7 +23,8 @@ type GoalMenuProps = {
   onDelete: () => void;
 };
 
-// Home's goal options (owner directions D73-D74): History, Edit goal, Pause/Resume, Finish goal (only
+// Home's goal options (owner directions D73-D74): History, Edit goal, Change world (Phase 17: the world
+// picker, also for a Garden goal without Pro, which may be grown as an Island), Pause/Resume, Finish goal (only
 // at B ≥ T, Phase 11), Delete goal and New goal live in one native pull-down menu (SwiftUI Menu from
 // @expo/ui) behind the ⋯ button next to the goal title, so Home shows the world and the progress
 // instead of administration. Finish closes the goal (completed, read-only, in Collection); Delete is
@@ -57,6 +58,13 @@ export function GoalMenu({ summary, funded, use, busy, run, onDelete }: GoalMenu
             label="Edit goal"
             systemImage={ICON_SYMBOLS.edit}
             onPress={() => router.push({ pathname: '/goal-form', params: { goalId: goal.id } })}
+          />
+        ) : null}
+        {statusChanges ? (
+          <Button
+            label="Change world"
+            systemImage={ICON_SYMBOLS.switchWorld}
+            onPress={() => router.push({ pathname: '/theme-picker', params: { goalId: goal.id } })}
           />
         ) : null}
         {statusChanges ? (

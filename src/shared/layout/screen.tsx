@@ -203,7 +203,9 @@ const styles = StyleSheet.create({
     borderTopColor: colors.borderSubtle,
     paddingHorizontal: layout.screenGutter,
     paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
+    // At least this much under the last control even where the sheet reports no bottom inset, so
+    // the rounded bottom corners of an iOS 26 sheet never clip it (owner feedback, Phase 17).
+    paddingBottom: spacing.lg,
   },
   inlineFooter: {
     marginTop: spacing.lg,

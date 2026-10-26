@@ -2,15 +2,16 @@ import type { Stage, ThemeId } from '@/core/progression';
 
 import { unlockAt, type ManifestResult } from './manifest';
 import { manifestFromExport } from './theme-export';
+import { GARDEN_ASSETS, gardenManifestJson } from './themes/garden-assets';
 import { ISLAND_ASSETS, islandManifestJson } from './themes/island-assets';
 
-// Bundled theme manifests by theme id. Registry access says which art exists; it never grants a
-// theme (capabilities in @/core/access do). Garden art arrives in Phase 17; until then its scene
-// shows the controlled fallback.
+// Bundled theme manifests by theme id: the Island (Free) and, since Phase 17, the Garden (Pro).
+// Registry access says which art exists; it never grants a theme (capabilities in @/core/access do):
+// bundled Garden art is not a Garden right.
 
 const LOADERS: Record<ThemeId, () => ManifestResult> = {
   island: () => manifestFromExport(islandManifestJson, { themeId: 'island', name: 'Island', assets: ISLAND_ASSETS }),
-  garden: () => ({ ok: false, problems: ['Garden art is not bundled yet (Phase 17).'] }),
+  garden: () => manifestFromExport(gardenManifestJson, { themeId: 'garden', name: 'Garden', assets: GARDEN_ASSETS }),
 };
 
 const cache = new Map<ThemeId, ManifestResult>();
@@ -22,7 +23,7 @@ export function themeManifest(themeId: ThemeId): ManifestResult {
   if (!result) {
     result = LOADERS[themeId]();
     cache.set(themeId, result);
-    if (!result.ok && __DEV__ && themeId !== 'garden') {
+    if (!result.ok && __DEV__) {
       console.warn(`[worlds] ${themeId} manifest is invalid:\n${result.problems.join('\n')}`);
     }
   }

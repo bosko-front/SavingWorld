@@ -93,6 +93,16 @@ function AppNavigator() {
               sheetAllowedDetents: [1.0],
             }}
           />
+          {/* Phase 17: the world picker of an open goal. */}
+          <Stack.Screen
+            name="theme-picker"
+            options={{
+              title: 'Choose a world',
+              presentation: 'formSheet',
+              sheetGrabberVisible: true,
+              sheetAllowedDetents: [1.0],
+            }}
+          />
           <Stack.Screen
             name="keep-goal"
             options={{
