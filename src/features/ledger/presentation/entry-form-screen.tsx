@@ -8,6 +8,7 @@ import { formatMoney, type CurrencyMetadata, type EntryKind } from '@/core/money
 import { randomUuid } from '@/data/ids';
 import { isOpenStatus, type GoalRecord } from '@/data/repositories/goal-repository';
 import type { LedgerEntryRecord } from '@/data/repositories/ledger-repository';
+import { noteCompletedQuest } from '@/features/challenges/presentation/completed-quest';
 import { unlocksStage } from '@/features/worlds/world-transition';
 import { amountMessage } from '@/shared/i18n/amount-messages';
 import { deviceLocale, deviceSeparators, formatCivilDate } from '@/shared/i18n/locale';
@@ -30,7 +31,7 @@ import { EntryKindPicker } from './entry-kind-picker';
 import { committedToastTitle, KIND_LABEL, ledgerCommandMessage, type EntryFormField, type LedgerAction } from './ledger-copy';
 
 // The one Add/Edit Entry form (v1.2 sections 2 and 3), shared by Home's Add savings, History's
-// corrections and, later, Challenges. A deposit or withdrawal, a positive amount, a local date
+// corrections and the Challenges tab's Add savings (Phase 13). A deposit or withdrawal, a positive amount, a local date
 // (today by default, never later) and an optional note. Rules:
 // - The draft, the expected revision and the operation IDs live in this component, above
 //   FormScreen, so a resize, rotation, fold or sheet change keeps them; a retry after a failure
@@ -41,13 +42,20 @@ import { committedToastTitle, KIND_LABEL, ledgerCommandMessage, type EntryFormFi
 //   explains the problem inline; a rule rejection also plays one warning haptic, a failed write none.
 // - Completed goals are read-only until Reopen; paused goals stay editable and
 //   stay paused.
+// - A commit that completes the goal's current quest (`completedAttemptId`, Phase 12) is noted for
+//   the Challenges tab, which celebrates it once in its card. Opened from Challenges, that card
+//   plays the action's success haptic instead of this form.
+
+// Where the form was opened: Challenges celebrates a completed quest on screen right after the
+// sheet closes; anywhere else the celebration waits for the next visit to Challenges.
+export type EntryFormOrigin = 'home' | 'challenges';
 
 type EntryFormProps =
-  | { mode: 'create'; goalId: string }
+  | { mode: 'create'; goalId: string; origin?: EntryFormOrigin }
   | { mode: 'edit'; entryId: string };
 
 export function EntryFormScreen(props: EntryFormProps) {
-  return props.mode === 'create' ? <CreateEntry goalId={props.goalId} /> : <EditEntry entryId={props.entryId} />;
+  return props.mode === 'create' ? <CreateEntry goalId={props.goalId} origin={props.origin ?? 'home'} /> : <EditEntry entryId={props.entryId} />;
 }
 
 function useCurrency(): CurrencyMetadata | null | undefined {
@@ -60,7 +68,7 @@ function useCurrency(): CurrencyMetadata | null | undefined {
   });
 }
 
-function CreateEntry({ goalId }: { goalId: string }) {
+function CreateEntry({ goalId, origin }: { goalId: string; origin: EntryFormOrigin }) {
   const currency = useCurrency();
   const summary = useAppDataStore((store) =>
     store.state.status === 'ready' ? (store.state.data.goals.goals.find((item) => item.goal.id === goalId) ?? null) : undefined,
@@ -72,7 +80,7 @@ function CreateEntry({ goalId }: { goalId: string }) {
   if (blocked || !currency || !summary) {
     return blocked;
   }
-  return <EntryForm currency={currency} goal={summary.goal} balanceMinor={summary.balanceMinor} entry={null} />;
+  return <EntryForm currency={currency} goal={summary.goal} balanceMinor={summary.balanceMinor} entry={null} origin={origin} />;
 }
 
 function EditEntry({ entryId }: { entryId: string }) {
@@ -102,7 +110,7 @@ function EditEntry({ entryId }: { entryId: string }) {
   if (blocked || !currency) {
     return blocked;
   }
-  return <EntryForm currency={currency} goal={found.goal} balanceMinor={found.balanceMinor} entry={found.entry} />;
+  return <EntryForm currency={currency} goal={found.goal} balanceMinor={found.balanceMinor} entry={found.entry} origin="home" />;
 }
 
 // The states in which the form can't be used, each explained instead of a disabled form.
@@ -137,9 +145,10 @@ type FormProps = {
   balanceMinor: number;
   // The entry being corrected, or null for a new one.
   entry: LedgerEntryRecord | null;
+  origin: EntryFormOrigin;
 };
 
-function EntryForm({ currency, goal, balanceMinor, entry }: FormProps) {
+function EntryForm({ currency, goal, balanceMinor, entry, origin }: FormProps) {
   const router = useRouter();
   const separators = deviceSeparators();
   const [todayDate] = useState<CivilDate>(() => today(appClock()));
@@ -177,11 +186,16 @@ function EntryForm({ currency, goal, balanceMinor, entry }: FormProps) {
 
   // `afterMinor` is the goal's balance after this commit. When it unlocks a stage, Home's unlock
   // moment plays the one haptic of this action (`milestone`, Phase 10) as the new object appears.
-  const committed = async (action: LedgerAction, kind: EntryKind, afterMinor: number) => {
+  // When it completes a quest saved from Challenges, that quest's card plays it (Phase 13).
+  const committed = async (action: LedgerAction, kind: EntryKind, afterMinor: number, completedAttemptId: string | null) => {
+    const questOnScreen = completedAttemptId !== null && origin === 'challenges';
+    if (completedAttemptId !== null) {
+      noteCompletedQuest({ attemptId: completedAttemptId, goalId: goal.id, onChallenges: questOnScreen });
+    }
     router.back();
     await refreshAppData();
     showToast({ tone: 'success', title: committedToastTitle(action, kind) });
-    if (!unlocksStage(balanceMinor, afterMinor, goal.targetMinor)) {
+    if (!questOnScreen && !unlocksStage(balanceMinor, afterMinor, goal.targetMinor)) {
       haptics.success();
     }
   };
@@ -210,7 +224,12 @@ function EntryForm({ currency, goal, balanceMinor, entry }: FormProps) {
       return;
     }
     const signedMinor = values.value.kind === 'withdrawal' ? -values.value.amountMinor : values.value.amountMinor;
-    await committed(original ? 'correct' : 'create', values.value.kind, balanceMinor - (original?.signedAmountMinor ?? 0) + signedMinor);
+    await committed(
+      original ? 'correct' : 'create',
+      values.value.kind,
+      balanceMinor - (original?.signedAmountMinor ?? 0) + signedMinor,
+      result.value.completedAttemptId,
+    );
   };
 
   const remove = async () => {
@@ -231,7 +250,12 @@ function EntryForm({ currency, goal, balanceMinor, entry }: FormProps) {
       showFailure('delete', result.error);
       return;
     }
-    await committed('delete', original.signedAmountMinor < 0 ? 'withdrawal' : 'deposit', balanceMinor - original.signedAmountMinor);
+    await committed(
+      'delete',
+      original.signedAmountMinor < 0 ? 'withdrawal' : 'deposit',
+      balanceMinor - original.signedAmountMinor,
+      result.value.completedAttemptId,
+    );
   };
 
   // Deleting needs a native confirmation first; there is no Undo, because no entry history is kept.

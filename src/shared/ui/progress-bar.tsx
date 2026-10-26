@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { cancelAnimation, Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { cancelAnimation, Easing, interpolateColor, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 
 import { colors, motion, radii, spacing } from '@/shared/theme';
 
@@ -20,6 +20,9 @@ type ProgressBarProps = {
   // amount's count-up); `animated: false`, Reduce Motion or a new `resetKey` (another goal) jump.
   animated?: boolean;
   durationMs?: number;
+  // Waits this long before a glide starts (Phase 13: the quest card waits for the entry sheet to
+  // close, like Home's world motion). Ignored when the bar jumps.
+  delayMs?: number;
   resetKey?: string;
 };
 
@@ -118,6 +121,7 @@ export function ProgressBar({
   testID,
   animated = true,
   durationMs = motion.slow,
+  delayMs = 0,
   resetKey,
 }: ProgressBarProps) {
   const clamped = clamp01(fraction);
@@ -143,8 +147,9 @@ export function ProgressBar({
     const current = fill.value;
     const currentPercent = current === last.fraction ? last.percent : Math.floor(current * 100);
     stops.value = fillColorStops(current, currentPercent, clamped, percent);
-    fill.value = withTiming(clamped, { duration: durationMs, easing: Easing.out(Easing.cubic) });
-  }, [clamped, percent, resetKey, animated, reduced, durationMs, fill, stops]);
+    const glide = withTiming(clamped, { duration: durationMs, easing: Easing.out(Easing.cubic) });
+    fill.value = delayMs > 0 ? withDelay(delayMs, glide) : glide;
+  }, [clamped, percent, resetKey, animated, reduced, durationMs, delayMs, fill, stops]);
 
   const fillStyle = useAnimatedStyle(() => ({
     width: `${fill.value * 100}%`,

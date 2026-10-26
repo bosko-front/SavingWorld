@@ -110,6 +110,12 @@ const pairs: Pair[] = [
     background: badge.surface,
     minimum: TEXT,
   })),
+  // Phase 13 (D105): the current quest's tinted band holds its title, tagline and In progress badge;
+  // the badge keeps its own pill.
+  ...Object.entries(tileColors).flatMap(([name, tile]) => [
+    { usage: `quest band title on ${name} tint`, foreground: colors.textPrimary, background: tile.background, minimum: TEXT },
+    { usage: `quest band tagline on ${name} tint`, foreground: colors.textSecondary, background: tile.background, minimum: TEXT },
+  ]),
   { usage: 'selected tab tint on light bar', foreground: colors.actionPrimary, background: colors.surface, minimum: NON_TEXT },
   // Phase 09 scene fallback: its message and Try again sit on the scene backdrop (cream, or either end
   // of the sky gradient).

@@ -64,6 +64,15 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 - Carried from Phase 10 (DECISIONS D88): on a physical iPhone, VoiceOver hears "New milestone unlocked! {stage}." (or "{n} milestones unlocked! …") exactly once after an unlocking deposit, can focus the in-scene message and dismiss it with a double-tap; nothing is announced for a withdrawal or a deposit inside one interval. Also: the milestone haptic is felt once for an unlocking deposit and the success haptic is not (felt haptics, Phase 19 haptics check).
 - Carried from Phase 09 (DECISIONS D83): on a physical iPhone, VoiceOver of the world scene on Home: one image element read as "Island world, n of 10 milestones unlocked" with the stage description as its value, decorative layers silent, the empty-state Island hidden, the scene fallback ("Your world can’t be shown right now", Try again) and the milestone card at 100% ("Your island is complete!"). Mandatory before release; deferred from Phase 09, not passed.
 - Carried from Phase 11 (DECISIONS D102): on a physical iPhone, the Collection VoiceOver walkthrough. Each gallery card is one button whose label carries the full goal name, its status and "Island · {date}"; the floating world and the sparkle burst are silent. In the souvenir detail, the world is one labelled image, the achievement block reads "{status}. Saved {amount}. Island completed on {date}.", the "since then" note is read when shown, and Reopen and Delete…, with the "Delete completed goal?" confirmation, are reachable in order. "Your island is complete! Its souvenir is now in your Collection." is heard once after the first 100%. Also: the success haptic of the first 100%, Finish, Reopen and Delete, and the warning of a refused Reopen, are each felt once.
+- Carried from Phase 13 (DECISIONS D107): on a physical iPhone, the Challenges VoiceOver walkthrough. Check:
+  - each available quest is one radio ("{quest}. {headline}. {detail}") with its checked state, and Start is a separate button inside the chosen card;
+  - a quest that can't start reads "{quest}, not available now. {reason}";
+  - the active card reads its headline, "{saved} of {target} saved, {to go}" and the quest progress bar with its percent;
+  - the info button reads "How quests work";
+  - the Past quests heading reads "Past quests, {n}" with its expanded state, and each row reads "{title}, {result}. {detail}";
+  - a completed quest is announced once;
+  - the reached-target hero reads "Your island is complete!".
+  Felt haptics: selection on changing the chosen quest, one success when a quest completes from Challenges, none for Start or Skip.
 - Formatting tests for at least two numeric/date locales, currency exponents and all user-facing catalog keys.
 - Contrast/touch/layout review, relevant interaction regressions and standard checks.
 
