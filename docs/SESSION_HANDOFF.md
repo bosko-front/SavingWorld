@@ -10,9 +10,10 @@ A separate session in the `claude/garden-theme-56e130` worktree ran Steps 1-2 of
 
 - Built: `assets/worlds/garden/` (README, `scripts/swg/` on the Island's shared rig, storybook pass and shaders, `source/garden.blend` with `SWG_00`-`SWG_10` and `SWG_Ambient`), the 100% review render and a reference comparison in `renders/review/`.
 - Decided (D115, owner): the Garden milestone order is v1.2 except 80% greenhouse and vegetable beds; the 60% fountain brings all the water; the pergola is part of 90%. PRODUCT_REQUIREMENTS, ASSET_SPEC, SOURCE_RECONCILIATION, docs/README, CLAUDE.md and the Phase 17 prompt/roadmap follow it.
-- Waiting on the owner: visual approval of the completed Garden.
-- Next for this workstream after approval: brief Step 3 (0%, 50% and 100% renders, consistency check). Step 4 (all eleven states, layer export, manifest) and Step 5 (Phase 17 integration) follow only on further approval.
-- Not run: milestone renders, export, any app check (none apply yet).
+- Approved by the owner: the completed Garden's appearance (Step 2).
+- Step 3 done: 0%, 50% and 100% rendered (`assets/worlds/garden/renders/milestones/`, sheet `garden_milestones.png`); `verify_stages.py` PASS (one rig/terrain fingerprint, add-only, nothing floating after four small fixes) and `milestone_report.py` PASS (identical underside 0% → 50%). Waiting on the owner: approval of Step 3.
+- Next for this workstream after approval: brief Step 4 (all eleven states, the animation layers, the layer export and manifest, validated like the Island's). Step 5 (Phase 17 integration) follows only on further approval.
+- Not run: stages 1-4 and 6-9 renders, export, any app check (none apply yet).
 
 ## Completed
 

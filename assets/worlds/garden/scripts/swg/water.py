@@ -251,7 +251,7 @@ def edge_stones(geo, ch, s0, s1, seed, density=0.55, size=(0.11, 0.22), cascade_
         for sign in (-1, 1):
             if r.random() < (0.95 if falling and cascade_boost else density):
                 q = p + nrm * sign * (ch.width(s, seed) + r.uniform(0.02, 0.18))
-                z = max(ch.level(s) - 0.12, T.height_at(q.x, q.y))
+                z = T.height_at(q.x, q.y)  # bank stones sit on the ground, also beside a cascade
                 sz = r.uniform(*size) * (1.5 if falling else 1.0)
                 T.add_rock(geo, (q.x, q.y, z), sz, seed * 13 + int(s * 20) * 2 + sign, moss=0.5,
                            sink=0.4)
@@ -265,7 +265,7 @@ def edge_stones(geo, ch, s0, s1, seed, density=0.55, size=(0.11, 0.22), cascade_
             z = ch.level(sc) - 0.12
             for o in (-0.55, 0.0, 0.55):
                 q = p + Vector((-t.y, t.x, 0)) * o * ch.width(sc, seed)
-                T.add_rock(geo, (q.x, q.y, z - 0.05), r.uniform(0.15, 0.22), seed * 31 + i * 3 + int(o * 10),
+                T.add_rock(geo, (q.x, q.y, min(z, T.height_at(q.x, q.y)) - 0.05), r.uniform(0.15, 0.22), seed * 31 + i * 3 + int(o * 10),
                            moss=0.3, squash=0.5, sink=0.55)
 
 

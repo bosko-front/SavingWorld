@@ -364,20 +364,25 @@ def raised_bed(wood, soil_geo, center, length, width, yaw, height=0.32, color=No
     z = max(T.height_at(c.x + dv.x * sl * length / 2 + du.x * sw * width / 2,
                         c.y + dv.y * sl * length / 2 + du.y * sw * width / 2)
             for sl in (-1, 1) for sw in (-1, 1))
+    # the frame reaches down to the lowest corner, so a bed on a slope never floats
+    zlo = min(T.height_at(c.x + dv.x * sl * length / 2 + du.x * sw * width / 2,
+                          c.y + dv.y * sl * length / 2 + du.y * sw * width / 2)
+              for sl in (-1, 1) for sw in (-1, 1)) - 0.08
+    top = z + height
     wc = color or srgb("#A36F42")
     for sw in (-1, 1):
         p = c + du * sw * (width / 2)
-        wood.box((p.x, p.y, z + height / 2 - 0.08), (length + 0.1, 0.1, height + 0.16), wc,
+        wood.box((p.x, p.y, (zlo + top) / 2), (length + 0.1, 0.1, top - zlo), wc,
                  rot=(0, 0, yaw), bevel=0.025)
     for sl in (-1, 1):
         p = c + dv * sl * (length / 2)
-        wood.box((p.x, p.y, z + height / 2 - 0.08), (0.1, width + 0.1, height + 0.16),
+        wood.box((p.x, p.y, (zlo + top) / 2), (0.1, width + 0.1, top - zlo),
                  scale_color(wc, 0.88), rot=(0, 0, yaw), bevel=0.025)
     for sl in (-1, 1):
         for sw in (-1, 1):
             p = c + dv * sl * (length / 2) + du * sw * (width / 2)
-            wood.box((p.x, p.y, z + height / 2), (0.14, 0.14, height + 0.12), srgb("#7C4E2C"),
-                     rot=(0, 0, yaw), bevel=0.02)
+            wood.box((p.x, p.y, (zlo + top + 0.06) / 2), (0.14, 0.14, top + 0.06 - zlo),
+                     srgb("#7C4E2C"), rot=(0, 0, yaw), bevel=0.02)
     soil_geo.box((c.x, c.y, z + height - 0.08), (length - 0.04, width - 0.04, 0.12), SOIL,
                  rot=(0, 0, yaw), bevel=0.03)
     return z + height - 0.02
@@ -436,7 +441,7 @@ def vegetable_beds(col):
             else:  # tomatoes on a cane
                 plants.ico(p + Vector((0, 0, 0.22)), 0.22, srgb("#4F9A38"), subdiv=2, displace=0.25,
                            seed=1500 + j)
-                wood.tube([p, p + Vector((0, 0, 0.6))], [0.018, 0.015], srgb("#C9A46A"), segs=5)
+                plants.tube([p, p + Vector((0, 0, 0.6))], [0.018, 0.015], srgb("#C9A46A"), segs=5)
                 for k in range(4):
                     a = r.uniform(0, TAU)
                     fruit.ico(p + Vector((math.cos(a) * 0.19, math.sin(a) * 0.19, 0.15 + r.uniform(0, 0.18))),

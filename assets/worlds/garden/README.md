@@ -2,7 +2,7 @@
 
 Source art for the Pro **Garden** theme (docs/ASSET_SPEC.md, PRODUCT_REQUIREMENTS R11). This folder holds the editable Blender scene and the scripts that generate it. It is **not** read by the app: approved exports go to `assets/themes/garden/` in Phase 17, with a manifest, exactly like the Island (D76, D77).
 
-Status (26 October 2026): **Step 2 of the owner's Garden brief — the completed (100%) Garden is built and rendered for visual approval.** Not approved yet. No milestone renders, layer export, manifest or app integration exist yet (Steps 3-5 wait for approval). The milestone order is decided (owner, D115; see "Milestone sequence").
+Status (26 October 2026): **Step 3 of the owner's Garden brief — the 0%, 50% and 100% states are rendered and checked, awaiting the owner's approval.** The owner approved the completed Garden's appearance (Step 2). All eleven states, the layer export, the manifest and app integration wait for approval of Step 3 (Steps 4-5). The milestone order is decided (owner, D115; see "Milestone sequence").
 
 ## Reuse of the Island pipeline
 
@@ -28,8 +28,11 @@ Garden-specific code lives in `scripts/swg/`: `layout.py` (every position, singl
 | `scripts/render_preview.py` | High-quality render of one stage (2048×1536, 256 samples) plus backdrop and phone-size copies; `-- 10 256 <dir> 1` also shows the ambient-only butterflies |
 | `scripts/draft_render.py` | Fast low-sample render for iteration |
 | `scripts/check_framing.py` | Reports whether a stage stays inside the shared frozen camera frame |
+| `scripts/verify_stages.py` | Per-stage checks (as the Island's): identical camera/lights/render settings/terrain fingerprint, add-only stages, no floating pieces |
+| `scripts/milestone_report.py` | Pixel checks between rendered stages (visible change per step, unchanged rock underside band, one resolution) and the side-by-side sheet `renders/milestones/garden_milestones.png` |
 | `source/garden.blend` | Editable scene (generated, compressed) |
-| `renders/review/` | Renders submitted for owner review (committed) |
+| `renders/review/` | The approved Step 2 review render (100%, butterflies shown) and the reference comparison (committed) |
+| `renders/milestones/` | Milestone renders: one transparent 2048×1536 master per rendered stage (without ambient-only elements) and `garden_milestones.png`; backdrop and phone-size copies are made locally and not committed |
 | `renders/preview/` | Ad-hoc renders (not committed) |
 
 ## Rebuild and render
@@ -133,6 +136,17 @@ Main differences from the reference:
 3. **Terraces.** The reference stacks many small, irregular levels. The render has three broad terraces with long dry-stone walls, which keeps the stage-0 terrain simple and identical in every state; the walls are more prominent than in the reference.
 4. **Style.** The reference is a painted illustration. The render uses the Island's approved procedural storybook look, so the two worlds match; fine painted texture detail (stone and leaf texture, warm interior light) is softer.
 5. **Smaller details.** The greenhouse's interior light is faint (reference: clearly lit); the pergola reads as a rose-covered frame but its bench is hidden; the seating nook is small; the underside is similar to the Island's (warmer stone, more vines).
+
+### 26 October 2026 — Step 2 approved; Step 3: 0%, 50% and 100%
+
+The owner approved the completed Garden's appearance and the milestone order (D115). Step 3 rendered stages 0, 5 and 10 at 256 samples (`renders/milestones/`, 56 s, 253 s and 443 s on the M4), without the ambient-only butterflies.
+
+- `verify_stages.py`, all eleven stages: **PASS.** One camera/lights/render-settings/terrain fingerprint for every stage (`61843db132018b42`; the rig part `ce1d218181e6a3b5` comes from the Island's `swi/rig.py`); every stage only adds collections; no floating pieces. The first run found four real gaps, fixed in the scripts before the final renders: a vegetable bed corner and its posts over the wall top (bed frames now reach down to the lowest corner), bank stones beside both cascades (now on the ground), one stepped stone under the lower cascade, and the pergola lantern hanging in the air (now on the middle joist). Soil inside the raised frames is allowed to sit above the lawn.
+- `milestone_report.py` 0 → 50 → 100: **PASS.** One resolution (2048×1536); 9.7% and 23.3% of the pixels change visibly at iPhone 17 Pro size; the rock underside band is unchanged between 0% and 50% (mean 0.006/255, max 1/255), so camera, light and terrain are identical.
+- The new 100% render matches the approved review render (mean 0.11/255, 99th percentile 1/255): the fixes and the absent butterflies are not visible at phone size.
+- Framing is unchanged (`check_framing.py`, see Step 2).
+
+To look at: at 0% and 50% the wall gaps kept for the later stairs (0%) and the two cascades (until 60%) read as bare earth ramps in the stone walls. They are part of the base terrain by design (the terrain must not change between stages); they could be softened with grass if the owner prefers.
 
 ## Provenance and licensing
 

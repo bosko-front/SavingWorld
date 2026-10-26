@@ -566,9 +566,9 @@ def build_pergola(col):
             P.leaf_mound(leaves, p, 0.15, 1200 + i * 4 + d)
             if r.random() < 0.7:
                 P.flower_cluster(roses, p + Vector((0, -0.1, 0)), r.choice(rose_cols), 0.11, 1300 + i * 4 + d)
-    # hanging lantern
-    lx, ly = cx + 0.3, cy
-    wood.box((lx, ly, z0 + h - 0.1), (0.02, 0.02, 0.3), srgb("#4A3A30"))
+    # hanging lantern on the middle joist
+    lx, ly = cx, cy
+    wood.box((lx, ly, z0 + h + 0.0), (0.02, 0.02, 0.42), srgb("#4A3A30"))
     wood.cone((lx, ly, z0 + h - 0.32), (lx, ly, z0 + h - 0.22), 0.16, 0.02, srgb("#4A3A30"), segs=4)
     glow.box((lx, ly, z0 + h - 0.45), (0.15, 0.15, 0.22), GLOW, bevel=0.03)
     wood.to_object("Pergola_Wood", col, [M.wood()], sharp_angle=40)
