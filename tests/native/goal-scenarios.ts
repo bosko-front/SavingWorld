@@ -16,6 +16,7 @@ import {
   type GoalCommandDeps,
   type LifecycleInput,
 } from '@/features/goals/application/goal-commands';
+import { startChallenge } from '@/features/challenges/application/challenge-commands';
 import { readGoalsOverview } from '@/features/goals/application/goal-queries';
 import { selectGoal } from '@/features/goals/application/goal-selection';
 import { createEntry, deleteEntry } from '@/features/ledger/application/ledger-commands';
@@ -40,7 +41,8 @@ import { check, equal, type Scenario } from './scenario-harness';
 // Phase 06 scenarios: goal lifecycle, Free goal limit, closed/paused edit guards, global currency
 // lock and Home selection (docs/TEST_PLAN.md T07, T27), changed in Phase 08 by owner decision D74:
 // no Archive, Free keeps one goal in any status, goals can be deleted (G07), schema 2 (G08). Phase
-// 11 replaced the planned-shape souvenir fixture with real souvenirs (schema 3). Same dual use as database-scenarios.ts: the iOS
+// 11 replaced the planned-shape souvenir fixture with real souvenirs (schema 3); Phase 12 added G09,
+// deletion with challenge attempts (schema 4). Same dual use as database-scenarios.ts: the iOS
 // simulator through real Expo SQLite (`npm run test:db`, the evidence) and Jest on host SQLite.
 
 const JPY = getCurrency('JPY') as CurrencyMetadata;
@@ -391,6 +393,47 @@ export const GOAL_SCENARIOS: Scenario[] = [
       }),
   },
   {
+    id: 'G09',
+    title: 'Delete Goal removes its challenge attempts with its entries and souvenir in one transaction (D74, Phase 12)',
+    run: (context) =>
+      withSession(context, async (s) => {
+        const h = await s.harness('delete-challenges');
+        const deps = h.deps;
+        const start = (goalId: string, ruleId: 'first_step' | 'next_milestone') =>
+          startChallenge(deps, { operationId: h.op(), goalId, ruleId });
+        check((await start(h.goalId, 'next_milestone')).ok, 'start Next milestone');
+        check((await mustCreate(h, 'deposit', 10_000, '2026-10-23')).completedAttemptId !== null, 'Next milestone completed');
+        await mustCreate(h, 'deposit', 90_000, '2026-10-23');
+        check((await start(h.goalId, 'first_step')).ok, 'start First step');
+        check((await finishGoal(deps, await lifecycle(h, h.goalId))).ok, 'finish with a current attempt');
+        const totals = () =>
+          h.db.read(async (r) => [
+            await count(r, 'goals'),
+            await count(r, 'ledger_entries'),
+            await count(r, 'collectibles'),
+            await count(r, 'challenge_attempts'),
+          ]);
+        equal(await totals(), [1, 2, 1, 2], 'goal, entries, souvenir, a historical and a current attempt');
+
+        h.hooks.failBeforeCommit = true;
+        expectError(await deleteGoal(deps, await lifecycle(h, h.goalId)), 'storage_failure', 'injected failure');
+        h.hooks.failBeforeCommit = false;
+        equal(await totals(), [1, 2, 1, 2], 'rolled back together');
+
+        const input = await lifecycle(h, h.goalId);
+        const removed = await deleteGoal(deps, input);
+        check(removed.ok && !removed.value.replayed, 'confirmed deletion');
+        equal(await totals(), [0, 0, 0, 0], 'attempts are gone with the goal');
+        equal((await h.db.read((r) => r.all('PRAGMA foreign_key_check'))).length, 0, 'foreign_key_check clean');
+        const again = await deleteGoal(deps, input);
+        check(again.ok && again.value.replayed, 'receipt replays');
+
+        // A new goal starts with no history: First step is available again.
+        const fresh = await mustCreateGoal(h, deps, 'New start');
+        check((await start(fresh, 'first_step')).ok, 'First step on the new goal');
+      }),
+  },
+  {
     id: 'G08',
     title: 'Schema 1 → 2: archived goals become paused with their records; goals become deletable',
     run: (context) =>
@@ -418,10 +461,10 @@ export const GOAL_SCENARIOS: Scenario[] = [
         equal(state.trigger, null, 'no-delete trigger dropped');
         await db.close();
 
-        // The current app (schema 3) opens it and can delete the goal; it is below target, so the
+        // The current app (schema 4) opens it and can delete the goal; it is below target, so the
         // schema 3 upgrade gives it no souvenir.
         const current = await s.openDb(name);
-        equal(current.migration, { fromVersion: 2, toVersion: 3, applied: [3] }, 'upgrade to schema 3');
+        equal(current.migration, { fromVersion: 2, toVersion: 4, applied: [3, 4] }, 'upgrade to the current schema');
         equal(await current.read((r) => count(r, 'collectibles')), 0, 'no souvenir below target');
         const removed = await deleteGoal({ db: current, clock: steppingClock() }, { operationId: 'op-upgrade-delete', goalId: 'legacy-1', expectedRevision: 3 });
         check(removed.ok, 'upgraded goal can be deleted');

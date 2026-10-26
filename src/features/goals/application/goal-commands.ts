@@ -8,6 +8,7 @@ import { checkOperationId, executeCommand, reject, type CommandFailure, type Ope
 import type { AppDatabase } from '@/data/db/database';
 import type { SqlExecutor } from '@/data/db/sql';
 import { isEntityId, type IdGenerator } from '@/data/ids';
+import { deleteAttemptsForGoal } from '@/data/repositories/challenge-attempt-repository';
 import { deleteCollectiblesForGoal } from '@/data/repositories/collectible-repository';
 import {
   countGoals,
@@ -42,8 +43,8 @@ import { lifecycleTarget, needsFunding, needsGoalLimit, type LifecycleAction } f
 // - Lifecycle: Pause, Resume, Finish (only when B ≥ T) and Reopen (within the goal limit, never an
 //   automatic Finish). Archive was removed (D74). No lifecycle change adds, removes or replaces a
 //   souvenir: it was stored when the goal first reached its target.
-// - Delete Goal (D74): any goal, after the screen's confirmation; removes its entries, its souvenir
-//   and the goal in one transaction. Nothing keeps a copy.
+// - Delete Goal (D74): any goal, after the screen's confirmation; removes its entries, its souvenir,
+//   its challenge attempts (Phase 12) and the goal in one transaction. Nothing keeps a copy.
 
 export const TITLE_MAX_LENGTH = 100;
 
@@ -385,9 +386,9 @@ export const resumeGoal = (deps: GoalCommandDeps, input: LifecycleInput) => chan
 export const finishGoal = (deps: GoalCommandDeps, input: LifecycleInput) => changeGoalStatus(deps, 'finish', input);
 export const reopenGoal = (deps: GoalCommandDeps, input: LifecycleInput) => changeGoalStatus(deps, 'reopen', input);
 
-// Deletes a goal with all of its entries and its souvenir (owner decision D74), after the screen's
-// native confirmation. Revision-checked, so a goal that changed after the person confirmed is not
-// deleted; a retry with the same operation ID replays the receipt. Schema 1's triggers refuse ledger
+// Deletes a goal with all of its entries, its souvenir and its challenge attempts (owner decision
+// D74), after the screen's native confirmation. Revision-checked, so a goal that changed after the
+// person confirmed is not deleted; a retry with the same operation ID replays the receipt. Schema 1's triggers refuse ledger
 // changes on a completed goal, so a completed goal is first set back to paused in this same
 // transaction: the whole deletion commits together or not at all.
 export async function deleteGoal(
@@ -419,6 +420,7 @@ export async function deleteGoal(
     }
     await deleteEntriesForGoal(tx, goal.id);
     await deleteCollectiblesForGoal(tx, goal.id);
+    await deleteAttemptsForGoal(tx, goal.id);
     if (!(await deleteGoalRow(tx, goal.id, revision))) {
       reject({ code: 'stale_goal', currentRevision: goal.revision });
     }

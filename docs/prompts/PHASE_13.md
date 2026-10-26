@@ -18,7 +18,7 @@ Expose the three fixed challenges, calculated progress and retained attempt hist
 
 ## Dependencies and decision gates
 
-Phase 12; inspect the actual rule/eligibility engine and shared Phase 07 transaction form.
+Phase 12; inspect the actual rule/eligibility engine and shared Phase 07 transaction form. Phase 12 provides `readChallengeBoard` (current attempt, the three offers with their availability reason and preview, history), `startChallenge`/`skipChallenge` and `completedAttemptId` on ledger results (DECISIONS D103); present them without recomputing a rule.
 
 No unresolved product gate. Free and Pro use the identical catalog.
 

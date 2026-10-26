@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { capabilitiesFor, DEFAULT_ACCESS_LEVEL, type Capabilities } from '@/core/access';
 import { systemClock, today, type CivilDate, type Clock } from '@/core/calendar';
 import { uuidGenerator } from '@/data/ids';
+import { closeEndedAttempts, type ChallengeCommandDeps } from '@/features/challenges/application/challenge-commands';
 import type { GoalCommandDeps } from '@/features/goals/application/goal-commands';
 import { readGoalsOverview, type GoalsOverview } from '@/features/goals/application/goal-queries';
 import type { LedgerCommandDeps } from '@/features/ledger/application/ledger-commands';
@@ -101,6 +102,20 @@ export async function reconcileCivilDate(): Promise<boolean> {
   return true;
 }
 
+// Foreground reconciliation for fixed challenges (Phase 12): a Weekly step whose saved week ended
+// while the app was away is settled (Completed or Not completed) and the snapshot refreshed once.
+// Screens already show such a week as ended, because the challenge board is settled for the
+// current instant; this makes it durable. A failure leaves the attempt for the next command or
+// foreground to settle. Returns whether anything changed.
+export async function closeEndedChallengeAttempts(): Promise<boolean> {
+  const result = await closeEndedAttempts({ db: getAppDatabase(), clock });
+  if (!result.ok || result.value.goalsChanged === 0) {
+    return false;
+  }
+  await refreshAppData();
+  return true;
+}
+
 export type CommittedRead<T> = { status: 'loading' } | { status: 'ready'; value: T } | { status: 'failed' };
 
 // A screen-specific read of committed data (for example one goal's History), re-run whenever
@@ -153,4 +168,8 @@ export function ledgerCommandDeps(): LedgerCommandDeps {
 
 export function currencyCommandDeps(): CurrencyCommandDeps {
   return { db: getAppDatabase(), clock };
+}
+
+export function challengeCommandDeps(): ChallengeCommandDeps {
+  return { db: getAppDatabase(), clock, ids: uuidGenerator };
 }

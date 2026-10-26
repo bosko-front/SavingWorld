@@ -9,6 +9,7 @@ import type { IdGenerator } from '@/data/ids';
 import { getGoal, updateGoalStatus } from '@/data/repositories/goal-repository';
 import { getEntry } from '@/data/repositories/ledger-repository';
 import { writeCurrency } from '@/data/repositories/settings-repository';
+import { startChallenge } from '@/features/challenges/application/challenge-commands';
 import { createGoal, deleteGoal, finishGoal, pauseGoal, type GoalCommandDeps } from '@/features/goals/application/goal-commands';
 import { readGoalsOverview } from '@/features/goals/application/goal-queries';
 import { selectGoal } from '@/features/goals/application/goal-selection';
@@ -172,7 +173,7 @@ export async function mustCreate(h: Harness, kind: EntryValuesInput['kind'], amo
   return result.value;
 }
 
-const EXPECTED_TABLES = ['collectibles', 'goals', 'ledger_entries', 'migrations', 'operation_receipts', 'settings'];
+const EXPECTED_TABLES = ['challenge_attempts', 'collectibles', 'goals', 'ledger_entries', 'migrations', 'operation_receipts', 'settings'];
 
 export const DATABASE_SCENARIOS: Scenario[] = [
   {
@@ -181,7 +182,7 @@ export const DATABASE_SCENARIOS: Scenario[] = [
     run: (context) =>
       withSession(context, async (s) => {
         const db = await s.openDb(s.name('fresh'));
-        equal(db.migration, { fromVersion: 0, toVersion: 3, applied: [1, 2, 3] }, 'migration outcome');
+        equal(db.migration, { fromVersion: 0, toVersion: 4, applied: [1, 2, 3, 4] }, 'migration outcome');
         const pragmas = await db.pragmas();
         equal(pragmas.writer.journalMode.toLowerCase(), 'wal', 'writer journal_mode');
         equal(pragmas.writer.foreignKeys, true, 'writer foreign_keys');
@@ -221,7 +222,7 @@ export const DATABASE_SCENARIOS: Scenario[] = [
         })();
         for (let i = 0; i < 3; i += 1) {
           const db = await s.openDb(h.name);
-          equal(db.migration, { fromVersion: 3, toVersion: 3, applied: [] }, `reopen ${i + 1} migration outcome`);
+          equal(db.migration, { fromVersion: 4, toVersion: 4, applied: [] }, `reopen ${i + 1} migration outcome`);
           const ledger = await readGoalLedger(db, h.goalId);
           equal(ledger?.balanceMinor, 3_750, `reopen ${i + 1} balance`);
           equal(ledger?.entries.map((e) => e.note), ['first', null], `reopen ${i + 1} notes`);
@@ -232,6 +233,7 @@ export const DATABASE_SCENARIOS: Scenario[] = [
               { version: 1, applied_at_utc: firstAppliedAt },
               { version: 2, applied_at_utc: firstAppliedAt },
               { version: 3, applied_at_utc: firstAppliedAt },
+              { version: 4, applied_at_utc: firstAppliedAt },
             ],
             `reopen ${i + 1} history unchanged`,
           );
@@ -248,13 +250,13 @@ export const DATABASE_SCENARIOS: Scenario[] = [
         await mustCreate(h, 'deposit', 9_999, '2026-10-22', 'keep me');
         await h.db.close();
         const broken: Migration = {
-          version: 4,
+          version: 5,
           name: 'broken_upgrade',
           sql: 'CREATE TABLE upgrade_probe (id TEXT PRIMARY KEY) STRICT; UPDATE ledger_entries SET note = NULL; INSERT INTO missing_table VALUES (1);',
         };
-        await rejects(s.openDb(h.name, [...MIGRATIONS, broken]), /migration_failed|Migration 4 failed/, 'broken migration');
+        await rejects(s.openDb(h.name, [...MIGRATIONS, broken]), /migration_failed|Migration 5 failed/, 'broken migration');
         const db = await s.openDb(h.name);
-        equal(db.migration.applied, [], 'still schema 3');
+        equal(db.migration.applied, [], 'still schema 4');
         const state = await db.read(async (r) => ({
           tables: await tableNames(r),
           notes: (await r.all<{ note: string | null }>('SELECT note FROM ledger_entries')).map((row) => row.note),
@@ -262,9 +264,9 @@ export const DATABASE_SCENARIOS: Scenario[] = [
         equal(state.tables, EXPECTED_TABLES, 'no partial upgrade table');
         equal(state.notes, ['keep me'], 'data untouched by the failed migration');
         await db.close();
-        const good: Migration = { version: 4, name: 'probe_upgrade', sql: 'CREATE TABLE upgrade_probe (id TEXT PRIMARY KEY) STRICT;' };
+        const good: Migration = { version: 5, name: 'probe_upgrade', sql: 'CREATE TABLE upgrade_probe (id TEXT PRIMARY KEY) STRICT;' };
         const upgraded = await s.openDb(h.name, [...MIGRATIONS, good]);
-        equal(upgraded.migration, { fromVersion: 3, toVersion: 4, applied: [4] }, 'upgrade outcome');
+        equal(upgraded.migration, { fromVersion: 4, toVersion: 5, applied: [5] }, 'upgrade outcome');
         equal((await readGoalLedger(upgraded, h.goalId))?.balanceMinor, 9_999, 'balance after upgrade');
       }),
   },
@@ -277,13 +279,13 @@ export const DATABASE_SCENARIOS: Scenario[] = [
         await mustCreate(h, 'deposit', 4_200, '2026-10-22');
         await h.db.close();
         const raw = await s.raw(h.name);
-        await raw.run("INSERT INTO migrations VALUES (4, 'from_the_future', 'ffff', '2027-01-01T00:00:00.000Z')");
+        await raw.run("INSERT INTO migrations VALUES (5, 'from_the_future', 'ffff', '2027-01-01T00:00:00.000Z')");
         await raw.close();
         await rejects(s.openDb(h.name), /newer_schema|newer than supported/, 'newer schema');
         const after = await s.raw(h.name);
         equal(await count(after, 'ledger_entries'), 1, 'entries kept after newer-schema refusal');
-        equal(await count(after, 'migrations'), 4, 'history kept');
-        await after.run('DELETE FROM migrations WHERE version = 4');
+        equal(await count(after, 'migrations'), 5, 'history kept');
+        await after.run('DELETE FROM migrations WHERE version = 5');
         await after.close();
 
         const edited: Migration = { ...MIGRATIONS[0]!, sql: `${MIGRATIONS[0]!.sql}\n-- edited` };
@@ -683,6 +685,7 @@ const RESTART_WITHDRAWAL_OP = 'op-r-20-unacknowledged';
 const RESTART_WITHDRAWAL = values('withdrawal', 2_000, '2026-10-05');
 const RESTART_SOUVENIR_OP = 'op-r-souvenir-unacknowledged';
 const RESTART_SOUVENIR_DEPOSIT = values('deposit', 20_000, '2026-10-06');
+const RESTART_CHALLENGE_START = (goalId: string) => ({ operationId: 'op-r-challenge', goalId, ruleId: 'next_milestone' as const });
 
 export function restartDatabaseName(seedId: string): string {
   return `dbtest-restart-${seedId}.db`;
@@ -727,6 +730,9 @@ export function restartSeedScenario(seedId: string): Scenario {
       check(finished.ok, 'finished goal');
       await createEntry(deps, { operationId: RESTART_SOUVENIR_OP, goalId: finished.value.goalId, ...RESTART_SOUVENIR_DEPOSIT });
       check((await finishGoal(pro, { operationId: 'op-r-finish', goalId: finished.value.goalId, expectedRevision: 1 })).ok, 'finish');
+      // Phase 12: a Next milestone start whose result is dropped. R2 retries it after the restart: it
+      // replays the same attempt instead of starting a second one.
+      await startChallenge(deps, RESTART_CHALLENGE_START(goalId));
       await db.close();
       return { database: restartDatabaseName(seedId), goalId, balanceMinor: 10_000 };
     },
@@ -742,13 +748,14 @@ export function restartVerifyScenario(seedId: string): Scenario {
       const clock = steppingClock();
       const db = await AppDatabase.open({ driver: context.driver, name, migrations: MIGRATIONS, clock });
       try {
-        equal(db.migration, { fromVersion: 3, toVersion: 3, applied: [] }, 'no re-migration');
+        equal(db.migration, { fromVersion: 4, toVersion: 4, applied: [] }, 'no re-migration');
         const state = await db.read(async (r) => ({
           currency: (await r.get<{ value_json: string }>("SELECT value_json FROM settings WHERE key = 'currency'"))?.value_json,
           goals: await r.all('SELECT id, title, target_minor, status, revision FROM goals ORDER BY created_at_utc, id'),
           entries: await r.all('SELECT signed_amount_minor, entry_date, note, revision FROM ledger_entries ORDER BY entry_date, created_at_utc, id'),
           receipts: await count(r, 'operation_receipts'),
           souvenirs: await r.all('SELECT goal_id, theme_id, theme_version, target_minor_at_award FROM collectibles'),
+          attempts: await r.all('SELECT id, goal_id, rule_id, target_minor, milestone_stage, start_date, state, result FROM challenge_attempts'),
         }));
         equal(state.currency, '{"code":"EUR","exponent":2,"registryVersion":1}', 'global currency');
         equal(
@@ -780,7 +787,13 @@ export function restartVerifyScenario(seedId: string): Scenario {
           ],
           'entries',
         );
-        equal(state.receipts, 12, 'receipts');
+        equal(state.receipts, 13, 'receipts');
+        // Balance 100.00 of 500.00: stage 2; threshold 150.00; frozen target 50.00 for milestone 3.
+        equal(
+          state.attempts,
+          [{ id: 'restart-0010', goal_id: 'restart-0001', rule_id: 'next_milestone', target_minor: 5_000, milestone_stage: 3, start_date: '2026-10-23', state: 'active', result: null }],
+          'the started challenge survives the restart',
+        );
         // The unacknowledged withdrawal: retrying after the restart replays it instead of writing twice.
         const after = { db, clock, ids: sequentialIds('after') };
         const retried = await createEntry(after, { operationId: RESTART_WITHDRAWAL_OP, goalId: 'restart-0005', ...RESTART_WITHDRAWAL });
@@ -793,6 +806,9 @@ export function restartVerifyScenario(seedId: string): Scenario {
         const souvenirRetry = await createEntry(after, { operationId: RESTART_SOUVENIR_OP, goalId: 'restart-0008', ...RESTART_SOUVENIR_DEPOSIT });
         check(souvenirRetry.ok && souvenirRetry.value.replayed && !souvenirRetry.value.souvenirAwarded, 'awarding deposit replays without a new award');
         equal(await db.read((r) => count(r, 'collectibles')), 1, 'still one souvenir after the restart and retry');
+        const challengeRetry = await startChallenge(after, RESTART_CHALLENGE_START('restart-0001'));
+        check(challengeRetry.ok && challengeRetry.value.replayed && challengeRetry.value.attemptId === 'restart-0010', 'unacknowledged start replays');
+        equal(await db.read((r) => count(r, 'challenge_attempts')), 1, 'still one attempt after the restart and retry');
         return { balanceMinor: 10_000, pausedGoalBalanceMinor: 3_000 };
       } finally {
         await db.close();

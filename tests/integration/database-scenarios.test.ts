@@ -6,6 +6,7 @@ import {
   restartSeedScenario,
   restartVerifyScenario,
 } from '../native/database-scenarios';
+import { CHALLENGE_SCENARIOS } from '../native/challenge-scenarios';
 import { GOAL_SCENARIOS } from '../native/goal-scenarios';
 import { INTL_SCENARIOS } from '../native/intl-scenarios';
 import { LEDGER_SCENARIOS } from '../native/ledger-scenarios';
@@ -13,7 +14,7 @@ import { SOUVENIR_SCENARIOS } from '../native/souvenir-scenarios';
 import { runScenarios, type ScenarioContext } from '../native/scenario-harness';
 import { createNodeSqliteDriver, temporaryDirectory } from '../support/node-sqlite-driver';
 
-// The Phase 05-11 database scenarios on host SQLite (node:sqlite). This checks the SQL, migrations and
+// The Phase 05-12 database scenarios on host SQLite (node:sqlite). This checks the SQL, migrations and
 // commands quickly in CI, but it is additional to — not a substitute for — the iOS Expo SQLite run
 // recorded by `npm run test:db` (docs/evidence/PHASE_05.md).
 const driver = createNodeSqliteDriver(temporaryDirectory('scenarios'));
@@ -29,7 +30,7 @@ const context: ScenarioContext = {
 };
 
 describe('database scenarios on host SQLite (Jest, additional to the native run)', () => {
-  it.each([...DATABASE_SCENARIOS, ...GOAL_SCENARIOS, ...LEDGER_SCENARIOS, ...SOUVENIR_SCENARIOS, ...INTL_SCENARIOS].map((scenario) => [scenario.id, scenario] as const))('%s', async (_id, scenario) => {
+  it.each([...DATABASE_SCENARIOS, ...GOAL_SCENARIOS, ...LEDGER_SCENARIOS, ...SOUVENIR_SCENARIOS, ...CHALLENGE_SCENARIOS, ...INTL_SCENARIOS].map((scenario) => [scenario.id, scenario] as const))('%s', async (_id, scenario) => {
     const [result] = await runScenarios([scenario], context, () => 0);
     expect(result?.error).toBeUndefined();
     expect(result?.status).toBe('pass');

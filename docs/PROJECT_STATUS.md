@@ -1,10 +1,13 @@
 # Project status
 
-Updated 25 October 2026 after the Phase 11 session (souvenirs, Finish/Reopen and Collection; verified complete, D102). Functional scope is fixed by the local [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx).
+Updated 25 October 2026 after the Phase 12 session (three fixed challenge rules and the attempt engine; verified complete, D103). Functional scope is fixed by the local [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx).
 
 ## Current state
 
-- Current stage: **Phase 11 VERIFIED COMPLETE** ([evidence](evidence/PHASE_11.md)). The owner deferred the Collection VoiceOver walkthrough and the felt haptics to Phase 19, repeated in Phase 21 (D102); they are not passed and stay mandatory before release. Next prompt: [PHASE_12](prompts/PHASE_12.md).
+- Current stage: **Phase 12 VERIFIED COMPLETE** ([evidence](evidence/PHASE_12.md)). Next prompt: [PHASE_13](prompts/PHASE_13.md).
+  - Built: schema 4 `challenge_attempts` (frozen contract with `milestone_stage`; the database itself refuses a second active attempt, a second First step, a second Weekly step in one saved week, contract changes, reactivation and changes to or from Skipped), calendar weeks and `startOfCivilDateMs` in `src/core/calendar/week.ts`, the pure rules and `ChallengeBoard` view (`src/features/challenges/domain/challenge-rules.ts`), `startChallenge`/`skipChallenge`/`closeEndedAttempts` and `reconcileGoalAttempts` inside every ledger create/correct/delete transaction, `readChallengeBoard`, attempt deletion in `deleteGoal`, and the foreground close of ended weeks. `LedgerMutationResult.completedAttemptId` is the one "just completed" signal. Decision D103 (engineering; no product rule changed). No UI (Phase 13).
+  - Checks: lint, typecheck, Jest 874/874 (35 suites; new: 66 rule tests, the foreground test, H01-H07 and G09 on host SQLite) and release export PASS. `npm run test:db` 51/51 + restart PASS on 17 Pro Max iOS 26.1 and SE iOS 18.5; Duo iOS 27.1 51/51 PASS, its restart check 1/1 seen in Metro's log after the script's wait timed out (slow relaunch). No native or dependency change; build 405064a9.
+- Previous stage: **Phase 11 VERIFIED COMPLETE** ([evidence](evidence/PHASE_11.md)). The owner deferred the Collection VoiceOver walkthrough and the felt haptics to Phase 19, repeated in Phase 21 (D102); they are not passed and stay mandatory before release. Next prompt: [PHASE_12](prompts/PHASE_12.md).
   - Built: schema 3 `collectibles` (one permanent souvenir per goal; no updates; upgrade backfill for funded development goals). The award runs atomically inside the ledger and target-edit commands, also on Free, without changing the status. Finish is in Home's ⋯ menu at B ≥ T. The souvenir moment ("Your island is complete! Its souvenir is now in your Collection.", success haptic instead of milestone). The Collection list (Completed goals / Still open, still souvenir worlds) and the `/souvenir` detail (Souvenir then / Goal now, Reopen and Delete with the D74 confirmation). "Build another world" on Home while Free's one goal is finished. Decisions D95-D96.
   - Checks: lint, typecheck, Jest 795/795 (33 suites) and release export PASS. `npm run test:db` 43/43 + restart PASS on 17 Pro Max iOS 26.1, SE iOS 18.5 and Duo iOS 27.1 (C01-C06 new; each app database upgraded 2 → 3). Simulator walkthrough on the 17 Pro Max PASS.
   - **Deferred (D102), not passed:** the historical-manifest/Collection VoiceOver walkthrough and felt haptics. There is no VoiceOver in the simulator and no physical-device build, so they move to Phase 19 and are repeated in Phase 21.
@@ -58,7 +61,7 @@ Updated 25 October 2026 after the Phase 11 session (souvenirs, Finish/Reopen and
 | 10 | World transitions and progress feedback | VERIFIED COMPLETE | [PHASE_10](evidence/PHASE_10.md); physical-iPhone frames (Phase 21), VoiceOver and felt haptic (Phase 19, repeated in 21) deferred by D88, mandatory before release |
 | 10.5 | Living Island ambient motion (owner-added, D90) | VERIFIED COMPLETE | [PHASE_10_5](evidence/PHASE_10_5.md); owner approved art and motion (D91-D94); Phase 21 physical-iPhone measurement decides whether it ships |
 | 11 | Permanent souvenirs Finish Reopen and Collection | VERIFIED COMPLETE | [PHASE_11](evidence/PHASE_11.md); automated + native SQLite (3 simulators) + simulator walkthrough PASS; owner polish D97-D101; Collection VoiceOver and felt haptics deferred by D102 to Phases 19/21, mandatory before release |
-| 12 | Three fixed challenge rules and attempt engine | NOT STARTED | No implementation evidence |
+| 12 | Three fixed challenge rules and attempt engine | VERIFIED COMPLETE | [PHASE_12](evidence/PHASE_12.md); schema 4 attempts, pure rules, start/skip, recalculation inside ledger commands (D103); Jest + native SQLite on three simulators PASS (Duo restart check from Metro's log); no UI (Phase 13) |
 | 13 | Fixed challenge catalog and attempt UX | NOT STARTED | No implementation evidence |
 | 14 | Global weekly local reminder | NOT STARTED | No implementation evidence |
 | 15 | Verified StoreKit purchases and entitlement adapter | NOT STARTED | No implementation evidence |
@@ -82,6 +85,7 @@ Q01-Q06 are RESOLVED in [SOURCE_RECONCILIATION](SOURCE_RECONCILIATION.md). One g
 
 ## Known limitations and external dependencies
 
+- Phase 12 limitations: every ledger change recalculates all of the goal's attempts (O(attempts × entries); Phase 21 profiles a year of weekly attempts with 10,000 entries); an entry created in the same millisecond as a completion still counts for it; a zone turning its clock back across Sunday midnight would give one of two midnights (none does today). The simulators' app databases are at schema 4.
 - Phase 11 limitations: Collection VoiceOver and felt haptics need a physical iPhone; the onboarding picture pushes Continue below the fold on the SE (scrolls); Collection card thumbnails decode stage 10 per souvenir (Phase 21 profiles many Pro souvenirs); Garden version 1 is reserved until Phase 17.
 - Phase 10.5 limitations: the low cloud carries a faint waterfall sliver at its top edge (~0.3 pt) that moves with it; clouds now pass in front of the rock face; `simctl defaults write` does not notify a running app of a Reduce Motion change (relaunch needed on the simulator); energy/memory/smoothness only on a physical iPhone in Phase 21.
 - Phase 10 limitations: a commit made while Home is hidden plays its moment when Home is focused again, and settles silently (no haptic) if the app is backgrounded first; banner position checked on the 17 Pro Max only; simulator recordings show order and timing, not frame rate; the lowered toast (D89) still overlaps the top of the Island for 4 s.
@@ -102,7 +106,7 @@ Q01-Q06 are RESOLVED in [SOURCE_RECONCILIATION](SOURCE_RECONCILIATION.md). One g
 
 ## Next action and continuation
 
-Phase 11 is verified complete (D102 carries the Collection VoiceOver walkthrough and felt haptics to Phases 19/21). Start a new Claude Code session in ~/Desktop/SavingWorld with the full [PHASE_12](prompts/PHASE_12.md) prompt (three fixed challenge rules and the attempt engine). It now also exposes a typed attempt view for Phase 13's quest cards (D97). Git: Phase 11 is committed on `main` ("Phase 11: permanent souvenirs, Finish/Reopen and Collection (D95-D102)"); not pushed.
+Phase 12 is verified complete (D103). Start a new Claude Code session in ~/Desktop/SavingWorld with the full [PHASE_13](prompts/PHASE_13.md) prompt (fixed challenge catalog and attempt UX). Phase 13 presents `readChallengeBoard` (current attempt, three offers with availability reasons and previews, history), calls `startChallenge`/`skipChallenge`, opens the shared entry form for Add savings and celebrates only `completedAttemptId`; it recomputes no rule. Git: Phase 12 is committed on `main` ("Phase 12: fixed challenge rules and attempt engine (D103)"); not pushed.
 
 ## Ongoing updates
 

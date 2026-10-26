@@ -19,7 +19,7 @@ export {
   type DeadlineDateError,
   type EntryDateError,
 } from './civil-date';
-export { civilDateAt, fixedClock, systemClock, today, utcTimestamp, type Clock } from './clock';
+export { civilDateAt, fixedClock, systemClock, today, utcTimestamp, utcTimestampAt, type Clock } from './clock';
 export { deadlineEstimate, type DeadlineEstimate, type DeadlineEstimateInput } from './deadline-estimate';
 export {
   deadlineTiming,
@@ -30,3 +30,4 @@ export {
   type SavingsPlan,
   type SuggestedPace,
 } from './savings-plan';
+export { isoWeekday, startOfCivilDateMs, weekEndDate, weekStartDate } from './week';

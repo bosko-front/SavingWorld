@@ -32,7 +32,12 @@ export function today(clock: Clock): CivilDate {
 
 // UTC timestamp text for createdAt-style fields, e.g. '2026-10-23T08:15:00.000Z'.
 export function utcTimestamp(clock: Clock): string {
-  return new Date(clock.nowMs()).toISOString();
+  return utcTimestampAt(clock.nowMs());
+}
+
+// The same text for a computed instant, such as the end of a saved challenge week.
+export function utcTimestampAt(instantMs: number): string {
+  return new Date(instantMs).toISOString();
 }
 
 // The production clock. The zone is re-read on every call so travel and manual zone changes apply

@@ -17,6 +17,7 @@ import {
 } from '@/data/repositories/ledger-repository';
 import { insertReceipt, lookupReceipt, requestHash } from '@/data/repositories/receipt-repository';
 import { readCurrency } from '@/data/repositories/settings-repository';
+import { reconcileGoalAttempts } from '@/features/challenges/application/challenge-commands';
 import { awardSouvenirIfFirstFunded } from '@/features/collection/application/souvenir-award';
 
 import { validateCandidateHistory, type HistoryEntry, type HistoryViolation } from '../domain/candidate-history';
@@ -28,8 +29,9 @@ import { validateCandidateHistory, type HistoryEntry, type HistoryViolation } fr
 // 2. in one exclusive transaction: replays a receipt for a repeated operation ID (or rejects a
 //    different payload), requires the global currency, an open goal and the expected row revision,
 //    validates the goal's whole candidate history in date/createdAt/id order, writes the current
-//    values, stores the goal's one souvenir when this change first leaves B >= T (Phase 11) and a
-//    minimal receipt;
+//    values, stores the goal's one souvenir when this change first leaves B >= T (Phase 11),
+//    recalculates the goal's fixed challenge attempts from the saved entries (Phase 12) and writes
+//    a minimal receipt;
 // 3. returns the recomputed balance only after COMMIT.
 // Nothing keeps a previous entry version: a correction overwrites, a deletion removes.
 
@@ -107,6 +109,9 @@ export type LedgerMutationResult = {
   // True when this commit stored the goal's souvenir (the first saved B >= T). Always false for a
   // replay, so a retry never repeats the first-award moment.
   souvenirAwarded: boolean;
+  // The fixed challenge attempt this commit completed (Phase 12), if any; null for a replay and for
+  // a correction that only changes a historical result.
+  completedAttemptId: string | null;
 };
 
 // What a receipt keeps: identifiers and outcome only.
@@ -192,6 +197,7 @@ async function replayOrContinue(
       balanceMinor: await goalBalance(tx, receipt.result.goalId),
       previousBalanceMinor: null,
       souvenirAwarded: false,
+      completedAttemptId: null,
     };
   }
   return null;
@@ -279,12 +285,22 @@ export async function createEntry(
       updatedAtUtc: nowUtc,
       revision: 1,
     };
-    const balanceMinor = requireValidHistory([...existing, entry]);
+    const saved = [...existing, entry];
+    const balanceMinor = requireValidHistory(saved);
     await insertEntry(tx, entry);
     const souvenirAwarded = await awardSouvenirIfFirstFunded(tx, goal, balanceMinor, nowUtc);
+    const { completedAttemptId } = await reconcileGoalAttempts(tx, goal.id, saved, nowUtc);
     const stored: StoredLedgerResult = { goalId: entry.goalId, entryId: entry.id, entryRevision: entry.revision };
     await insertReceipt(tx, input.operationId, kind, hash, stored, nowUtc);
-    return { operationId: input.operationId, replayed: false, ...stored, balanceMinor, previousBalanceMinor, souvenirAwarded };
+    return {
+      operationId: input.operationId,
+      replayed: false,
+      ...stored,
+      balanceMinor,
+      previousBalanceMinor,
+      souvenirAwarded,
+      completedAttemptId,
+    };
   });
 }
 
@@ -327,13 +343,23 @@ export async function correctEntry(
       reject<LedgerRuleError>({ code: 'stale_entry', currentRevision: current.revision });
     }
     const souvenirAwarded = await awardSouvenirIfFirstFunded(tx, goal, balanceMinor, nowUtc);
+    // A changed amount, sign or date can change current and historical challenge results.
+    const { completedAttemptId } = await reconcileGoalAttempts(tx, goal.id, candidate, nowUtc);
     const stored: StoredLedgerResult = {
       goalId: current.goalId,
       entryId: current.id,
       entryRevision: input.expectedRevision + 1,
     };
     await insertReceipt(tx, input.operationId, kind, hash, stored, nowUtc);
-    return { operationId: input.operationId, replayed: false, ...stored, balanceMinor, previousBalanceMinor, souvenirAwarded };
+    return {
+      operationId: input.operationId,
+      replayed: false,
+      ...stored,
+      balanceMinor,
+      previousBalanceMinor,
+      souvenirAwarded,
+      completedAttemptId,
+    };
   });
 }
 
@@ -364,15 +390,25 @@ export async function deleteEntry(
 
     const existing = await listEntriesForGoal(tx, current.goalId);
     const previousBalanceMinor = checkedBalance(existing);
-    const balanceMinor = requireValidHistory(existing.filter((entry) => entry.id !== current.id));
+    const remaining = existing.filter((entry) => entry.id !== current.id);
+    const balanceMinor = requireValidHistory(remaining);
     if (!(await deleteEntryRow(tx, current.id, input.expectedRevision))) {
       reject<LedgerRuleError>({ code: 'stale_entry', currentRevision: current.revision });
     }
     // Deleting a withdrawal raises the balance, so it can be the first B >= T too.
     const nowUtc = utcTimestamp(deps.clock);
     const souvenirAwarded = await awardSouvenirIfFirstFunded(tx, goal, balanceMinor, nowUtc);
+    const { completedAttemptId } = await reconcileGoalAttempts(tx, goal.id, remaining, nowUtc);
     const stored: StoredLedgerResult = { goalId: current.goalId, entryId: current.id, entryRevision: null };
     await insertReceipt(tx, input.operationId, kind, hash, stored, nowUtc);
-    return { operationId: input.operationId, replayed: false, ...stored, balanceMinor, previousBalanceMinor, souvenirAwarded };
+    return {
+      operationId: input.operationId,
+      replayed: false,
+      ...stored,
+      balanceMinor,
+      previousBalanceMinor,
+      souvenirAwarded,
+      completedAttemptId,
+    };
   });
 }

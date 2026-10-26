@@ -12,6 +12,7 @@ import { Card } from '@/shared/ui/card';
 import { Notice } from '@/shared/ui/notice';
 
 import { DATABASE_SCENARIOS, restartSeedScenario, restartVerifyScenario } from '../../tests/native/database-scenarios';
+import { CHALLENGE_SCENARIOS } from '../../tests/native/challenge-scenarios';
 import { GOAL_SCENARIOS } from '../../tests/native/goal-scenarios';
 import { INTL_SCENARIOS } from '../../tests/native/intl-scenarios';
 import { LEDGER_SCENARIOS } from '../../tests/native/ledger-scenarios';
@@ -55,7 +56,7 @@ function scenariosFor(suite: DbTestSuite, runId: string, seedId: string | null, 
   if (suite === 'restart-verify') {
     return seedId ? [restartVerifyScenario(seedId)] : [];
   }
-  const all = [...DATABASE_SCENARIOS, ...GOAL_SCENARIOS, ...LEDGER_SCENARIOS, ...SOUVENIR_SCENARIOS, ...INTL_SCENARIOS];
+  const all = [...DATABASE_SCENARIOS, ...GOAL_SCENARIOS, ...LEDGER_SCENARIOS, ...SOUVENIR_SCENARIOS, ...CHALLENGE_SCENARIOS, ...INTL_SCENARIOS];
   return linked ? [...all, restartSeedScenario(runId)] : all;
 }
 
