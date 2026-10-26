@@ -1,62 +1,49 @@
-import { Link } from 'expo-router';
-import type { Href } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
-import { describeBuildInfo } from '@/bootstrap/build-info';
 import { readBuildInfo } from '@/bootstrap/read-build-info';
+import { ReminderSettings } from '@/features/reminders/presentation/reminder-settings';
+import { REMINDER_COPY } from '@/features/reminders/presentation/reminder-copy';
 import { CurrencySettings } from '@/features/settings/presentation/currency-settings';
 import { Screen } from '@/shared/layout';
 import { spacing } from '@/shared/theme';
 import { ListGroup, ListRow } from '@/shared/ui/list-row';
 import { SectionHeader } from '@/shared/ui/section-header';
 
-// Settings (Phase 06 currency; reminder Phase 14, local-data and support text Phase 19). The native
-// navigation title names the screen; sections use the shared SectionHeader and grouped rows.
+// Settings (owner polish D110): calm grouped cards in the shared look. Preferences (the one global
+// currency, Phase 06), Reminders (the weekly reminder, Phase 14) and About (app name and version).
+// The native navigation title names the screen. Delivery diagnostics and development tools live in
+// a development-only module that release bundles leave out.
 export default function SettingsScreen() {
-  const rows = describeBuildInfo(readBuildInfo());
+  const version = readBuildInfo().appVersion;
   return (
     <Screen>
       <View style={styles.section}>
-        <SectionHeader title="Currency" />
+        <SectionHeader title="Preferences" />
         <CurrencySettings />
       </View>
       <View style={styles.section}>
-        <SectionHeader title="About this build" />
-        <ListGroup>
-          {rows.map((row) => (
-            <ListRow key={row.label} title={row.label} detail={row.value} />
-          ))}
+        <SectionHeader title={REMINDER_COPY.section} />
+        <ReminderSettings />
+      </View>
+      <View style={styles.section}>
+        <SectionHeader title="About" />
+        <ListGroup testID="settings-about">
+          <ListRow icon="milestone" title="Saving Worlds" detail="Record real savings and watch small worlds grow." />
+          <ListRow icon="device" iconColor="blue" title="Version" value={version ?? 'Not available'} testID="settings-version" />
         </ListGroup>
       </View>
-      {__DEV__ ? <DevelopmentLinks /> : null}
+      {__DEV__ ? <DevelopmentSection /> : null}
     </Screen>
   );
 }
 
-const DEVELOPMENT_LINKS: { title: string; href: Href }[] = [
-  { title: 'Component gallery', href: '/dev-gallery' },
-  { title: 'Layout lab', href: '/dev-layout' },
-  { title: 'Home directions', href: '/dev-home' },
-  { title: 'World inspector', href: '/dev-world' },
-  { title: 'Database tests', href: '/dev-db' },
-  { title: 'Detail screen', href: '/details' },
-  { title: 'Sample form', href: '/sample-form' },
-];
-
-// Development/test-only tools; the routes are guarded and absent from release bundles.
-function DevelopmentLinks() {
-  return (
-    <View style={styles.section}>
-      <SectionHeader title="Development only" caption="Not part of the app. Release builds leave these out." />
-      <ListGroup>
-        {DEVELOPMENT_LINKS.map((link) => (
-          <Link key={link.title} href={link.href} asChild>
-            <ListRow title={link.title} chevron accessibilityLabel={`${link.title} (development only)`} />
-          </Link>
-        ))}
-      </ListGroup>
-    </View>
-  );
+function DevelopmentSection() {
+  if (__DEV__) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { SettingsDevelopmentSection } = require('@/dev/settings-development') as typeof import('@/dev/settings-development');
+    return <SettingsDevelopmentSection />;
+  }
+  return null;
 }
 
 const styles = StyleSheet.create({

@@ -46,19 +46,21 @@ describe('collectionEntries', () => {
   });
 });
 
-describe('captions: then and now', () => {
-  it('a reopened goal that saved less: the souvenir stays complete, the goal shows its live stage', () => {
+describe('souvenir summary (D112): the snapshot then, the goal now', () => {
+  it('a reopened goal that saved less: friendly headline, the amount now, the snapshot target, a subtle open status', () => {
     const [entry] = collectionEntries([goal('trip', 'active', 10_000)], [souvenir('trip', '2026-10-24T23:30:00.000Z')]);
     const detail = souvenirDetail(entry!, EUR, 'Europe/Belgrade', 'en-GB');
     expect(detail).toEqual({
-      worldType: 'Island',
-      completedOn: '25 Oct 2026',
+      headline: 'Island completed',
+      keepLine: 'Your completed island is yours to keep.',
       saved: '€100.00',
-      status: { label: 'Still open', tone: 'neutral', icon: 'resume' },
-      percent: 10,
-      stage: 1,
-      sinceThen: 'Its world on Home shows 1 of 10 milestones now; this souvenir stays complete.',
+      earnedOn: '25 Oct 2026',
+      targetThen: '€1,000.00',
+      targetNow: null,
+      openStatus: { label: 'Still open', tone: 'neutral', icon: 'resume' },
     });
+    // No milestone counts or snapshot explanations.
+    expect(JSON.stringify(detail)).not.toMatch(/milestone|stays complete|of 10/);
     expect(cardCaption(entry!, 'Europe/Belgrade', 'en-GB')).toBe('Island · 25 Oct 2026');
   });
 
@@ -68,18 +70,31 @@ describe('captions: then and now', () => {
     expect(earnedDate(late, 'America/New_York', 'en-GB')).toBe('24 Oct 2026');
   });
 
-  it('a changed target is the only note when the world is still complete', () => {
+  it('a changed target shows the target then and the target now; the snapshot target never follows the goal', () => {
     const [entry] = collectionEntries([goal('car', 'completed', 250_000, 250_000)], [souvenir('car', '2026-10-20T08:00:00.000Z', 200_000)]);
     expect(souvenirDetail(entry!, EUR, 'UTC', 'en-GB')).toMatchObject({
       saved: '€2,500.00',
-      stage: 10,
-      sinceThen: 'Completed at a target of €2,000.00; the target is €2,500.00 now.',
+      targetThen: '€2,000.00',
+      targetNow: '€2,500.00',
     });
   });
 
-  it('nothing changed since: no note at all', () => {
-    const [entry] = collectionEntries([goal('cam', 'completed', 120_000)], [souvenir('cam', '2026-10-20T08:00:00.000Z')]);
-    expect(souvenirDetail(entry!, EUR, 'UTC', 'en-GB').sinceThen).toBeNull();
+  it('a completed goal shows no status (the headline and its actions say it); paused is shown subtly', () => {
+    const [completed] = collectionEntries([goal('cam', 'completed', 120_000)], [souvenir('cam', '2026-10-20T08:00:00.000Z')]);
+    expect(souvenirDetail(completed!, EUR, 'UTC', 'en-GB')).toMatchObject({ openStatus: null, targetNow: null });
+    const [paused] = collectionEntries([goal('bike', 'paused', 100_000)], [souvenir('bike', '2026-10-20T08:00:00.000Z')]);
+    expect(souvenirDetail(paused!, EUR, 'UTC', 'en-GB').openStatus?.label).toBe('Paused');
+  });
+
+  it('a completed goal without a souvenir (never produced by schema 3) shows its world and target plainly', () => {
+    const [entry] = collectionEntries([goal('old', 'completed', 100_000)], []);
+    expect(souvenirDetail(entry!, EUR, 'UTC', 'en-GB')).toMatchObject({
+      headline: 'Island',
+      keepLine: null,
+      earnedOn: null,
+      targetThen: null,
+      targetNow: '€1,000.00',
+    });
   });
 
   it('status words never rely on color', () => {

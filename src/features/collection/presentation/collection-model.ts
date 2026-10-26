@@ -1,6 +1,6 @@
 import { civilDateAt } from '@/core/calendar';
 import { formatMoney, type CurrencyMetadata } from '@/core/money';
-import { MILESTONE_COUNT, stageFor, type ThemeId } from '@/core/progression';
+import type { ThemeId } from '@/core/progression';
 import type { CollectibleRecord } from '@/data/repositories/collectible-repository';
 import type { GoalStatus, GoalSummary } from '@/data/repositories/goal-repository';
 import { deviceLocale, formatCivilDate } from '@/shared/i18n/locale';
@@ -64,21 +64,26 @@ export function earnedDate(souvenir: CollectibleRecord, timeZone: string, locale
   return formatCivilDate(civilDateAt(Date.parse(souvenir.earnedAtUtc), timeZone), locale);
 }
 
-// What a souvenir's detail and card say (owner polish after D100): the achievement first, few words.
-// The world type and the date it was completed (the first saved B >= T), the amount saved, the goal's
-// status, and one plain "since then" note only when the goal has changed since: a lower live stage on
-// Home or another target. The souvenir itself always stays complete.
+// What a souvenir's detail says (owner polish D112): a short, cozy summary under the finished world.
+// The souvenir is a snapshot (world, art version and target at the first saved B >= T) and never
+// changes; the saved amount and any target change are the goal now. Status appears only while the
+// goal is still open (active or paused): "completed" is already said by the headline and the
+// actions, so it is never repeated.
 export type SouvenirDetail = {
-  // "Island", or "Garden".
-  worldType: string;
-  // The civil date the world was completed; null for a completed goal without a souvenir.
-  completedOn: string | null;
+  // "Island completed"; "Island" for a completed goal without a souvenir (never produced by schema 3).
+  headline: string;
+  // "Your completed island is yours to keep."; null without a souvenir.
+  keepLine: string | null;
+  // The goal's current saved amount.
   saved: string;
-  status: StatusLabel;
-  percent: number;
-  stage: number;
-  // At most two short sentences; null when nothing changed since the souvenir.
-  sinceThen: string | null;
+  // The civil date the world was earned; null without a souvenir.
+  earnedOn: string | null;
+  // The target stored with the souvenir; null without one.
+  targetThen: string | null;
+  // The goal's target now, only when it differs from targetThen.
+  targetNow: string | null;
+  // Only for an open goal (active or paused).
+  openStatus: StatusLabel | null;
 };
 
 export function souvenirDetail(
@@ -89,23 +94,16 @@ export function souvenirDetail(
 ): SouvenirDetail {
   const { summary, souvenir } = entry;
   const amounts = goalAmounts(summary, currency, locale);
-  const stage = stageFor(summary.balanceMinor, summary.goal.targetMinor);
-  const notes: string[] = [];
-  if (souvenir && souvenir.targetMinorAtAward !== summary.goal.targetMinor) {
-    const then = formatMoney(souvenir.targetMinorAtAward, currency, { locale });
-    notes.push(`Completed at a target of ${then}; the target is ${amounts.target} now.`);
-  }
-  if (souvenir && stage < MILESTONE_COUNT) {
-    notes.push(`Its world on Home shows ${stage} of ${MILESTONE_COUNT} milestones now; this souvenir stays complete.`);
-  }
+  const world = themeName(souvenir?.themeId ?? summary.goal.themeId);
+  const targetChanged = souvenir !== null && souvenir.targetMinorAtAward !== summary.goal.targetMinor;
   return {
-    worldType: themeName(souvenir?.themeId ?? summary.goal.themeId),
-    completedOn: souvenir ? earnedDate(souvenir, timeZone, locale) : null,
+    headline: souvenir ? `${world} completed` : world,
+    keepLine: souvenir ? `Your completed ${world.toLowerCase()} is yours to keep.` : null,
     saved: amounts.saved,
-    status: statusLabel(summary.goal.status),
-    percent: amounts.percent,
-    stage,
-    sinceThen: notes.length > 0 ? notes.join(' ') : null,
+    earnedOn: souvenir ? earnedDate(souvenir, timeZone, locale) : null,
+    targetThen: souvenir ? formatMoney(souvenir.targetMinorAtAward, currency, { locale }) : null,
+    targetNow: targetChanged || !souvenir ? amounts.target : null,
+    openStatus: summary.goal.status === 'completed' ? null : statusLabel(summary.goal.status),
   };
 }
 

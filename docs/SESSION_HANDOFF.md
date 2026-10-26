@@ -1,74 +1,50 @@
 # Latest session handoff
 
-Session date: 26 October 2026. Session kind: Phase 13 (fixed challenge catalog and attempt UX), including two owner design rounds. Result: **Phase 13 VERIFIED COMPLETE** (D104-D107). The Challenges VoiceOver walkthrough and felt haptics are deferred by the owner to Phase 19, repeated in Phase 21 (D107): not passed, mandatory before release. Next prompt: [PHASE_14](prompts/PHASE_14.md).
+Session date: 26 October 2026. Session kind: Phase 14 (global weekly local reminder). Result: **Phase 14 VERIFIED COMPLETE** (D108-D109) on Jest and simulator evidence. The owner deferred the real-iPhone schedule/delivery/cancel/tap checks to Phase 19, repeated in Phase 21 (D109): not passed, mandatory before release. Next prompt: [PHASE_15](prompts/PHASE_15.md).
 
-The previous handoff (Phase 12) is superseded; its record remains in [PHASE_12 evidence](evidence/PHASE_12.md) and DECISIONS D103.
+The previous handoff (Phase 13) is superseded; its record remains in [PHASE_13 evidence](evidence/PHASE_13.md) and DECISIONS D104-D107.
 
 ## Completed
 
-- Read the v1.2 DOCX (sections 3, 6, 7 and 10 on challenges) and the required docs. Verified the Phase 12 API in code (`readChallengeBoard`, `startChallenge`, `skipChallenge`, `completedAttemptId`) and the shared entry form. Baseline: clean `main` at dcdb90b.
-- `src/features/challenges/presentation/`:
-  - `challenges-screen.tsx`, the Challenges tab for the goal Home shows:
-    - goal header (still world and amounts);
-    - "Choose a quest" with an info button for the rules; the chosen quest's card holds its Start button;
-    - the active quest with Add savings and a plain Skip (confirmation);
-    - the finished-Island hero when the target is reached and nothing can start;
-    - collapsible Past quests;
-    - paused notice; empty states for no goal and a finished Free goal;
-    - a one-time completion celebration, with the success haptic only when the entry was saved from Challenges.
-  - `quest-cards.tsx`:
-    - `OfferCard`: identity, radio choice, Start inside the chosen card, reason row for a quest that can't start;
-    - `CurrentQuestCard`: tinted band, "In progress", amount against the frozen target, ProgressBar gliding after a 450 ms pause;
-    - `CompletedQuestCard`.
-  - `challenge-copy.ts`: all quest strings ("Unlock the {unlock}", taglines, rules text, short reasons; "Ended"/"Skipped" neutral, "Completed" green).
-  - `completed-quest.ts`: the in-memory "just completed" signal noted by the entry form.
-- `src/app/(tabs)/(challenges)/challenges.tsx` composes the screen. `src/app/entry-form.tsx` reads `from=challenges`, and `entry-form-screen.tsx` notes `completedAttemptId`.
-- `src/shared/ui/progress-bar.tsx` gained an optional `delayMs` (default 0; other bars unchanged).
-- Tests:
-  - `tests/integration/challenges-ui.test.tsx` (14);
-  - `tests/integration/progress-bar-glide.test.tsx` (2);
-  - `tests/unit/challenge-copy.test.ts` (6);
-  - contrast pairs for the quest tints.
-- Docs: evidence `PHASE_13.md` with `phase-13/` screenshots 01-26; DECISIONS D104-D106; PROJECT_STATUS; DESIGN_SYSTEM; ARCHITECTURE; README; CLAUDE.md.
+- Read the v1.2 DOCX (sections 2, 3, 6, 7) and the required docs. Verified goal statuses, lifecycle commands and their `refreshAppData()` calls, the settings table and the foreground hook in code. Baseline: clean `main` at ebb12be.
+- `npx expo install expo-notifications` (~58.1.6); `app.config.ts` plugin `['expo-notifications', { enableRemoteNotifications: false }]` (no `aps-environment`, no remote background mode).
+- `src/features/reminders/`:
+  - `domain/weekly-reminder.ts`: `WEEKLY_REMINDER` (identifier, Sunday = weekday 1, 18:00, content version, approved title and body (D110)), `reminderState`, `isCurrentWeeklyRequest`, `planReconcile`.
+  - `application/reminder-commands.ts`: `setWeeklyReminderEnabled` (settings row, no receipt).
+  - `application/reminder-reconciler.ts`: `reconcileWeeklyReminder` (read intent and active-goal count, permission, list, record pending, cancel/schedule, verify, record outcome; failures recorded by step).
+  - `native/notification-gateway.ts`: the only expo-notifications importer (permission mapping/request, weekly schedule, normalization of iOS calendar triggers, foreground presentation to Notification Center only, launch/running taps).
+  - `presentation/reminder-settings.tsx`, `reminder-copy.ts`: the Settings row (React Native `Switch`), state explanations, Allow notifications, denied notice + Open Settings, toasts and success haptic.
+- `src/data/repositories/settings-repository.ts`: `weeklyReminderEnabled` and `weeklyReminderRequest` rows (shared JSON helpers); `goal-repository.ts`: `countActiveGoals`.
+- `src/bootstrap/reminders.ts` (serialized reconciliation after every committed refresh, at launch and on foreground; permission request; tap routing to Home except over a form sheet), `foreground.ts`, `src/app/_layout.tsx`, Settings route section.
+- Development only: `src/dev/reminder-lab.tsx`, route `/dev-reminder`, Settings link (absent from the release bundle).
+- ESLint: expo-notifications restricted to the adapter and the lab. Jest maps `expo-notifications` to `tests/support/expo-notifications-fake.ts`; `resetApp()` resets it.
+- Tests: `tests/unit/weekly-reminder.test.ts` (25), `tests/integration/reminder-reconcile.test.ts` (20), `tests/integration/reminder-ui.test.tsx` (9), one config assertion.
+- EAS development simulator build **9dc5b3b9-5bd0-4110-9fb8-0f171a2db388**; simulator evidence in `docs/evidence/phase-14/`.
+- Docs: evidence `PHASE_14.md`; DECISIONS D108; PROJECT_STATUS; DATA_MODEL (settings rows replace the planned table); ARCHITECTURE; TECH_STACK; DESIGN_SYSTEM; README; CLAUDE.md.
 
 ## Decisions
 
-- D104 (engineering/UI baseline): quest cards for Home's goal; info toasts and no haptic for Start/Skip; the completion signal and its haptic hand-off; paused goals keep their quests.
-- D105 (owner polish): short copy and an info button for the rules, quest identities, Start inside the chosen card, a tinted "In progress" card, "Ended" instead of "Not completed", collapsible Past quests, the finished-Island hero.
-- D107 (owner): the Challenges VoiceOver walkthrough and felt haptics move to Phase 19, repeated in Phase 21; Phase 13 closes.
-- D106 (owner approval and final adjustments): "Unlock the {unlock}" titles, the delayed glide, Skip secondary, progress verified after a withdrawal, a goal edit and a relaunch, Past quests scroll-reachable.
-- No product rule changed; nothing custom, no challenge pause, reminder, editor or paywall.
+- D112 (owner): the Collection souvenir detail without tab bar and with a short summary; snapshot unchanged.
+- D111 (owner): Settings design approved; short lines with info buttons, no tab bar on Settings.
+- D110 (owner): Settings in the shared look (Preferences, Reminders, About; diagnostics development-only; titles never break at accessibility sizes) and the approved reminder copy.
+- D109 (owner): the physical-iPhone notification checks move to Phase 19, repeated in Phase 21 (RELEASE_CHECKLIST, PHASE_19/PHASE_21 prompts and roadmap updated); Phase 14 closes. V08 text stays open.
+- D108 (engineering; no product rule changed): settings rows instead of a `notification_requests` table; one fixed identifier with a floating (zone-less) Sunday 18:00 calendar trigger; reconciliation after every committed refresh, launch and foreground with pending/outcome records; permission only after opt-in, denial keeps the intent; foreground arrival to Notification Center only; tap → Home, never over a form; local only; UIKit switch instead of the `@expo/ui` Toggle.
 
 ## Checks
 
-- `npm run lint` PASS
-- `npm run typecheck` PASS
-- `npm test -- --runInBand` PASS (38 suites, 906 tests)
-- Simulator, build 405064a9 through Metro 8081:
-  - iPhone 17 Pro Max iOS 26.0, fresh install, test data only: full walkthrough PASS. That covers start, deposits and a withdrawal from Challenges, completion, Skip, Weekly, a goal edit, relaunches, the reached-target hero, expanded Past quests scrolled to the end, largest text and a frame-measured glide.
-  - iPhone SE iOS 18.5 (only viewed): default and largest text PASS.
-  - iPhone 17 Pro Max iOS 26.1 (only read): finished-goal state.
-- NOT RUN:
-  - the VoiceOver walkthrough and felt haptics (physical device);
-  - the paused notice and Duo screenshots on the simulator (Jest covers paused);
-  - `npm run test:db` (engine and schema unchanged since Phase 12's 51/51 on three simulators);
-  - `deps:check`/`doctor` (no dependency change).
+- `npm run lint` PASS; `npm run typecheck` PASS; `npm test -- --runInBand` PASS (41 suites, 961 tests).
+- `npm run deps:check`: six pre-existing SDK 58 patch notices (same as Phase 09), not upgraded; expo-notifications at the expected version.
+- `npx expo export --platform ios`: PASS, no lab code.
+- Simulator (build 9dc5b3b9, Metro 8081 not started by this session): see the evidence table. PASS: trigger configuration, orphan cleanup, background/terminated/foreground delivery, Pause/Resume, New York DST next fire, cold-start reconciliation, permission dialog after opt-in, denial path, Open Settings.
+- NOT RUN: real-iPhone schedule/delivery/cancel/tap; notification tap → Home natively (simulator tool cannot open notifications from Notification Center); native deposit while paused or denied (Jest covers both); `npm run test:db` (no schema change; the new rows use the existing settings table).
 
 ## Incomplete work and blockers
 
-1. No Phase 13 blocker. Carried to Phase 19/21 (D107, RELEASE_CHECKLIST): the Challenges VoiceOver walkthrough and felt haptics; Phase 21 also measures the active bar's glide and the reached-target sparkle. Earlier carried items (D60, D63, D83, D88, D102) are unchanged.
-2. Git: Phase 13 is committed on `main` ("Phase 13: fixed challenge catalog and quest UX (D104-D107)"); not pushed.
-3. Simulator state:
-   - The iPhone 17 Pro Max iOS 26.0 simulator (`D4BA6D4D…`) was booted by this session and holds the test goal "Camera" with an active Next milestone (800 of 2,500).
-   - Its data was also changed twice by someone other than this session; see the evidence.
-   - The SE text size is back to "large".
-   - Two Metro servers serve this folder (8081 with `--dev-client`, 8082 from 25 October); this session started neither.
+1. No Phase 14 blocker. Carried to Phases 19/21 (D109, RELEASE_CHECKLIST): real-iPhone schedule/delivery (foreground, background, terminated)/cancel/tap → Home including cold start, native deposit/edit while paused and saving while denied, Open Settings reaching the app's notification page, VoiceOver of the switch, felt haptic; Phase 21 adds a real Sunday 18:00 delivery with travel/DST. Earlier carried items (D60, D63, D83, D88, D102, D107) are unchanged.
+2. Settled after closing (D110): Settings polished into Preferences/Reminders/About with diagnostics development-only, and the approved notification copy (content version 2). A future copy change edits `WEEKLY_REMINDER` and raises `contentVersion`.
+3. Git: Phase 14 and the D110-D112 polish are committed on `main` ("Phase 14: global weekly local reminder; Settings and souvenir polish (D108-D112)"); not pushed.
+4. Simulator state: 17 Pro Max iOS 26.0 (`D4BA6D4D…`) has the reminder on and scheduled (goal "Camera" active); SE iOS 18.5 (`66F6F9E8…`) has it on but denied, and its test goal "Summer trip" reached its target (souvenir) for the D112 check. Both have build 9dc5b3b9, the current development simulator build.
 
 ## Exact next session
 
-In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_14.md` (one optional global Sunday 18:00 local reminder). Verify Phase 13 from [PHASE_13 evidence](evidence/PHASE_13.md) first; do not redo it. Phase 14 notes:
-
-- It installs `expo-notifications`, a native dependency: new development build, EAS_AND_OTA rules.
-- Its Settings row follows the D97 calm-utility look.
-- The notification text proposal V08 ("Your world is ready for this week's savings.") still needs owner approval.
-- Paused goals, and goals edited while paused, must not resume the reminder.
+In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_15.md` (verified StoreKit purchases and entitlement adapter). Verify Phase 14 from [PHASE_14 evidence](evidence/PHASE_14.md) first; do not redo it. Phase 15 needs the owner's Q07 product ID/store setup and Q09 identifiers, a native dependency (expo-iap per D41) and therefore a new development build under EAS_AND_OTA.

@@ -65,7 +65,7 @@ Phase 01 records every selected version, why it is needed, whether the template 
 | Phase 07 feedback | expo-haptics | Success haptic after committed financial writes; reuses the Phase 06 toast; native rebuild. |
 | Phase 06/07/14 native inputs | Existing @expo/ui (DatePicker, Picker, Switch) | No extra date-picker package. |
 | Phase 09 scenes | expo-image, when the approved renderer needs it | Validate static asset references and memory; avoid an unused second image pipeline. |
-| Phase 14 reminders | expo-notifications | Add its actual local scheduling/native configuration when reminders are implemented. |
+| Phase 14 reminders | expo-notifications ~58.1.6 (installed) | Local scheduling only: config plugin with `enableRemoteNotifications: false` (no aps-environment, no remote background mode); repeating calendar trigger (weekday 1, 18:00, no fixed zone); adapter `src/features/reminders/native/notification-gateway.ts` (D108). |
 | Phase 15 purchases | Selected compatible expo-iap or the bounded verified StoreKit adapter | Add purchase native configuration and rebuild when it can be tested. No hosted service by default. |
 | Phase 18 statistics | react-native-svg (installed in Phase 06 for toasts) for the minimal chart | No general chart framework. |
 

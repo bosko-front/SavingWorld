@@ -23,6 +23,12 @@ describe('app.config.ts', () => {
     expect(config.updates?.url).toBe(`https://u.expo.dev/${PROJECT_ID}`);
   });
 
+  it('configures notifications for local scheduling only: no push entitlement or background mode', () => {
+    expect(config.plugins).toContainEqual(['expo-notifications', { enableRemoteNotifications: false }]);
+    expect(config.ios?.entitlements?.['aps-environment']).toBeUndefined();
+    expect(config.ios?.infoPlist?.UIBackgroundModes).toBeUndefined();
+  });
+
   it('uses the appVersion runtime policy', () => {
     expect(config.runtimeVersion).toEqual({ policy: 'appVersion' });
     expect(config.version).toBe('1.0.0');

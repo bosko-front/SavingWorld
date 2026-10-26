@@ -22,13 +22,14 @@ import { StatusBadge } from '@/shared/ui/status-badge';
 
 import { collectionEntries, souvenirDetail } from './collection-model';
 
-// One goal in Collection (Phase 11, simplified in the owner polish after D100): the finished world
-// as it was when the goal first reached its target (the stored theme and art version, all ten
-// milestones) is the focus; below it the achievement (status, saved amount, world and the day it was
-// completed) and, only when the goal changed since (a lower live stage on Home or another target),
-// one plain sentence. The souvenir always stays complete. A completed goal is read-only; Reopen (within the goal limit, never finishing again by
+// One goal in Collection (Phase 11; summary simplified by the owner, D112): the finished world as it
+// was when the goal first reached its target (the stored theme and art version, all ten milestones)
+// is the focus. Below it a short summary: "{World} completed", one friendly line, the amount saved
+// now, the day it was earned, the target stored with the souvenir and the target now only when it
+// differs; a small status badge only while the goal is still open. The souvenir never changes with
+// the goal. A completed goal is read-only; Reopen (within the goal limit, never finishing again by
 // itself) and Delete (after the D74 confirmation, removing goal, history and souvenir) are its two
-// actions. The world here stands still (no ambient motion, D90).
+// actions. The world here stands still (no ambient motion, D90). The tab bar is hidden here (D112).
 //
 // Layout (owner review after D98): like Home, the souvenir's sky fills the top of the screen edge to
 // edge behind a transparent bar that keeps the goal's name as its title and a back chevron without a
@@ -63,35 +64,52 @@ export function SouvenirScreen({ goalId }: { goalId: string }) {
 
   const details = (
     <View style={styles.details}>
-      {/* The achievement, in Home's language: the status, the saved amount as the largest text and
-          the world with the day it was completed (owner polish after D100). */}
+      {/* A short, cozy summary (owner polish D112): what was completed, the amount saved now, and a
+          few facts. The status shows only while the goal is still open, so it is said once. */}
       <View
         style={styles.hero}
         accessible
-        accessibilityLabel={[
-          detail.status.label,
-          `Saved ${detail.saved}`,
-          detail.completedOn ? `${detail.worldType} completed on ${detail.completedOn}` : detail.worldType,
-        ].join('. ')}
+        // Each part is one sentence; the friendly line already ends with its own period.
+        accessibilityLabel={[detail.openStatus?.label, detail.headline, detail.keepLine, `Saved ${detail.saved}`]
+          .filter((part): part is string => Boolean(part))
+          .map((part) => part.replace(/\.$/, ''))
+          .join('. ')}
         testID="souvenir-hero">
-        <StatusBadge label={detail.status.label} tone={detail.status.tone} icon={detail.status.icon} testID="souvenir-status" />
+        {detail.openStatus ? (
+          <StatusBadge label={detail.openStatus.label} tone={detail.openStatus.tone} icon={detail.openStatus.icon} testID="souvenir-status" />
+        ) : null}
+        <View style={styles.headline}>
+          <Icon name="souvenir" role="title" tone="accent" filled />
+          <AppText role="title" style={styles.headlineText} testID="souvenir-headline">
+            {detail.headline}
+          </AppText>
+        </View>
+        {detail.keepLine ? (
+          <AppText tone="secondary" testID="souvenir-keep">
+            {detail.keepLine}
+          </AppText>
+        ) : null}
         <View style={styles.amount}>
           <AmountText formatted={detail.saved} size="display" testID="souvenir-saved" />
           <AppText tone="secondary">saved</AppText>
         </View>
-        <View style={styles.completed}>
-          <Icon name="souvenir" role="headline" tone="accent" filled />
-          <AppText role="label" tone="accent" style={styles.completedText} testID="souvenir-completed-on">
-            {detail.completedOn ? `${detail.worldType} completed on ${detail.completedOn}` : `${detail.worldType}, as it is now`}
-          </AppText>
-        </View>
       </View>
 
-      {detail.sinceThen ? (
-        <AppText role="footnote" tone="secondary" testID="souvenir-since-then">
-          {detail.sinceThen}
-        </AppText>
-      ) : null}
+      <ListGroup testID="souvenir-facts">
+        {detail.earnedOn ? <ListRow icon="souvenir" iconColor="honey" title="Earned" value={detail.earnedOn} testID="souvenir-earned" /> : null}
+        {detail.targetThen ? (
+          <ListRow icon="finish" title="Target when completed" value={detail.targetThen} testID="souvenir-target-then" />
+        ) : null}
+        {detail.targetNow ? (
+          <ListRow
+            icon="milestone"
+            iconColor="neutral"
+            title={detail.targetThen ? 'Target now' : 'Target'}
+            value={detail.targetNow}
+            testID="souvenir-target-now"
+          />
+        ) : null}
+      </ListGroup>
 
       {completed ? (
         <ListGroup testID="souvenir-actions">
@@ -116,11 +134,7 @@ export function SouvenirScreen({ goalId }: { goalId: string }) {
             testID={`delete-${goal.id}`}
           />
         </ListGroup>
-      ) : (
-        <AppText role="footnote" tone="secondary" testID="souvenir-open-hint">
-          This goal is still open on Home. Finish it there when you’re done saving.
-        </AppText>
-      )}
+      ) : null}
     </View>
   );
 
@@ -188,12 +202,12 @@ const styles = StyleSheet.create({
   amount: {
     gap: spacing.xs / 2,
   },
-  completed: {
+  headline: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
   },
-  completedText: {
+  headlineText: {
     flexShrink: 1,
   },
   // Fills the scene region the layout gives it; the sky reaches to the top of the screen.

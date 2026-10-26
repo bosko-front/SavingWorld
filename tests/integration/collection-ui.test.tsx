@@ -176,18 +176,26 @@ describe('Collection (Phase 11)', () => {
     expect(screen.getByTestId('souvenir-sparkles', { includeHiddenElements: true }).props.accessibilityElementsHidden).toBe(true);
     await act(async () => setReduceMotionForTests(true));
     expect(screen).toHavePathname('/souvenir');
+    // No tab bar on the detail (D112); Back returns to Collection.
+    const tabBarHidden = () => screen.container.queryAll((node) => node.props.tabBarHidden !== undefined)[0]?.props.tabBarHidden;
+    expect(tabBarHidden()).toBe(true);
     expect(screen.getByTestId('souvenir-world')).toBeOnTheScreen();
     // Like Home: the souvenir's sky gradient fills the whole scene region (no framed card).
     const region = StyleSheet.flatten(within(screen.getByTestId('souvenir-world')).getByTestId('world-scene-region').props.style);
     expect(String(region.backgroundImage)).toMatch(/linear-gradient/);
     expect(StyleSheet.flatten(within(screen.getByTestId('souvenir-world')).getByTestId('world-scene').props.style).borderRadius).toBeUndefined();
-    // The achievement: status, the saved amount, the world and the day it was completed; nothing
-    // changed since, so no extra note.
-    expect(screen.getByTestId('souvenir-status')).toHaveTextContent('Completed');
+    // The summary (D112): "Island completed", one friendly line, the amount saved, the earned day and
+    // the target when completed. A completed goal has no status badge (the headline says it once),
+    // and the target now is shown only when it differs.
+    expect(screen.queryByTestId('souvenir-status')).toBeNull();
+    expect(screen.getByTestId('souvenir-headline')).toHaveTextContent('Island completed');
+    expect(screen.getByTestId('souvenir-keep')).toHaveTextContent('Your completed island is yours to keep.');
     expect(screen.getByTestId('souvenir-saved')).toHaveTextContent('€250.00');
-    expect(screen.getByTestId('souvenir-completed-on')).toHaveTextContent(/^Island completed on /);
-    expect(screen.getByTestId('souvenir-hero')).toHaveAccessibleName(/^Completed\. Saved €250\.00\. Island completed on /);
-    expect(screen.queryByTestId('souvenir-since-then')).toBeNull();
+    expect(screen.getByTestId('souvenir-hero')).toHaveAccessibleName('Island completed. Your completed island is yours to keep. Saved €250.00');
+    expect(screen.getByTestId('souvenir-earned')).toHaveAccessibleName(/^Earned, /);
+    expect(screen.getByTestId('souvenir-target-then')).toHaveAccessibleName('Target when completed, €250.00');
+    expect(screen.queryByTestId('souvenir-target-now')).toBeNull();
+    expect(screen.queryByText(/milestones|stays complete/)).toBeNull();
 
     await userEvent.press(screen.getByTestId(`reopen-${goalId}`));
     await waitFor(() => expect(toastTitles()).toEqual(['Goal reopened']));
@@ -210,15 +218,18 @@ describe('Collection (Phase 11)', () => {
     expect(corrected.ok && corrected.value.balanceMinor).toBe(2_000);
     await act(() => refreshAppData());
     expect(screen.getByTestId('souvenir-saved')).toHaveTextContent('€20.00');
-    expect(screen.getByTestId('souvenir-since-then')).toHaveTextContent('Its world on Home shows 0 of 10 milestones now; this souvenir stays complete.');
-    expect(screen.getByTestId('souvenir-open-hint')).toHaveTextContent(/still open on Home/);
+    // The snapshot does not follow the goal: still "Island completed" at its earned target.
+    expect(screen.getByTestId('souvenir-headline')).toHaveTextContent('Island completed');
+    expect(screen.getByTestId('souvenir-target-then')).toHaveAccessibleName('Target when completed, €250.00');
+    expect(screen.queryByText(/milestones|stays complete/)).toBeNull();
     expect(screen.getByTestId('souvenir-world')).toBeOnTheScreen();
     expect(await souvenirs()).toHaveLength(1);
 
-    // In the gallery it moved to "Still growing".
+    // In the gallery it moved to "Still growing"; the tab bar is back.
     await act(async () => {
       router.back();
     });
+    expect(tabBarHidden()).toBe(false);
     expect(within(screen.getByTestId('collection-open')).getByTestId(`collection-card-${goalId}`)).toHaveAccessibleName(/^Camera, Still open\./);
     expect(screen.queryByTestId('collection-completed')).toBeNull();
   });

@@ -31,7 +31,15 @@ const styleGuardrails = [
 // shared layout layer (docs/ADAPTIVE_LAYOUT.md); `layoutOwner` relaxes only those two entries.
 // SQLite belongs to the data layer (docs/ARCHITECTURE.md): only src/data/db talks to expo-sqlite.
 // The toast engine, SF Symbols and haptics each have one shared wrapper (docs/DESIGN_SYSTEM.md).
-function restrictedImports({ layoutOwner, sqliteOwner = false, toastOwner = false, iconOwner = false, hapticsOwner = false }) {
+// The weekly reminder's local-notification adapter is the one module that imports expo-notifications.
+function restrictedImports({
+  layoutOwner,
+  sqliteOwner = false,
+  toastOwner = false,
+  iconOwner = false,
+  hapticsOwner = false,
+  notificationsOwner = false,
+}) {
   return [
     'error',
     {
@@ -73,6 +81,14 @@ function restrictedImports({ layoutOwner, sqliteOwner = false, toastOwner = fals
               {
                 name: 'expo-haptics',
                 message: 'Use haptics from @/shared/ui/haptics (success, warning, milestone, selection).',
+              },
+            ]),
+        ...(notificationsOwner
+          ? []
+          : [
+              {
+                name: 'expo-notifications',
+                message: 'Use the reminder adapter in src/features/reminders/native; no other module schedules notifications.',
               },
             ]),
         ...(layoutOwner
@@ -125,6 +141,11 @@ module.exports = defineConfig([
   {
     files: ['src/shared/ui/haptics.ts'],
     rules: { 'no-restricted-imports': restrictedImports({ layoutOwner: false, hapticsOwner: true }) },
+  },
+  {
+    // The development-only reminder lab inspects the notification center directly (Phase 14 evidence).
+    files: ['src/features/reminders/native/notification-gateway.ts', 'src/dev/reminder-lab.tsx'],
+    rules: { 'no-restricted-imports': restrictedImports({ layoutOwner: false, notificationsOwner: true }) },
   },
   {
     // The SQLite adapter is the one module that imports expo-sqlite.

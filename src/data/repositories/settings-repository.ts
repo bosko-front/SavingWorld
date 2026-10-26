@@ -4,11 +4,38 @@ import { err, ok, type Result } from '@/core/result';
 import type { SqlExecutor } from '../db/sql';
 
 // Typed settings rows (docs/DATA_MODEL.md "settings"). Phase 05 defines the global currency key,
-// Phase 06 the selected goal; later phases add their own typed keys (weekly reminder). The stored
+// Phase 06 the selected goal, Phase 14 the weekly reminder opt-in and its OS request record. The stored
 // value keeps the code, its exponent and the registry version, so a later registry change can never
 // silently reinterpret saved minor units: a mismatch is reported, not repaired.
 
-export const SETTING_KEYS = { currency: 'currency', selectedGoalId: 'selectedGoalId' } as const;
+export const SETTING_KEYS = {
+  currency: 'currency',
+  selectedGoalId: 'selectedGoalId',
+  weeklyReminderEnabled: 'weeklyReminderEnabled',
+  weeklyReminderRequest: 'weeklyReminderRequest',
+} as const;
+
+type SettingKey = (typeof SETTING_KEYS)[keyof typeof SETTING_KEYS];
+
+async function readSettingJson(executor: SqlExecutor, key: SettingKey): Promise<unknown> {
+  const row = await executor.get<{ value_json: unknown }>('SELECT value_json FROM settings WHERE key = ?', [key]);
+  if (!row || typeof row.value_json !== 'string') {
+    return undefined;
+  }
+  try {
+    return JSON.parse(row.value_json) as unknown;
+  } catch {
+    return undefined;
+  }
+}
+
+async function writeSettingJson(tx: SqlExecutor, key: SettingKey, value: unknown, nowUtc: string): Promise<void> {
+  await tx.run(
+    `INSERT INTO settings (key, value_json, updated_at_utc) VALUES (?, ?, ?)
+     ON CONFLICT (key) DO UPDATE SET value_json = excluded.value_json, updated_at_utc = excluded.updated_at_utc`,
+    [key, JSON.stringify(value), nowUtc],
+  );
+}
 
 export type StoredCurrency = { code: string; exponent: number; registryVersion: number };
 
@@ -67,24 +94,85 @@ export async function writeCurrency(tx: SqlExecutor, currency: CurrencyMetadata,
 // Home's selected goal, a durable preference (docs/ARCHITECTURE.md "Startup"). The value is only a
 // hint: readers fall back to an available open goal when it is missing, invalid or closed.
 export async function readSelectedGoalId(executor: SqlExecutor): Promise<string | null> {
-  const row = await executor.get<{ value_json: unknown }>('SELECT value_json FROM settings WHERE key = ?', [
-    SETTING_KEYS.selectedGoalId,
-  ]);
-  if (!row || typeof row.value_json !== 'string') {
-    return null;
-  }
-  try {
-    const value: unknown = JSON.parse(row.value_json);
-    return typeof value === 'string' ? value : null;
-  } catch {
-    return null;
-  }
+  const value = await readSettingJson(executor, SETTING_KEYS.selectedGoalId);
+  return typeof value === 'string' ? value : null;
 }
 
 export async function writeSelectedGoalId(tx: SqlExecutor, goalId: string, nowUtc: string): Promise<void> {
-  await tx.run(
-    `INSERT INTO settings (key, value_json, updated_at_utc) VALUES (?, ?, ?)
-     ON CONFLICT (key) DO UPDATE SET value_json = excluded.value_json, updated_at_utc = excluded.updated_at_utc`,
-    [SETTING_KEYS.selectedGoalId, JSON.stringify(goalId), nowUtc],
-  );
+  await writeSettingJson(tx, SETTING_KEYS.selectedGoalId, goalId, nowUtc);
+}
+
+// The single global weekly reminder opt-in (v1.2 AppSettings.weeklyReminderEnabled). Off unless the
+// person turned it on: a missing or unreadable value reads as off, so nothing is ever scheduled
+// that the person did not ask for.
+export async function readWeeklyReminderEnabled(executor: SqlExecutor): Promise<boolean> {
+  return (await readSettingJson(executor, SETTING_KEYS.weeklyReminderEnabled)) === true;
+}
+
+export async function writeWeeklyReminderEnabled(tx: SqlExecutor, enabled: boolean, nowUtc: string): Promise<void> {
+  await writeSettingJson(tx, SETTING_KEYS.weeklyReminderEnabled, enabled, nowUtc);
+}
+
+// The durable record of the one logical OS request (docs/DATA_MODEL.md "reminder intent"). The
+// reconciler writes `pending` with what it is about to do before any OS call and the outcome after
+// it, so an attempt cut short by termination is visible and simply finished by the next
+// reconciliation. It never holds goal, amount or schedule-editing data; the identifier is the one
+// fixed request identifier and `timeZone` the device zone at that reconciliation (evidence only:
+// the OS request itself floats with the device zone).
+export type ReminderRequestState = 'pending' | 'scheduled' | 'none' | 'failed';
+
+export type ReminderRequestRecord = {
+  state: ReminderRequestState;
+  // Whether the reminder was wanted (opt-in, permission and an active goal) at that reconciliation.
+  desired: boolean;
+  // The OS request identifier while scheduled; null otherwise.
+  nativeId: string | null;
+  contentVersion: number;
+  // Increases with every recorded reconciliation that changed or failed.
+  revision: number;
+  // A short adapter step code (never an OS message or user data) when state is failed.
+  errorCode: string | null;
+  timeZone: string;
+  updatedAtUtc: string;
+};
+
+const REQUEST_STATES: readonly ReminderRequestState[] = ['pending', 'scheduled', 'none', 'failed'];
+
+export function decodeReminderRequest(value: unknown): ReminderRequestRecord | null {
+  if (typeof value !== 'object' || value === null) {
+    return null;
+  }
+  const record = value as Partial<Record<keyof ReminderRequestRecord, unknown>>;
+  const { state, desired, nativeId, contentVersion, revision, errorCode, timeZone, updatedAtUtc } = record;
+  if (
+    !REQUEST_STATES.includes(state as ReminderRequestState) ||
+    typeof desired !== 'boolean' ||
+    !(nativeId === null || typeof nativeId === 'string') ||
+    !Number.isSafeInteger(contentVersion) ||
+    !Number.isSafeInteger(revision) ||
+    !(errorCode === null || typeof errorCode === 'string') ||
+    typeof timeZone !== 'string' ||
+    typeof updatedAtUtc !== 'string'
+  ) {
+    return null;
+  }
+  return {
+    state: state as ReminderRequestState,
+    desired,
+    nativeId,
+    contentVersion: contentVersion as number,
+    revision: revision as number,
+    errorCode,
+    timeZone,
+    updatedAtUtc,
+  };
+}
+
+// An unreadable record reads as none: the next reconciliation rebuilds it from the OS state.
+export async function readReminderRequest(executor: SqlExecutor): Promise<ReminderRequestRecord | null> {
+  return decodeReminderRequest(await readSettingJson(executor, SETTING_KEYS.weeklyReminderRequest));
+}
+
+export async function writeReminderRequest(tx: SqlExecutor, record: ReminderRequestRecord): Promise<void> {
+  await writeSettingJson(tx, SETTING_KEYS.weeklyReminderRequest, record, record.updatedAtUtc);
 }

@@ -37,7 +37,7 @@ Product authority is [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx). Q01-Q06 
 - [ ] Native verified/unverified states, pending/cancelled/error, finish/replay, reinstall restore, offline startup and revocation pass StoreKit and sandbox/TestFlight checks.
 - [ ] Paywall and Settings expose Restore Purchases; current entitlement queries do not repeatedly prompt for an Apple password at startup.
 - [ ] Future premium-theme entitlement rules/prices remain unresolved without misleading sales promises; no future products were accidentally offered.
-- [ ] One optional global Sunday 18:00 device-local reminder only with an active goal passes opt-in/denial/cancel/reconcile/tap/timezone tests on iPhone. No per-goal/per-challenge time/cadence controls.
+- [ ] One optional global Sunday 18:00 device-local reminder only with an active goal passes opt-in/denial/cancel/reconcile/tap/timezone tests on a **physical iPhone** (Phase 14, deferred by D109 to Phase 19 and repeated in Phase 21: permission dialog after opt-in, foreground/background/terminated delivery, tap → Home including cold start, cancel by switch off and Pause, denial → app notification settings, VoiceOver of the switch, felt haptic). No per-goal/per-challenge time/cadence controls.
 - [ ] All production capability bypasses and native test routes are removed/excluded from distribution.
 
 ## Usability and performance

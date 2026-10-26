@@ -977,7 +977,7 @@ The schedule is fixed by v1.2, not an open cadence decision.
 - Reconcile on launch/foreground, settings/permission/timezone and goal Pause/Resume/Finish/Reopen/Delete. paused/completed do not qualify; no active goal means no request. Editing a paused goal does not resume it.
 - Cancel duplicates/orphans and recover interrupted scheduling after SQLite commit. Use generic text and a safe Home/current-active-goal notification-tap fallback.
 - Use the actual local-notification adapter/config; no per-goal/per-challenge cadence/time/pause controls, push token/server or background-JavaScript assumption.
-- Present the switch as one Settings row in the shared look (`reminder` tile, native switch) with a short, warm permission explanation; the notification text is generic and kind in the D97 voice (proposal V08: "Your world is ready for this week's savings.", pending owner approval), never an amount, title or guilt.
+- Present the switch as one Settings row in the shared look (`reminder` tile, native switch) with a short, warm permission explanation; the notification text is generic and kind in the D97 voice (owner-approved copy, D110: "A little progress goes a long way 🌱" / "Ready to grow your world? Check in on your savings this week."), never an amount, title or guilt.
 
 ## Expected files and modules
 
@@ -1322,6 +1322,13 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
   - a completed quest is announced once;
   - the reached-target hero reads "Your island is complete!".
   Felt haptics: selection on changing the chosen quest, one success when a quest completes from Challenges, none for Start or Skip.
+- Carried from Phase 14 (DECISIONS D109): on a physical iPhone with a device development build, the weekly reminder checks. Check:
+  - turning the Settings switch on shows the iOS permission dialog once, only after the opt-in; Allow schedules one request (Reminder lab: one repeating Sunday 18:00 calendar trigger, no time zone, next fire next Sunday 18:00 local);
+  - a controlled delivery (Reminder lab test copy) in the foreground goes to Notification Center without a banner or sound; in the background and with the app terminated it shows a banner with the default sound and the generic text only;
+  - tapping the banner and the Notification Center row opens Home from the background and from a cold start (terminated); a tap while the Add savings sheet is open keeps the sheet and its draft;
+  - switch off cancels the request; Pause of the last active goal cancels it and Resume restores it; a deposit and an edit on the paused goal keep it paused with no request;
+  - Don't Allow keeps the switch on with the notice, saving still works, and Open Settings reaches the app's notification settings; allowing there and returning schedules the request;
+  - VoiceOver reads the switch as "Weekly reminder, Sundays at {time}" with its on/off state and the explanation line; the success haptic is felt on turning it on or off.
 - Formatting tests for at least two numeric/date locales, currency exponents and all user-facing catalog keys.
 - Contrast/touch/layout review, relevant interaction regressions and standard checks.
 
@@ -1455,6 +1462,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 - Phase 10.5 ambient motion (DECISIONS D90): on a physical iPhone with Xcode Instruments, compare Home with ambient motion on and off (Energy Log/Power Profiler, memory, Animation Hitches or Core Animation frame pacing) over a few minutes idle on Home and during an unlock; confirm it stops off Home, in the background and under Reduce Motion. Keep ambient motion only if it passes; otherwise simplify the water first, then switch it off (static Island). The switches are `AMBIENT_RELEASE_SWITCHES` in `src/features/worlds/ambient.ts` (all, clouds, water, trees); the World inspector toggles them at runtime in a measurement build (D91). Record the numbers and the decision.
 - Carried from Phase 11 (DECISIONS D102): repeat the Collection VoiceOver walkthrough and haptics from Phase 19 on the release candidate, and include Collection (featured card, multi-world gallery with the D100 float, souvenir detail and sparkle burst) in the physical-iPhone frame and energy measurement.
 - Carried from Phase 13 (DECISIONS D107): repeat the Challenges VoiceOver walkthrough and haptics from Phase 19 on the release candidate, and include the Challenges tab (active quest bar glide after a saved entry, reached-target hero with its one-shot sparkle) in the physical-iPhone frame and energy measurement.
+- Carried from Phase 14 (DECISIONS D109): repeat the Phase 19 weekly reminder checks on the release candidate, including one real Sunday 18:00 delivery (or a device time-zone change that reaches it), travel to another zone and a DST change keeping 18:00 local, and a reinstall/upgrade that leaves exactly one request.
 - Run full regression only now after integration, not repeatedly after every unchanged earlier phase; update requirements traceability.
 
 ## Definition of Done

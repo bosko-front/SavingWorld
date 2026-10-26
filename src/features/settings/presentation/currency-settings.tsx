@@ -5,10 +5,9 @@ import { currencyCommandDeps, refreshAppData, useAppDataStore } from '@/bootstra
 import { getCurrency, type CurrencyMetadata } from '@/core/money';
 import { randomUuid } from '@/data/ids';
 import { spacing } from '@/shared/theme';
-import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
-import { Card } from '@/shared/ui/card';
-import { Icon } from '@/shared/ui/icon';
+import { FootnoteWithInfo } from '@/shared/ui/footnote-with-info';
+import { ListCell, ListGroup, ListRow } from '@/shared/ui/list-row';
 import { Notice } from '@/shared/ui/notice';
 import { haptics } from '@/shared/ui/haptics';
 import { showToast } from '@/shared/ui/toast';
@@ -16,12 +15,14 @@ import { showToast } from '@/shared/ui/toast';
 import { setGlobalCurrency } from '../application/currency-commands';
 import type { CurrencyOverview } from '../application/settings-queries';
 
-import { CURRENCY_LOCK_EXPLANATION, currencyErrorMessage, noConversionMessage } from './currency-copy';
+import { CURRENCY_SETTINGS_COPY, currencyErrorMessage, noConversionMessage } from './currency-copy';
 import { currencyLabel, CurrencyPicker } from './currency-picker';
 
 // Settings is the only place to change the global currency after onboarding (v1.2 section 3). The
 // picker appears only while nothing locks the currency; the person confirms a native alert that
 // explains no conversion happens, and the command rechecks the lock inside its own transaction.
+// Presented as one grouped settings row ("Preferences", D110) with one short line under the group
+// and the full rule behind its info button (D111).
 export function CurrencySettings() {
   const state = useAppDataStore((store) => store.state);
   if (state.status !== 'ready') {
@@ -88,41 +89,33 @@ function CurrencyEditor({ overview, current, goalCount, goalTitle }: CurrencyEdi
   };
 
   return (
-    <Card testID="currency-settings">
-      <AppText role="headline" testID="currency-current">
-        {currencyLabel(current.code, current.name)}
-      </AppText>
-      {overview.locked ? (
-        <View style={styles.lockRow} accessible testID="currency-locked">
-          <Icon name="lock" role="footnote" tone="secondary" />
-          <AppText role="footnote" tone="secondary" style={styles.lockText}>
-            {CURRENCY_LOCK_EXPLANATION}
-          </AppText>
-        </View>
-      ) : (
-        <>
-          <AppText role="footnote" tone="secondary">
-            You can change the currency while no goal has a saved transaction or souvenir. Amounts are never converted.
-          </AppText>
-          <CurrencyPicker value={code} onChange={setCode} testID="settings-currency" />
-          {error ? <Notice tone="error" title="Currency not changed" message={error} testID="currency-error" /> : null}
-          {/* Shown once a different currency is picked, so the screen never rests on a disabled button. */}
-          {next && next.code !== current.code ? (
-            <Button label={`Change to ${next.code}`} variant="secondary" onPress={confirm} loading={saving} testID="currency-change" />
-          ) : null}
-        </>
-      )}
-    </Card>
+    <View style={styles.section} testID="currency-settings">
+      <ListGroup>
+        <ListRow icon="currency" title="Currency" detail={currencyLabel(current.code, current.name)} testID="currency-current" />
+        {overview.locked ? null : (
+          <ListCell>
+            <CurrencyPicker value={code} onChange={setCode} testID="settings-currency" />
+            {error ? <Notice tone="error" title="Currency not changed" message={error} testID="currency-error" /> : null}
+            {/* Shown once a different currency is picked, so the screen never rests on a disabled button. */}
+            {next && next.code !== current.code ? (
+              <Button label={`Change to ${next.code}`} variant="secondary" onPress={confirm} loading={saving} testID="currency-change" />
+            ) : null}
+          </ListCell>
+        )}
+      </ListGroup>
+      <FootnoteWithInfo
+        text={overview.locked ? CURRENCY_SETTINGS_COPY.locked : CURRENCY_SETTINGS_COPY.unlocked}
+        icon={overview.locked ? 'lock' : undefined}
+        infoTitle={CURRENCY_SETTINGS_COPY.infoTitle}
+        infoMessage={CURRENCY_SETTINGS_COPY.infoMessage}
+        testID={overview.locked ? 'currency-locked' : 'currency-rule'}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  lockRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.xs,
-  },
-  lockText: {
-    flexShrink: 1,
+  section: {
+    gap: spacing.sm,
   },
 });

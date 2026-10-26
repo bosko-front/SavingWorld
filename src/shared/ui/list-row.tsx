@@ -1,6 +1,7 @@
 import { Children, Fragment, isValidElement, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View, type GestureResponderEvent } from 'react-native';
 
+import { useFontScale } from '@/shared/layout';
 import { borders, colors, elevation, layout, radii, spacing } from '@/shared/theme';
 
 import { AppText } from './app-text';
@@ -61,6 +62,10 @@ type ListRowProps = {
   testID?: string;
 };
 
+// From the accessibility text sizes on, a trailing value moves under the title, so the title keeps
+// the row's width instead of breaking inside a word ("Versi-on" on the SE, D110).
+const STACK_VALUE_TEXT_SCALE = 1.6;
+
 // One row of a ListGroup. Pressable when it has `onPress` (also inside `Link asChild`, which passes
 // onPress); otherwise a static, readable row. 44 pt minimum; title and detail wrap with text size.
 export function ListRow({
@@ -78,6 +83,7 @@ export function ListRow({
   accessibilityHint,
   testID,
 }: ListRowProps) {
+  const stackValue = useFontScale() > STACK_VALUE_TEXT_SCALE;
   const inactive = disabled || loading;
   const titleTone = disabled ? 'disabled' : tone === 'destructive' ? 'error' : 'primary';
   const tileColor: TileColor = disabled ? 'neutral' : tone === 'destructive' ? 'red' : iconColor;
@@ -92,8 +98,9 @@ export function ListRow({
             {detail}
           </AppText>
         ) : null}
+        {value && stackValue ? <AppText tone="secondary">{value}</AppText> : null}
       </View>
-      {value ? (
+      {value && !stackValue ? (
         <AppText tone="secondary" style={styles.value}>
           {value}
         </AppText>

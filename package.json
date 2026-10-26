@@ -27,6 +27,7 @@
     "expo-image": "~58.0.17",
     "expo-linking": "~58.0.14",
     "expo-localization": "~58.0.5",
+    "expo-notifications": "~58.1.6",
     "expo-router": "~58.0.25",
     "expo-splash-screen": "~58.0.11",
     "expo-sqlite": "~58.0.13",
@@ -71,6 +72,7 @@
     "moduleNameMapper": {
       "^sonner-native$": "<rootDir>/tests/support/sonner-native-fake.tsx",
       "^expo-haptics$": "<rootDir>/tests/support/expo-haptics-fake.ts",
+      "^expo-notifications$": "<rootDir>/tests/support/expo-notifications-fake.ts",
       "^\\./installUIRuntimeBindings$": "<rootDir>/tests/support/gesture-handler-ui-runtime-fake.ts"
     },
     "resolver": "react-native-reanimated/jest/resolver"

@@ -5,8 +5,15 @@ import type { SetCurrencyError } from '../application/currency-commands';
 // English copy for the global currency choice and its lock (v1.2 section 3). Errors appear inline
 // in Settings or onboarding, never as a toast.
 
-export const CURRENCY_LOCK_EXPLANATION =
-  'The currency is locked while any goal has a saved transaction or a souvenir. Every goal uses this one currency; amounts are never converted.';
+// Settings shows one short line under the currency card; the full rule is behind its info button
+// (D111).
+export const CURRENCY_SETTINGS_COPY = {
+  locked: 'Locked after your first saved entry.',
+  unlocked: 'You can change it until your first saved entry.',
+  infoTitle: 'About your currency',
+  infoMessage:
+    'Every goal uses this one currency. You can change it in Settings while no goal has a saved transaction or a souvenir; after that it stays locked. Deleting every transaction and souvenir unlocks it again. Amounts are never converted: there is no exchange rate in Saving Worlds.',
+} as const;
 
 export function noConversionMessage(from: CurrencyMetadata, to: CurrencyMetadata, goalCount: number): string {
   const goals =

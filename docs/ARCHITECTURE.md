@@ -45,7 +45,7 @@ src/features/ledger/             commands, history and correction UI
 src/features/worlds/             manifests, shared renderer (Phase 09), transition planner and motion coordinator (Phase 10), ambient switches and driver (Phase 10.5)
 src/features/collection/         souvenir and completed-goal views (Reopen, Delete)
 src/features/challenges/         three fixed rules, attempts, calculated progress and UI
-src/features/reminders/          persisted preferences and OS scheduling adapter
+src/features/reminders/          weekly reminder: domain rules, opt-in command, reconciler, expo-notifications adapter, Settings row (Phase 14)
 src/features/billing/            native adapter, entitlement reconciliation and capability queries
 src/features/statistics/         global-currency totals, 30-day series and Pro UI
 src/features/settings/           local preferences and privacy/data screens
@@ -136,7 +136,7 @@ Pro has exactly four views on one screen: current all-goal total; current-calend
 
 ## Reminders, recovery and security
 
-Notification preferences are durable intent. Reconcile OS IDs on launch/foreground and after changes; schedule a bounded set and cancel orphaned requests. Use exactly one optional global Sunday 18:00 device-local weekly reminder, with generic privacy-preserving text. Schedule only while at least one active goal exists; paused/completed never trigger it. Settings has one switch, no goal/challenge cadence or time controls. Editing a paused goal does not resume reminders. No push registration, APNs service or assumption that JavaScript runs while terminated. OS delivery is best effort.
+Notification preferences are durable intent. Reconcile OS IDs on launch/foreground and after changes; schedule a bounded set and cancel orphaned requests. Implemented in Phase 14 (D108): `src/features/reminders/` (pure rules in `domain/weekly-reminder.ts`, `application/reminder-commands.ts` and `reminder-reconciler.ts`, the only expo-notifications importer `native/notification-gateway.ts`, the Settings row in `presentation/`), driven by `src/bootstrap/reminders.ts` after every committed refresh, on launch and foreground, and routing reminder taps to Home. Use exactly one optional global Sunday 18:00 device-local weekly reminder, with generic privacy-preserving text. Schedule only while at least one active goal exists; paused/completed never trigger it. Settings has one switch, no goal/challenge cadence or time controls. Editing a paused goal does not resume reminders. No push registration, APNs service or assumption that JavaScript runs while terminated. OS delivery is best effort.
 
 Use iOS sandbox protection, minimal permissions, parameterized SQL and redacted diagnostics. No API secret, receipt-signing key or financial notes in logs. Validate native file availability in the locked-device/background scenarios actually used. No SQLCipher/key-management system without a requirement.
 

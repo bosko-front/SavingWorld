@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { refreshAppData, useAppDataStore } from '@/bootstrap/app-data';
 import { DatabaseGate } from '@/bootstrap/database-gate';
 import { useForegroundReconciliation } from '@/bootstrap/foreground';
+import { useReminderReconciliation, useReminderTapRouting } from '@/bootstrap/reminders';
 import { StorageFailureScreen } from '@/bootstrap/storage-failure-screen';
 import { stackScreenOptions } from '@/shared/theme';
 import { Toaster } from '@/shared/ui/toast';
@@ -35,6 +36,7 @@ export default function RootLayout() {
 function AppNavigator() {
   const state = useAppDataStore((store) => store.state);
   useForegroundReconciliation();
+  useReminderReconciliation();
 
   useEffect(() => {
     if (state.status === 'idle') {
@@ -52,50 +54,60 @@ function AppNavigator() {
   }
   const onboarded = state.status === 'ready' ? state.data.currency.currency.status !== 'missing' : state.onboarded === true;
   return (
-    <Stack screenOptions={stackScreenOptions}>
-      {/* A guarded deep link redirects to the first available route in file order; the (onboarding)
-          group sorts before the development-only dev-db route, so a new install lands here. */}
-      <Stack.Protected guard={!onboarded}>
-        <Stack.Screen name="(onboarding)/onboarding" options={{ headerShown: false, gestureEnabled: false }} />
-      </Stack.Protected>
-      <Stack.Protected guard={onboarded}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="goal-form"
-          options={{
-            title: 'New goal',
-            presentation: 'formSheet',
-            sheetGrabberVisible: true,
-            sheetAllowedDetents: [1.0],
-          }}
-        />
-        <Stack.Screen
-          name="entry-form"
-          options={{
-            title: 'Add savings',
-            presentation: 'formSheet',
-            sheetGrabberVisible: true,
-            sheetAllowedDetents: [1.0],
-          }}
-        />
-      </Stack.Protected>
-      {/* Development/test-only native database runner (`npm run test:db`), reachable before
-          onboarding so a fresh install can run it; unreachable in release builds. */}
-      <Stack.Protected guard={__DEV__}>
-        <Stack.Screen name="dev-db" options={{ title: 'Database tests' }} />
-      </Stack.Protected>
-      {/* Development/test-only controlled form sample; unreachable in release builds. */}
-      <Stack.Protected guard={__DEV__ && onboarded}>
-        <Stack.Screen
-          name="sample-form"
-          options={{
-            title: 'Sample form',
-            presentation: 'formSheet',
-            sheetGrabberVisible: true,
-            sheetAllowedDetents: [0.5, 1.0],
-          }}
-        />
-      </Stack.Protected>
-    </Stack>
+    <>
+      <Stack screenOptions={stackScreenOptions}>
+        {/* A guarded deep link redirects to the first available route in file order; the (onboarding)
+            group sorts before the development-only dev-db route, so a new install lands here. */}
+        <Stack.Protected guard={!onboarded}>
+          <Stack.Screen name="(onboarding)/onboarding" options={{ headerShown: false, gestureEnabled: false }} />
+        </Stack.Protected>
+        <Stack.Protected guard={onboarded}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="goal-form"
+            options={{
+              title: 'New goal',
+              presentation: 'formSheet',
+              sheetGrabberVisible: true,
+              sheetAllowedDetents: [1.0],
+            }}
+          />
+          <Stack.Screen
+            name="entry-form"
+            options={{
+              title: 'Add savings',
+              presentation: 'formSheet',
+              sheetGrabberVisible: true,
+              sheetAllowedDetents: [1.0],
+            }}
+          />
+        </Stack.Protected>
+        {/* Development/test-only native database runner (`npm run test:db`), reachable before
+            onboarding so a fresh install can run it; unreachable in release builds. */}
+        <Stack.Protected guard={__DEV__}>
+          <Stack.Screen name="dev-db" options={{ title: 'Database tests' }} />
+        </Stack.Protected>
+        {/* Development/test-only controlled form sample; unreachable in release builds. */}
+        <Stack.Protected guard={__DEV__ && onboarded}>
+          <Stack.Screen
+            name="sample-form"
+            options={{
+              title: 'Sample form',
+              presentation: 'formSheet',
+              sheetGrabberVisible: true,
+              sheetAllowedDetents: [0.5, 1.0],
+            }}
+          />
+        </Stack.Protected>
+      </Stack>
+      <ReminderTapRouting onboarded={onboarded} />
+    </>
   );
+}
+
+// Opens Home when the weekly reminder is tapped (Phase 14); renders nothing. Mounted only once the
+// navigator exists, so a tap that launched the app is routed after the first screen.
+function ReminderTapRouting({ onboarded }: { onboarded: boolean }) {
+  useReminderTapRouting(onboarded);
+  return null;
 }

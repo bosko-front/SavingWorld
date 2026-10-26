@@ -53,6 +53,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-sqlite',
     'expo-localization',
     'expo-image',
+    // Local notifications only (the one weekly reminder, Phase 14): no push, so no aps-environment
+    // entitlement and no remote-notification background mode.
+    ['expo-notifications', { enableRemoteNotifications: false }],
   ],
   experiments: {
     typedRoutes: true,

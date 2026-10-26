@@ -7,6 +7,10 @@ import { playedHaptics, resetFakeHaptics } from '../support/expo-haptics-fake';
 // A press on a bottom tab plays one light selection haptic (owner request, DECISIONS D66); a press
 // the native side prevented plays nothing. The NativeTabs Jest mock does not emit native tab
 // presses, so this calls the listener the layout hands to NativeTabs.
+// The layout reads the pathname (tab bar hidden on Settings, D111); a stub lets it run as a plain
+// function here.
+jest.mock('expo-router', () => ({ ...jest.requireActual('expo-router'), usePathname: () => '/' }));
+
 type TabPressListener = (event: { data?: { isPrevented: boolean } }) => void;
 
 function tabPressListener(): TabPressListener {

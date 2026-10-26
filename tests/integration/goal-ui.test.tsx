@@ -344,7 +344,7 @@ describe('Settings currency', () => {
     );
     expect(created.ok).toBe(true);
     await renderRouter(APP_DIR, { initialUrl: '/settings' });
-    expect(screen.getByTestId('currency-current')).toHaveTextContent('EUR – Euro');
+    expect(screen.getByTestId('currency-current')).toHaveTextContent(/EUR – Euro/);
     // No disabled button at rest: Change appears once a different currency is picked.
     expect(screen.queryByTestId('currency-change')).not.toBeOnTheScreen();
     await fireEvent(nativeView({ label: 'Currency' }), 'selectionChange', { nativeEvent: { selection: 'JPY' } });
@@ -355,7 +355,7 @@ describe('Settings currency', () => {
     await userEvent.press(screen.getByRole('button', { name: 'Change to JPY' }));
     expect(alert.mock.lastCall?.[0]).toBe('Change currency to JPY?');
     expect(alert.mock.lastCall?.[1]).toMatch(/Amounts are not converted.*Your goal keeps its target number and uses JPY instead of EUR./);
-    await waitFor(() => expect(screen.getByTestId('currency-current')).toHaveTextContent('JPY – Yen'));
+    await waitFor(() => expect(screen.getByTestId('currency-current')).toHaveTextContent(/JPY – Yen/));
     expect(toastTitles()).toEqual(['Currency changed to JPY']);
     expect(hapticTypes()).toEqual(['success']);
     expect((await goals()).map((goal) => goal.targetMinor)).toEqual([1_500]);
@@ -374,7 +374,11 @@ describe('Settings currency', () => {
       { operationId: randomUuid(), goalId: created.value.goalId, kind: 'deposit', amountMinor: 1_000, entryDate: today(systemClock), note: null },
     );
     await renderRouter(APP_DIR, { initialUrl: '/settings' });
-    expect(screen.getByTestId('currency-locked')).toHaveTextContent(/locked while any goal has a saved transaction or a souvenir/);
+    expect(screen.getByTestId('currency-locked')).toHaveTextContent('Locked after your first saved entry.');
+    // The full rule stays one tap away (D111).
+    const info = jest.spyOn(Alert, 'alert').mockImplementationOnce(() => undefined);
+    await userEvent.press(screen.getByRole('button', { name: 'About your currency' }));
+    expect(info.mock.lastCall?.[1]).toMatch(/while no goal has a saved transaction or a souvenir.*never converted/);
     expect(nativeByProps({ label: 'Currency' })).toHaveLength(0);
     expect(screen.queryByTestId('currency-change')).not.toBeOnTheScreen();
   });

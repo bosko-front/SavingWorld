@@ -84,6 +84,13 @@ export async function countGoals(executor: SqlExecutor): Promise<number> {
   return rowReader('goals', row ?? {}).integer('count');
 }
 
+// Goals whose status is active: the weekly reminder exists only while this is above zero (R17);
+// paused and completed goals never count.
+export async function countActiveGoals(executor: SqlExecutor): Promise<number> {
+  const row = await executor.get<{ count: unknown }>("SELECT count(*) AS count FROM goals WHERE status = 'active'");
+  return rowReader('goals', row ?? {}).integer('count');
+}
+
 // Removes the goal row inside the caller's transaction; its ledger entries and souvenir must be
 // deleted first (foreign keys). Returns false when the row is missing or changed since
 // `expectedRevision`.

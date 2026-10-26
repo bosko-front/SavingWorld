@@ -51,3 +51,11 @@ export function formatCivilDate(date: CivilDate, locale: string = deviceLocale()
     Date.UTC(year, month - 1, day),
   );
 }
+
+// "6:00 PM" or "18:00" for a wall-clock time, in the person's region style. Formatted in UTC from
+// its own parts, so no zone can move it.
+export function formatClockTime(hour: number, minute: number, locale: string = deviceLocale()): string {
+  return new Intl.DateTimeFormat(locale, { timeZone: 'UTC', hour: 'numeric', minute: '2-digit' }).format(
+    Date.UTC(2026, 0, 4, hour, minute),
+  );
+}

@@ -73,6 +73,13 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
   - a completed quest is announced once;
   - the reached-target hero reads "Your island is complete!".
   Felt haptics: selection on changing the chosen quest, one success when a quest completes from Challenges, none for Start or Skip.
+- Carried from Phase 14 (DECISIONS D109): on a physical iPhone with a device development build, the weekly reminder checks. Check:
+  - turning the Settings switch on shows the iOS permission dialog once, only after the opt-in; Allow schedules one request (Reminder lab: one repeating Sunday 18:00 calendar trigger, no time zone, next fire next Sunday 18:00 local);
+  - a controlled delivery (Reminder lab test copy) in the foreground goes to Notification Center without a banner or sound; in the background and with the app terminated it shows a banner with the default sound and the generic text only;
+  - tapping the banner and the Notification Center row opens Home from the background and from a cold start (terminated); a tap while the Add savings sheet is open keeps the sheet and its draft;
+  - switch off cancels the request; Pause of the last active goal cancels it and Resume restores it; a deposit and an edit on the paused goal keep it paused with no request;
+  - Don't Allow keeps the switch on with the notice, saving still works, and Open Settings reaches the app's notification settings; allowing there and returning schedules the request;
+  - VoiceOver reads the switch as "Weekly reminder, Sundays at {time}" with its on/off state and the explanation line; the success haptic is felt on turning it on or off.
 - Formatting tests for at least two numeric/date locales, currency exponents and all user-facing catalog keys.
 - Contrast/touch/layout review, relevant interaction regressions and standard checks.
 
