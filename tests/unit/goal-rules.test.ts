@@ -113,6 +113,8 @@ describe('every command error has inline copy', () => {
     { code: 'goal_not_found' },
     { code: 'stale_goal', currentRevision: 3 },
     { code: 'goal_closed' },
+    { code: 'goal_read_only' },
+    { code: 'theme_locked' },
     { code: 'storage_failure', message: 'disk I/O error' },
   ];
 
@@ -153,12 +155,15 @@ describe('every command error has inline copy', () => {
       { code: 'invalid_transition', status: 'completed' },
       { code: 'goal_limit' },
       { code: 'not_funded' },
+      { code: 'goal_read_only' },
       { code: 'storage_failure', message: 'x' },
     ];
     for (const error of errors) {
       expect(lifecycleMessage('reopen', error).length).toBeGreaterThan(10);
     }
-    expect(lifecycleMessage('reopen', { code: 'goal_limit' })).toMatch(/Free includes one goal/);
+    // Reopen only meets the limit after a lost Pro entitlement with several goals (Phase 16, D74).
+    expect(lifecycleMessage('reopen', { code: 'goal_limit' })).toBe('Without Pro, only the goal you keep using can be reopened. Your goals are unchanged.');
+    expect(lifecycleMessage('pause', { code: 'goal_read_only' })).toMatch(/read-only, so nothing was changed/);
   });
 
   it('explains every deletion refusal and names what deleting a completed goal loses (D74)', () => {

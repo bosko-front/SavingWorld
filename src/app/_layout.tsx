@@ -83,6 +83,25 @@ function AppNavigator() {
               sheetAllowedDetents: [1.0],
             }}
           />
+          {/* Phase 16: the Pro paywall and the choice of the goal kept in use after Pro was lost. */}
+          <Stack.Screen
+            name="paywall"
+            options={{
+              title: 'Saving Worlds Pro',
+              presentation: 'formSheet',
+              sheetGrabberVisible: true,
+              sheetAllowedDetents: [1.0],
+            }}
+          />
+          <Stack.Screen
+            name="keep-goal"
+            options={{
+              title: 'Keep one goal',
+              presentation: 'formSheet',
+              sheetGrabberVisible: true,
+              sheetAllowedDetents: [1.0],
+            }}
+          />
         </Stack.Protected>
         {/* Development/test-only native database runner (`npm run test:db`), reachable before
             onboarding so a fresh install can run it; unreachable in release builds. */}

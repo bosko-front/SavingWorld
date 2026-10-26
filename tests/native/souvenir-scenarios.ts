@@ -365,9 +365,10 @@ export const SOUVENIR_SCENARIOS: Scenario[] = [
         );
         equal(await db.read((r) => count(r, 'ledger_entries')), 3, 'entries unchanged');
         equal((await db.read((r) => r.all('PRAGMA foreign_key_check'))).length, 0, 'foreign_key_check clean');
-        // A later deposit on an upgraded funded goal finds the souvenir and adds none.
+        // A later deposit on an upgraded funded goal finds the souvenir and adds none (three goals: a
+        // Pro database, so the goal accepts entries, Phase 16).
         const more = await createEntry(
-          { db, clock: steppingClock('2026-10-24T08:00:00.000Z'), ids: { newId: () => 'e4' } },
+          { db, clock: steppingClock('2026-10-24T08:00:00.000Z'), ids: { newId: () => 'e4' }, capabilities: capabilitiesFor('pro') },
           { operationId: 'op-upgrade3-more', goalId: 'funded', ...values('deposit', 1_000, '2026-10-02') },
         );
         check(more.ok && !more.value.souvenirAwarded, 'no second souvenir after the upgrade');

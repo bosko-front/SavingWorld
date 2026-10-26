@@ -2,7 +2,8 @@ import { Stack, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { appClock, useAppDataStore } from '@/bootstrap/app-data';
+import { appClock, useAccessView, useAppDataStore } from '@/bootstrap/app-data';
+import { canReopenGoal } from '@/core/access';
 import { MILESTONE_COUNT } from '@/core/progression';
 import type { CollectibleRecord } from '@/data/repositories/collectible-repository';
 import { DELETE_COPY, LIFECYCLE_COPY } from '@/features/goals/presentation/goal-copy';
@@ -42,6 +43,7 @@ export function SouvenirScreen({ goalId }: { goalId: string }) {
   const action = useGoalAction();
   // The goal and its souvenir are gone after a deletion: leave the screen before it re-reads.
   const { deleting, confirmDelete } = useDeleteGoal(() => router.back());
+  const access = useAccessView();
 
   if (state.status !== 'ready' || state.data.currency.currency.status !== 'set') {
     return null;
@@ -61,6 +63,7 @@ export function SouvenirScreen({ goalId }: { goalId: string }) {
   const detail = souvenirDetail(entry, state.data.currency.currency.currency, appClock().timeZone());
   const completed = goal.status === 'completed';
   const busy = action.pending !== null || deleting !== null;
+  const reopenable = access ? canReopenGoal(access.capabilities, state.data.goals.goals.length, access.keptGoalId, goal.id) : true;
 
   const details = (
     <View style={styles.details}>
@@ -116,10 +119,11 @@ export function SouvenirScreen({ goalId }: { goalId: string }) {
           <ListRow
             title={LIFECYCLE_COPY.reopen.label}
             icon="reopen"
-            detail="Edit it or record savings again."
+            // After a lost Pro entitlement only the goal kept in use can reopen (Phase 16, D74).
+            detail={reopenable ? 'Edit it or record savings again.' : 'Read-only until Pro returns.'}
             onPress={() => void action.run('reopen', goal)}
             loading={action.pending?.goalId === goal.id}
-            disabled={busy}
+            disabled={busy || !reopenable}
             accessibilityHint={`Makes ${goal.title} an open goal again.`}
             testID={`reopen-${goal.id}`}
           />

@@ -13,7 +13,7 @@ import { createGoal } from '@/features/goals/application/goal-commands';
 import { createEntry } from '@/features/ledger/application/ledger-commands';
 import { civilDateToLocalDate } from '@/shared/i18n/local-date';
 
-import { APP_DIR, chooseCurrency, freshAppDatabase, resetApp } from '../support/app-fixture';
+import { APP_DIR, chooseCurrency, freshAppDatabase, resetApp, grantProForTests } from '../support/app-fixture';
 import { playedHaptics } from '../support/expo-haptics-fake';
 import { chooseGoalOption, goalOptionLabels } from '../support/goal-menu';
 
@@ -360,6 +360,7 @@ describe('read failures', () => {
 
 describe('goal switcher (Pro: more than one open goal)', () => {
   it('plays the selection haptic once when the shown goal changes', async () => {
+    await grantProForTests();
     await setupGoal(10_000, null, 'First', 'pro');
     await setupGoal(20_000, null, 'Second', 'pro');
     await renderRouter(APP_DIR, { initialUrl: '/' });

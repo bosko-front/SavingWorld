@@ -1,7 +1,7 @@
 import type { AppDatabase } from '@/data/db/database';
 import { listCollectibles, type CollectibleRecord } from '@/data/repositories/collectible-repository';
 import { isOpenStatus, listGoalSummaries, type GoalSummary } from '@/data/repositories/goal-repository';
-import { readSelectedGoalId } from '@/data/repositories/settings-repository';
+import { readKeptGoalId, readSelectedGoalId } from '@/data/repositories/settings-repository';
 
 // Every goal (all statuses) with its balance recomputed from committed ledger entries.
 export function readGoalSummaries(db: AppDatabase): Promise<GoalSummary[]> {
@@ -16,6 +16,8 @@ export type GoalsOverview = {
   // Every souvenir, newest first (Phase 11). Read in the same snapshot as the goals, so a goal and
   // its souvenir are never out of step on screen.
   souvenirs: CollectibleRecord[];
+  // The goal the person chose to keep using after losing Pro (Phase 16, D74), when it still exists.
+  keptGoalId: string | null;
 };
 
 // Home's selected goal: the stored choice while it names an open goal, otherwise the oldest open
@@ -32,6 +34,8 @@ export async function readGoalsOverview(db: AppDatabase): Promise<GoalsOverview>
     const goals = await listGoalSummaries(snapshot);
     const storedId = await readSelectedGoalId(snapshot);
     const souvenirs = await listCollectibles(snapshot);
-    return { goals, selectedGoalId: resolveSelectedGoalId(goals, storedId), souvenirs };
+    const keptId = await readKeptGoalId(snapshot);
+    const keptGoalId = goals.some((summary) => summary.goal.id === keptId) ? keptId : null;
+    return { goals, selectedGoalId: resolveSelectedGoalId(goals, storedId), souvenirs, keptGoalId };
   });
 }

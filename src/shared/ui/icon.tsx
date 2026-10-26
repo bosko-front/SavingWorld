@@ -42,6 +42,11 @@ export const ICON_SYMBOLS = {
   // Phase 10: the milestone unlock message and the empty-state sparkle.
   unlocked: 'sparkles',
   sparkle: 'sparkle',
+  // Phase 16: the Pro paywall's included features and Restore Purchases.
+  goals: 'square.stack.3d.up',
+  switchWorld: 'arrow.triangle.2.circlepath',
+  statistics: 'chart.line.uptrend.xyaxis',
+  restore: 'arrow.clockwise',
 } as const satisfies Record<string, SFSymbol>;
 
 export type IconName = keyof typeof ICON_SYMBOLS;
@@ -69,6 +74,9 @@ export const FILLED_SYMBOLS: Partial<Record<IconName, SFSymbol>> = {
   success: 'checkmark',
   error: 'exclamationmark',
   add: 'plus',
+  goals: 'square.stack.3d.up.fill',
+  statistics: 'chart.line.uptrend.xyaxis',
+  lock: 'lock.fill',
 };
 
 type IconProps = {

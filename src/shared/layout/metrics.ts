@@ -60,6 +60,24 @@ export function floatingActionInset(buttonHeight: number): number {
   return buttonHeight > 0 ? Math.ceil(buttonHeight + FLOATING_ACTION_MARGIN + 8) : 0;
 }
 
+// A pinned footer under a scrolling screen (Screen/FormScreen `footer`, Phase 16 paywall, D125). It
+// owns the bottom edge (home indicator) and keeps the gutter as a minimum on every side.
+export const footerEdges: EdgeRecord = { top: 'off', bottom: 'maximum', left: 'maximum', right: 'maximum' };
+
+// The most of a screen's height a pinned footer may take; beyond it (large Dynamic Type, a short
+// window, a small sheet) the footer moves to the end of the scrolling content instead, so it never
+// covers more than a slice of the content.
+export const PINNED_FOOTER_MAX_SHARE = 0.35;
+
+// Whether the footer stays pinned for the measured screen and footer heights. Before the first
+// measurement (zero) it is pinned, the common case.
+export function pinFooter(screenHeight: number, footerHeight: number): boolean {
+  if (screenHeight <= 0 || footerHeight <= 0) {
+    return true;
+  }
+  return footerHeight <= screenHeight * PINNED_FOOTER_MAX_SHARE;
+}
+
 // SafeAreaView edges for an ownership. `maximum` means padding = max(inset, gutter): the gutter
 // is a minimum margin, not added on top of the inset.
 export function safeAreaEdges(ownership: InsetOwnership): EdgeRecord {

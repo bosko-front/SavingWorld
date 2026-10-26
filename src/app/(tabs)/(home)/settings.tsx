@@ -1,6 +1,8 @@
 import { StyleSheet, View } from 'react-native';
 
 import { readBuildInfo } from '@/bootstrap/read-build-info';
+import { PRO_SETTINGS_COPY } from '@/features/billing/presentation/billing-copy';
+import { ProSettings } from '@/features/billing/presentation/pro-settings';
 import { ReminderSettings } from '@/features/reminders/presentation/reminder-settings';
 import { REMINDER_COPY } from '@/features/reminders/presentation/reminder-copy';
 import { CurrencySettings } from '@/features/settings/presentation/currency-settings';
@@ -10,7 +12,8 @@ import { ListGroup, ListRow } from '@/shared/ui/list-row';
 import { SectionHeader } from '@/shared/ui/section-header';
 
 // Settings (owner polish D110): calm grouped cards in the shared look. Preferences (the one global
-// currency, Phase 06), Reminders (the weekly reminder, Phase 14) and About (app name and version).
+// currency, Phase 06), Reminders (the weekly reminder, Phase 14), Pro (status and Restore Purchases,
+// Phase 16) and About (app name and version).
 // The native navigation title names the screen. Delivery diagnostics and development tools live in
 // a development-only module that release bundles leave out.
 export default function SettingsScreen() {
@@ -24,6 +27,10 @@ export default function SettingsScreen() {
       <View style={styles.section}>
         <SectionHeader title={REMINDER_COPY.section} />
         <ReminderSettings />
+      </View>
+      <View style={styles.section}>
+        <SectionHeader title={PRO_SETTINGS_COPY.section} />
+        <ProSettings />
       </View>
       <View style={styles.section}>
         <SectionHeader title="About" />

@@ -4,7 +4,8 @@ import { err, ok, type Result } from '@/core/result';
 import type { SqlExecutor } from '../db/sql';
 
 // Typed settings rows (docs/DATA_MODEL.md "settings"). Phase 05 defines the global currency key,
-// Phase 06 the selected goal, Phase 14 the weekly reminder opt-in and its OS request record. The stored
+// Phase 06 the selected goal, Phase 14 the weekly reminder opt-in and its OS request record, Phase 16
+// the goal kept usable after a lost Pro entitlement. The stored
 // value keeps the code, its exponent and the registry version, so a later registry change can never
 // silently reinterpret saved minor units: a mismatch is reported, not repaired.
 
@@ -13,6 +14,7 @@ export const SETTING_KEYS = {
   selectedGoalId: 'selectedGoalId',
   weeklyReminderEnabled: 'weeklyReminderEnabled',
   weeklyReminderRequest: 'weeklyReminderRequest',
+  keptGoalId: 'keptGoalId',
 } as const;
 
 type SettingKey = (typeof SETTING_KEYS)[keyof typeof SETTING_KEYS];
@@ -100,6 +102,18 @@ export async function readSelectedGoalId(executor: SqlExecutor): Promise<string 
 
 export async function writeSelectedGoalId(tx: SqlExecutor, goalId: string, nowUtc: string): Promise<void> {
   await writeSettingJson(tx, SETTING_KEYS.selectedGoalId, goalId, nowUtc);
+}
+
+// The goal the person chose to keep using after losing Pro with several goals (Phase 16, D74). Only
+// the person's own choice writes it; nothing clears or replaces it automatically. Readers treat an ID
+// that names no existing goal as no choice.
+export async function readKeptGoalId(executor: SqlExecutor): Promise<string | null> {
+  const value = await readSettingJson(executor, SETTING_KEYS.keptGoalId);
+  return typeof value === 'string' ? value : null;
+}
+
+export async function writeKeptGoalId(tx: SqlExecutor, goalId: string, nowUtc: string): Promise<void> {
+  await writeSettingJson(tx, SETTING_KEYS.keptGoalId, goalId, nowUtc);
 }
 
 // The single global weekly reminder opt-in (v1.2 AppSettings.weeklyReminderEnabled). Off unless the

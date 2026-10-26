@@ -6,6 +6,8 @@ import {
   isArrangementCollapsed,
   floatingActionEdges,
   floatingActionInset,
+  PINNED_FOOTER_MAX_SHARE,
+  pinFooter,
   readableColumnWidth,
   safeAreaEdges,
   scrollingScreenOwnership,
@@ -151,5 +153,18 @@ describe('centered empty states', () => {
     // 667 pt viewport (iPhone SE): 75% visible = 500.25, minus 2 × 16 pt padding.
     expect(centeredContentHeight(667, 16)).toBe(468);
     expect(centeredContentHeight(0, 16)).toBe(0);
+  });
+});
+
+describe('pinned footer (Phase 16 paywall, D125)', () => {
+  it('stays pinned while it takes at most 35% of the screen, and moves into the content beyond', () => {
+    expect(PINNED_FOOTER_MAX_SHARE).toBe(0.35);
+    expect(pinFooter(0, 0)).toBe(true);
+    // iPhone SE sheet at the default text size: about 150 of 607 pt.
+    expect(pinFooter(607, 150)).toBe(true);
+    expect(pinFooter(600, 210)).toBe(true);
+    expect(pinFooter(600, 211)).toBe(false);
+    // Largest accessibility text on a small sheet: a tall footer goes inline.
+    expect(pinFooter(560, 420)).toBe(false);
   });
 });

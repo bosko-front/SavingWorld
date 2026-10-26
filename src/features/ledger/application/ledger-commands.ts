@@ -1,3 +1,4 @@
+import { capabilitiesFor, type Capabilities } from '@/core/access';
 import { parseCivilDate, today, utcTimestamp, validateEntryDate, type CivilDate, type Clock } from '@/core/calendar';
 import { isPositiveMinorAmount, signedAmount, sumMinor, toMinorAmount, type EntryKind } from '@/core/money';
 import { err, type Result } from '@/core/result';
@@ -19,6 +20,7 @@ import { insertReceipt, lookupReceipt, requestHash } from '@/data/repositories/r
 import { readCurrency } from '@/data/repositories/settings-repository';
 import { reconcileGoalAttempts } from '@/features/challenges/application/challenge-commands';
 import { awardSouvenirIfFirstFunded } from '@/features/collection/application/souvenir-award';
+import { requireUsableGoal, type GoalAccessError } from '@/features/goals/application/goal-access';
 
 import { validateCandidateHistory, type HistoryEntry, type HistoryViolation } from '../domain/candidate-history';
 
@@ -27,7 +29,9 @@ import { validateCandidateHistory, type HistoryEntry, type HistoryViolation } fr
 // 1. validates input outside the transaction: positive amount + kind, a real civil date that is not
 //    in the future (today read once from the Clock), a normalized optional note;
 // 2. in one exclusive transaction: replays a receipt for a repeated operation ID (or rejects a
-//    different payload), requires the global currency, an open goal and the expected row revision,
+//    different payload), requires the global currency, an open goal that is usable with the current
+//    capabilities (not read-only after a lost Pro entitlement, not a Garden goal without Pro;
+//    Phase 16) and the expected row revision,
 //    validates the goal's whole candidate history in date/createdAt/id order, writes the current
 //    values, stores the goal's one souvenir when this change first leaves B >= T (Phase 11),
 //    recalculates the goal's fixed challenge attempts from the saved entries (Phase 12) and writes
@@ -43,7 +47,13 @@ export const LEDGER_COMMAND_KINDS = {
   delete: 'ledger.delete_entry',
 } as const;
 
-export type LedgerCommandDeps = { db: AppDatabase; clock: Clock; ids: IdGenerator };
+export type LedgerCommandDeps = {
+  db: AppDatabase;
+  clock: Clock;
+  ids: IdGenerator;
+  // Free by default; the app passes the capabilities of the committed snapshot (Phase 16).
+  capabilities?: Capabilities;
+};
 
 export type EntryValuesInput = {
   kind: EntryKind;
@@ -88,6 +98,7 @@ export type LedgerRuleError =
   | { code: 'currency_invalid' }
   | { code: 'goal_not_found' }
   | { code: 'goal_closed' }
+  | GoalAccessError
   | { code: 'entry_not_found' }
   | { code: 'stale_entry'; currentRevision: number }
   | HistoryViolation;
@@ -210,7 +221,7 @@ async function requireCurrency(tx: SqlExecutor): Promise<void> {
   }
 }
 
-async function requireOpenGoal(tx: SqlExecutor, goalId: string): Promise<GoalRecord> {
+async function requireOpenGoal(tx: SqlExecutor, goalId: string, capabilities: Capabilities): Promise<GoalRecord> {
   const goal = await getGoal(tx, goalId);
   if (!goal) {
     reject<LedgerRuleError>({ code: 'goal_not_found' });
@@ -218,6 +229,7 @@ async function requireOpenGoal(tx: SqlExecutor, goalId: string): Promise<GoalRec
   if (!isOpenStatus(goal.status)) {
     reject<LedgerRuleError>({ code: 'goal_closed' });
   }
+  await requireUsableGoal(tx, capabilities, goal);
   return goal;
 }
 
@@ -225,12 +237,13 @@ async function requireCurrentEntry(
   tx: SqlExecutor,
   entryId: string,
   expectedRevision: number,
+  capabilities: Capabilities,
 ): Promise<{ entry: LedgerEntryRecord; goal: GoalRecord }> {
   const entry = await getEntry(tx, entryId);
   if (!entry) {
     reject<LedgerRuleError>({ code: 'entry_not_found' });
   }
-  const goal = await requireOpenGoal(tx, entry.goalId);
+  const goal = await requireOpenGoal(tx, entry.goalId, capabilities);
   if (entry.revision !== expectedRevision) {
     reject<LedgerRuleError>({ code: 'stale_entry', currentRevision: entry.revision });
   }
@@ -270,7 +283,7 @@ export async function createEntry(
       return replay;
     }
     await requireCurrency(tx);
-    const goal = await requireOpenGoal(tx, input.goalId);
+    const goal = await requireOpenGoal(tx, input.goalId, deps.capabilities ?? capabilitiesFor('free'));
 
     const nowUtc = utcTimestamp(deps.clock);
     const existing = await listEntriesForGoal(tx, input.goalId);
@@ -329,7 +342,7 @@ export async function correctEntry(
       return replay;
     }
     await requireCurrency(tx);
-    const { entry: current, goal } = await requireCurrentEntry(tx, input.entryId, input.expectedRevision);
+    const { entry: current, goal } = await requireCurrentEntry(tx, input.entryId, input.expectedRevision, deps.capabilities ?? capabilitiesFor('free'));
 
     const existing = await listEntriesForGoal(tx, current.goalId);
     const previousBalanceMinor = checkedBalance(existing);
@@ -386,7 +399,7 @@ export async function deleteEntry(
       return replay;
     }
     await requireCurrency(tx);
-    const { entry: current, goal } = await requireCurrentEntry(tx, input.entryId, input.expectedRevision);
+    const { entry: current, goal } = await requireCurrentEntry(tx, input.entryId, input.expectedRevision, deps.capabilities ?? capabilitiesFor('free'));
 
     const existing = await listEntriesForGoal(tx, current.goalId);
     const previousBalanceMinor = checkedBalance(existing);

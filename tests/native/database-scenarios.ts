@@ -705,7 +705,8 @@ export function restartSeedScenario(seedId: string): Scenario {
     run: async (context) => {
       const clock = steppingClock();
       const db = await AppDatabase.open({ driver: context.driver, name: restartDatabaseName(seedId), migrations: MIGRATIONS, clock });
-      const deps = { db, clock, ids: sequentialIds('restart') };
+      // A Pro database: four goals, all usable (Phase 16 makes extra goals read-only without Pro).
+      const deps = { db, clock, ids: sequentialIds('restart'), capabilities: capabilitiesFor('pro') };
       await db.write((tx) => writeCurrency(tx, EUR, utcTimestamp(clock)));
       const goal = await createGoal(deps, { operationId: 'op-r-goal', title: 'Restart goal', targetMinor: 50_000, deadlineDate: null, themeId: 'island' });
       check(goal.ok, 'goal');
@@ -802,7 +803,7 @@ export function restartVerifyScenario(seedId: string): Scenario {
           'the started challenge survives the restart',
         );
         // The unacknowledged withdrawal: retrying after the restart replays it instead of writing twice.
-        const after = { db, clock, ids: sequentialIds('after') };
+        const after = { db, clock, ids: sequentialIds('after'), capabilities: capabilitiesFor('pro') };
         const retried = await createEntry(after, { operationId: RESTART_WITHDRAWAL_OP, goalId: 'restart-0005', ...RESTART_WITHDRAWAL });
         check(retried.ok && retried.value.replayed && retried.value.balanceMinor === 3_000, 'unacknowledged withdrawal replays after restart');
         const over = await createEntry(after, { operationId: 'op-r-31', goalId: 'restart-0005', ...values('withdrawal', 3_100, '2026-10-06') });

@@ -3,20 +3,21 @@ import { router } from 'expo-router';
 import { renderRouter } from 'expo-router/testing-library';
 import { AccessibilityInfo, Alert, StyleSheet, type AlertButton } from 'react-native';
 
-import { refreshAppData } from '@/bootstrap/app-data';
+import { currentCapabilities, refreshAppData } from '@/bootstrap/app-data';
 import { getAppDatabase } from '@/bootstrap/database-readiness';
 import { capabilitiesFor } from '@/core/access';
 import { systemClock, today } from '@/core/calendar';
 import { randomUuid, uuidGenerator } from '@/data/ids';
 import { listCollectibles } from '@/data/repositories/collectible-repository';
 import { listGoals } from '@/data/repositories/goal-repository';
+import { chooseKeptGoal } from '@/features/goals/application/goal-access';
 import { createGoal, finishGoal } from '@/features/goals/application/goal-commands';
 import { correctEntry, createEntry } from '@/features/ledger/application/ledger-commands';
 import { readCurrencyOverview } from '@/features/settings/application/settings-queries';
 import { colors } from '@/shared/theme';
 import { setReduceMotionForTests } from '@/shared/ui/motion-preferences';
 
-import { APP_DIR, chooseCurrency, freshAppDatabase, resetApp } from '../support/app-fixture';
+import { APP_DIR, chooseCurrency, freshAppDatabase, grantProForTests, resetApp } from '../support/app-fixture';
 import { playedHaptics } from '../support/expo-haptics-fake';
 import { chooseGoalOption, goalOptionLabels } from '../support/goal-menu';
 import { liveToasts } from '../support/sonner-native-fake';
@@ -40,8 +41,9 @@ afterAll(async () => {
   await resetApp();
 });
 
+// The app's current capabilities (Free unless a test bought Pro with grantProForTests).
 function deps() {
-  return { db: getAppDatabase(), clock: systemClock, ids: uuidGenerator };
+  return { db: getAppDatabase(), clock: systemClock, ids: uuidGenerator, capabilities: currentCapabilities() };
 }
 
 async function setupGoal(title: string, targetMinor: number) {
@@ -131,10 +133,14 @@ describe('Collection (Phase 11)', () => {
       within(screen.getByTestId('home-empty-world', { includeHiddenElements: true })).getByTestId('world-scene', { includeHiddenElements: true }),
     ).toHaveProp('accessibilityLabel', 'Island world, 10 of 10 milestones unlocked');
     expect(screen.getByTestId('home-closed-hint')).toHaveTextContent('Unlock Pro to build another world, or delete your finished goal in Collection to start over.');
-    const anotherWorld = jest.spyOn(Alert, 'alert').mockImplementationOnce(() => undefined);
+    // The button opens the goal form, which shows the "Build another world" paywall entry (Phase 16).
     await userEvent.press(screen.getByTestId('home-another-world'));
-    expect(anotherWorld.mock.lastCall?.[0]).toBe('Build another world');
-    expect(anotherWorld.mock.lastCall?.[1]).toMatch(/^You’ve already created your free savings goal\. Unlock Pro to create more goals and grow your collection of worlds\./);
+    await waitFor(() => expect(screen).toHavePathname('/goal-form'));
+    expect(screen.getByTestId('paywall-another-world')).toHaveTextContent(
+      /^Build another worldYou’ve already created your free savings goal\. Unlock Pro to create more goals and grow your collection of worlds\./,
+    );
+    await userEvent.press(screen.getByTestId('paywall-close'));
+    await waitFor(() => expect(screen).toHavePathname('/'));
 
     // Collection: a gallery with one featured finished world under "Completed worlds".
     await act(async () => {
@@ -235,7 +241,8 @@ describe('Collection (Phase 11)', () => {
   });
 
   it('several finished worlds (Pro) form a two-column gallery; a narrow width falls back to one column; long names wrap', async () => {
-    const pro = { ...deps(), capabilities: capabilitiesFor('pro') };
+    await grantProForTests();
+    const pro = deps();
     const longTitle = 'A cozy cabin by the lake for the whole family to enjoy every summer';
     const ids: string[] = [];
     for (const title of ['Camera', longTitle, 'Bike']) {
@@ -300,7 +307,7 @@ describe('Collection (Phase 11)', () => {
     expect(screen.getByTestId('home-new-goal')).toBeOnTheScreen();
   });
 
-  it('Reopen refused by the Free goal limit plays the warning haptic and keeps the goal completed', async () => {
+  it('after Pro is lost, Reopen is read-only for goals not kept in use and works for the kept goal (D74)', async () => {
     const goalId = await setupGoal('Camera', 25_000);
     await seed(goalId, 25_000);
     expect((await finishGoal(deps(), { operationId: randomUuid(), goalId, expectedRevision: 1 })).ok).toBe(true);
@@ -313,9 +320,18 @@ describe('Collection (Phase 11)', () => {
     });
     expect(second.ok).toBe(true);
     await renderRouter(APP_DIR, { initialUrl: `/souvenir?goalId=${goalId}` });
+    expect(screen.getByTestId(`reopen-${goalId}`)).toBeDisabled();
+    expect(screen.getByTestId(`reopen-${goalId}`)).toHaveTextContent(/Read-only until Pro returns/);
+    // The person keeps the finished goal in use; then it can reopen.
+    expect((await chooseKeptGoal({ ...deps() }, goalId)).ok).toBe(true);
+    await act(async () => {
+      await refreshAppData();
+    });
+    expect(screen.getByTestId(`reopen-${goalId}`)).toBeEnabled();
     await userEvent.press(screen.getByTestId(`reopen-${goalId}`));
-    await waitFor(() => expect(hapticTypes()).toEqual(['warning']));
-    expect(toastTitles()).toEqual(['Goal not reopened']);
-    expect((await goals()).find((goal) => goal.id === goalId)?.status).toBe('completed');
+    await waitFor(() => expect(toastTitles()).toEqual(['Goal reopened']));
+    expect((await goals()).find((goal) => goal.id === goalId)?.status).toBe('active');
+    expect(hapticTypes()).toEqual(['success']);
   });
+
 });

@@ -1,6 +1,7 @@
 import path from 'path';
 
 import { resetCapabilitiesForTests, useAppDataStore } from '@/bootstrap/app-data';
+import { purchaseProFromApp } from '@/bootstrap/billing';
 import { useReminderStore } from '@/bootstrap/reminders';
 import {
   getAppDatabase,
@@ -37,6 +38,16 @@ export async function chooseCurrency(code = 'EUR'): Promise<void> {
   const result = await setGlobalCurrency({ db: getAppDatabase(), clock: systemClock }, { operationId: randomUuid(), currencyCode: code });
   if (!result.ok) {
     throw new Error(`currency setup failed: ${JSON.stringify(result.error)}`);
+  }
+  useAppDataStore.setState({ state: { status: 'idle' } });
+}
+
+// Buys Pro through the real billing path (queue, reconciler, schema 5) against the fake StoreKit, as
+// a verified purchase would; the next render reads the stored rights. Never a capability override.
+export async function grantProForTests(): Promise<void> {
+  const result = await purchaseProFromApp();
+  if (result?.outcome !== 'purchased') {
+    throw new Error(`test purchase failed: ${JSON.stringify(result)}`);
   }
   useAppDataStore.setState({ state: { status: 'idle' } });
 }

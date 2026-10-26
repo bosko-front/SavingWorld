@@ -2,11 +2,12 @@ import { Stack, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Alert, StyleSheet, View, type TextInputInstance } from 'react-native';
 
-import { appClock, ledgerCommandDeps, refreshAppData, useAppDataStore, useCommittedRead } from '@/bootstrap/app-data';
+import { appClock, ledgerCommandDeps, refreshAppData, useAccessView, useAppDataStore, useCommittedRead, type AccessView } from '@/bootstrap/app-data';
 import { today, type CivilDate } from '@/core/calendar';
 import { formatMoney, type CurrencyMetadata, type EntryKind } from '@/core/money';
 import { randomUuid } from '@/data/ids';
 import { isOpenStatus, type GoalRecord } from '@/data/repositories/goal-repository';
+import { READ_ONLY_COPY } from '@/features/billing/presentation/billing-copy';
 import type { LedgerEntryRecord } from '@/data/repositories/ledger-repository';
 import { noteCompletedQuest } from '@/features/challenges/presentation/completed-quest';
 import { unlocksStage } from '@/features/worlds/world-transition';
@@ -70,13 +71,14 @@ function useCurrency(): CurrencyMetadata | null | undefined {
 
 function CreateEntry({ goalId, origin }: { goalId: string; origin: EntryFormOrigin }) {
   const currency = useCurrency();
+  const access = useAccessView();
   const summary = useAppDataStore((store) =>
     store.state.status === 'ready' ? (store.state.data.goals.goals.find((item) => item.goal.id === goalId) ?? null) : undefined,
   );
   if (currency === undefined || summary === undefined) {
     return null;
   }
-  const blocked = unavailable(currency, summary?.goal ?? null, 'Add savings');
+  const blocked = unavailable(currency, summary?.goal ?? null, access, 'Add savings');
   if (blocked || !currency || !summary) {
     return blocked;
   }
@@ -85,6 +87,7 @@ function CreateEntry({ goalId, origin }: { goalId: string; origin: EntryFormOrig
 
 function EditEntry({ entryId }: { entryId: string }) {
   const currency = useCurrency();
+  const access = useAccessView();
   const context = useCommittedRead(`entry:${entryId}`, (db) => readEntryContext(db, entryId));
   if (currency === undefined || context.status === 'loading') {
     return null;
@@ -106,15 +109,16 @@ function EditEntry({ entryId }: { entryId: string }) {
       </FormScreen>
     );
   }
-  const blocked = unavailable(currency, found.goal, 'Edit entry');
+  const blocked = unavailable(currency, found.goal, access, 'Edit entry');
   if (blocked || !currency) {
     return blocked;
   }
   return <EntryForm currency={currency} goal={found.goal} balanceMinor={found.balanceMinor} entry={found.entry} origin="home" />;
 }
 
-// The states in which the form can't be used, each explained instead of a disabled form.
-function unavailable(currency: CurrencyMetadata | null, goal: GoalRecord | null, title: string) {
+// The states in which the form can't be used, each explained instead of a disabled form. A goal that
+// is read-only after a lost Pro entitlement (Phase 16) says so calmly, also for a deep link.
+function unavailable(currency: CurrencyMetadata | null, goal: GoalRecord | null, access: AccessView | null, title: string) {
   let notice: { title: string; message: string } | null = null;
   if (!currency) {
     notice = { title: 'No currency yet', message: 'Choose a currency in Settings before recording savings.' };
@@ -124,6 +128,11 @@ function unavailable(currency: CurrencyMetadata | null, goal: GoalRecord | null,
     notice = {
       title: 'This goal is closed',
       message: 'Closed goals are read-only. Reopen it from Collection to add or change entries.',
+    };
+  } else if (access && access.use(goal) !== 'usable') {
+    notice = {
+      title: READ_ONLY_COPY.badge,
+      message: access.use(goal) === 'theme_locked' ? READ_ONLY_COPY.gardenSentence : READ_ONLY_COPY.sentence,
     };
   }
   if (!notice) {

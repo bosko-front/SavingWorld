@@ -1,12 +1,13 @@
 import { Link } from 'expo-router';
 import { useState, type ReactElement } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { currentCapabilities, goalCommandDeps, refreshAppData, useAppDataStore } from '@/bootstrap/app-data';
-import { hasGoalSlot } from '@/core/access';
+import { accessView, goalCommandDeps, refreshAppData, useAppDataStore, type AccessView } from '@/bootstrap/app-data';
+import type { GoalUse } from '@/core/access';
 import { MILESTONE_COUNT, progressPercent, sceneFeedback } from '@/core/progression';
 import type { CollectibleRecord } from '@/data/repositories/collectible-repository';
 import { isOpenStatus, type GoalSummary } from '@/data/repositories/goal-repository';
+import { ANOTHER_WORLD, READ_ONLY_COPY } from '@/features/billing/presentation/billing-copy';
 import { themeManifestAt } from '@/features/worlds/registry';
 import { UnlockBanner } from '@/features/worlds/unlock-banner';
 import { useWorldMotion, type WorldMotion } from '@/features/worlds/use-world-motion';
@@ -32,7 +33,6 @@ import { StatusBadge } from '@/shared/ui/status-badge';
 
 import { selectGoal } from '../application/goal-selection';
 
-import { ANOTHER_WORLD } from './goal-copy';
 import { SavingsPlanCards } from './savings-plan-cards';
 import { GoalMenu } from './goal-menu';
 import { useDeleteGoal } from './use-delete-goal';
@@ -48,7 +48,9 @@ import { useGoalAction } from './use-goal-action';
 // comes from the committed snapshot (balance recomputed from the ledger) and the civil date it was
 // read on; a commit or a new date re-reads it. Settings is in the navigation bar. Free shows at most one open goal; with more open goals (Pro) a simple list chooses
 // which one Home shows. The choice is stored, and after a restart a missing or closed choice falls
-// back to the oldest open goal.
+// back to the oldest open goal. After Pro was lost with several goals (Phase 16, D74) every goal stays
+// visible; the goals not kept in use show a neutral Read-only badge and one sentence instead of Add
+// savings, and until the person has chosen the goal to keep using a calm card asks them to choose.
 export function HomeScreen() {
   const state = useAppDataStore((store) => store.state);
 
@@ -74,7 +76,8 @@ export function HomeScreen() {
   const open = goals.goals.filter((summary) => isOpenStatus(summary.goal.status));
   const completedCount = goals.goals.length - open.length;
   const selected = open.find((summary) => summary.goal.id === goals.selectedGoalId) ?? null;
-  const canCreate = hasGoalSlot(currentCapabilities(), goals.goals.length);
+  const access = accessView(state.data);
+  const { canCreate } = access;
 
   if (!selected) {
     return (
@@ -100,7 +103,7 @@ export function HomeScreen() {
       summary={selected}
       dashboard={homeDashboard(selected, currency.currency.currency, today)}
       open={open}
-      canCreate={canCreate}
+      access={access}
       souvenir={goals.souvenirs.some((souvenir) => souvenir.goalId === selected.goal.id)}
     />
   );
@@ -110,7 +113,7 @@ type SelectedGoalHomeProps = {
   summary: GoalSummary;
   dashboard: HomeDashboard;
   open: GoalSummary[];
-  canCreate: boolean;
+  access: AccessView;
   // The goal holds its permanent souvenir (Phase 11): the first time this turns true after a commit,
   // the world's moment is the souvenir moment.
   souvenir: boolean;
@@ -121,7 +124,7 @@ type SelectedGoalHomeProps = {
 // D81). After a committed change the world motion (Phase 10) moves the amount, the bar and the
 // scene from what was shown to the committed values, with the unlock moment when a deposit crosses
 // a threshold; everything else on Home shows the committed values at once.
-function SelectedGoalHome({ summary, dashboard, open, canCreate, souvenir }: SelectedGoalHomeProps) {
+function SelectedGoalHome({ summary, dashboard, open, access, souvenir }: SelectedGoalHomeProps) {
   const { goal } = summary;
   const revision = useAppDataStore((store) => store.version);
   const motion = useWorldMotion({
@@ -138,6 +141,7 @@ function SelectedGoalHome({ summary, dashboard, open, canCreate, souvenir }: Sel
   const action = useGoalAction();
   const { deleting, confirmDelete } = useDeleteGoal();
   const busy = action.pending?.goalId === goal.id || deleting === goal.id;
+  const use = access.use(goal);
   return (
     <AdaptiveGoalLayout
       testID="home"
@@ -162,8 +166,16 @@ function SelectedGoalHome({ summary, dashboard, open, canCreate, souvenir }: Sel
       }
       controls={
         <View style={styles.controls}>
-          <GoalNumbers summary={summary} dashboard={dashboard} motion={motion} busy={busy} menu={<GoalMenu summary={summary} funded={dashboard.amounts.funded} canCreate={canCreate} busy={busy} run={action.run} onDelete={() => confirmDelete(goal)} />} />
-          {open.length > 1 ? <GoalSwitcher open={open} selectedId={goal.id} /> : null}
+          <GoalNumbers
+            summary={summary}
+            dashboard={dashboard}
+            motion={motion}
+            busy={busy}
+            use={use}
+            needsKeptChoice={access.needsKeptChoice}
+            menu={<GoalMenu summary={summary} funded={dashboard.amounts.funded} use={use} busy={busy} run={action.run} onDelete={() => confirmDelete(goal)} />}
+          />
+          {open.length > 1 ? <GoalSwitcher open={open} selectedId={goal.id} access={access} /> : null}
         </View>
       }
     />
@@ -229,14 +241,11 @@ function EmptyHome({ completedCount, canCreate, finishedWorld }: EmptyHomeProps)
             <Button label="Create a goal" testID="home-new-goal" />
           </Link>
         ) : (
-          // Free's one goal is finished: the "Build another world" entry (Phase 16's paywall; an
-          // alert until then) instead of a form that would refuse.
-          <Button
-            label={ANOTHER_WORLD.title}
-            icon="pro"
-            onPress={() => Alert.alert(ANOTHER_WORLD.title, ANOTHER_WORLD.finishedMessage)}
-            testID="home-another-world"
-          />
+          // Free's one goal is finished: the goal form opens the "Build another world" paywall entry
+          // (Phase 16) instead of a form that would refuse.
+          <Link href="/goal-form" asChild>
+            <Button label={ANOTHER_WORLD.title} icon="pro" testID="home-another-world" />
+          </Link>
         )}
         {completedCount > 0 ? (
           <AppText role="footnote" tone="secondary" style={styles.centered} testID="home-closed-hint">
@@ -257,13 +266,21 @@ const EMPTY_ISLAND_SPARKLES: readonly SparkleSpot[] = [
   { x: 0.52, y: 0.58, delayMs: 1900 },
 ];
 
-type GoalNumbersProps = { summary: GoalSummary; dashboard: HomeDashboard; motion: WorldMotion; busy: boolean; menu: ReactElement };
+type GoalNumbersProps = {
+  summary: GoalSummary;
+  dashboard: HomeDashboard;
+  motion: WorldMotion;
+  busy: boolean;
+  use: GoalUse;
+  needsKeptChoice: boolean;
+  menu: ReactElement;
+};
 
 // Title and status, saved amount and target, progress, Add savings, the milestone card and, when the
 // goal has a deadline, the savings plan cards (D84). The saved amount, the percent and the bar show
 // the world motion's values (counting up after a deposit); their VoiceOver labels always say the
 // committed values.
-function GoalNumbers({ summary, dashboard, motion, busy, menu }: GoalNumbersProps) {
+function GoalNumbers({ summary, dashboard, motion, busy, use, needsKeptChoice, menu }: GoalNumbersProps) {
   const { goal } = summary;
   const { amounts } = dashboard;
   const paused = goal.status === 'paused';
@@ -280,6 +297,7 @@ function GoalNumbers({ summary, dashboard, motion, busy, menu }: GoalNumbersProp
         </AppText>
         {paused ? <StatusBadge label="Paused" tone="info" icon="pause" testID="home-paused" /> : null}
         {amounts.funded ? <StatusBadge label="Target reached" tone="success" icon="success" testID="home-funded" /> : null}
+        {use !== 'usable' ? <StatusBadge label={READ_ONLY_COPY.badge} tone="neutral" icon="lock" testID="home-read-only" /> : null}
         <View style={styles.menu}>{menu}</View>
       </View>
       <View style={styles.amount} accessible accessibilityLabel={`Saved ${amounts.saved} of ${amounts.target}`} testID="home-amount">
@@ -306,12 +324,51 @@ function GoalNumbers({ summary, dashboard, motion, busy, menu }: GoalNumbersProp
         </View>
       </View>
       {/* The one primary action, in the flow right under the progress it changes (owner decision
-          D81: it no longer floats). */}
-      <Link href={{ pathname: '/entry-form', params: { goalId: goal.id } }} asChild>
-        <Button label="Add savings" icon="add" disabled={busy} testID="home-add-savings" />
-      </Link>
+          D81: it no longer floats). A goal that accepts no entries explains why in its place. */}
+      {needsKeptChoice ? (
+        <KeptGoalChoice />
+      ) : use === 'usable' ? (
+        <Link href={{ pathname: '/entry-form', params: { goalId: goal.id } }} asChild>
+          <Button label="Add savings" icon="add" disabled={busy} testID="home-add-savings" />
+        </Link>
+      ) : (
+        <ReadOnlyNote use={use} />
+      )}
       <MilestoneCallout next={dashboard.next} />
       <SavingsPlanCards copy={dashboard.planCopy} />
+    </View>
+  );
+}
+
+// Pro was lost with several goals and the person has not chosen the goal to keep using (D74): every
+// goal is read-only until they do. A calm card with the one next step; nothing was changed.
+function KeptGoalChoice() {
+  return (
+    <View style={styles.readOnly} testID="home-keep-choice">
+      <AppText role="label">{READ_ONLY_COPY.chooseTitle}</AppText>
+      <AppText role="footnote" tone="secondary">
+        {READ_ONLY_COPY.chooseMessage}
+      </AppText>
+      <Link href="/keep-goal" asChild>
+        <Button label={READ_ONLY_COPY.chooseButton} testID="home-choose-goal" />
+      </Link>
+      <Link href="/paywall" asChild>
+        <Button label={READ_ONLY_COPY.explorePro} variant="plain" centered testID="home-explore-pro" />
+      </Link>
+    </View>
+  );
+}
+
+// One sentence for a goal that accepts no entries now (D74, D75), and the way back to Pro.
+function ReadOnlyNote({ use }: { use: GoalUse }) {
+  return (
+    <View style={styles.readOnly} testID="home-read-only-note">
+      <AppText role="footnote" tone="secondary">
+        {use === 'theme_locked' ? READ_ONLY_COPY.gardenSentence : READ_ONLY_COPY.sentence}
+      </AppText>
+      <Link href="/paywall" asChild>
+        <Button label={READ_ONLY_COPY.explorePro} variant="plain" centered testID="home-explore-pro" />
+      </Link>
     </View>
   );
 }
@@ -335,9 +392,10 @@ function MilestoneCallout({ next }: { next: NextMilestone }) {
   );
 }
 
-// Pro only in practice: Free never has more than one open goal. A custom selection control, so a
-// changed selection plays the selection haptic once (DESIGN_SYSTEM "Haptics").
-function GoalSwitcher({ open, selectedId }: { open: GoalSummary[]; selectedId: string }) {
+// Pro only in practice: Free never has more than one open goal, except after a lost entitlement,
+// when the goals not kept in use say Read-only. A custom selection control, so a changed selection
+// plays the selection haptic once (DESIGN_SYSTEM "Haptics").
+function GoalSwitcher({ open, selectedId, access }: { open: GoalSummary[]; selectedId: string; access: AccessView }) {
   const choose = async (goalId: string) => {
     const result = await selectGoal(goalCommandDeps(), goalId);
     if (result.ok) {
@@ -353,7 +411,14 @@ function GoalSwitcher({ open, selectedId }: { open: GoalSummary[]; selectedId: s
           goal.id === selectedId ? (
             <ListRow key={goal.id} title={goal.title} value="Shown" accessibilityLabel={`${goal.title}, shown on Home`} />
           ) : (
-            <ListRow key={goal.id} title={goal.title} chevron onPress={() => void choose(goal.id)} accessibilityLabel={`Show ${goal.title}`} />
+            <ListRow
+              key={goal.id}
+              title={goal.title}
+              detail={access.use(goal) === 'usable' ? undefined : READ_ONLY_COPY.badge}
+              chevron
+              onPress={() => void choose(goal.id)}
+              accessibilityLabel={access.use(goal) === 'usable' ? `Show ${goal.title}` : `Show ${goal.title}, ${READ_ONLY_COPY.badge}`}
+            />
           ),
         )}
       </ListGroup>
@@ -403,6 +468,12 @@ const styles = StyleSheet.create({
   },
   switcher: {
     gap: spacing.sm,
+  },
+  readOnly: {
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderRadius: radii.lg,
+    backgroundColor: colors.surfaceSoft,
   },
   // The empty island floats on the screen background; wide enough to read as a world, small enough
   // that the title, message and button stay in view on the SE.

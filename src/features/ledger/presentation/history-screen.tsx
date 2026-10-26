@@ -2,9 +2,10 @@ import { Link, Stack } from 'expo-router';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View, type GestureResponderEvent } from 'react-native';
 
-import { refreshAppData, useAppDataStore, useCommittedRead } from '@/bootstrap/app-data';
+import { refreshAppData, useAccessView, useAppDataStore, useCommittedRead } from '@/bootstrap/app-data';
 import { formatMoney, type CurrencyMetadata } from '@/core/money';
 import { isOpenStatus } from '@/data/repositories/goal-repository';
+import { READ_ONLY_COPY } from '@/features/billing/presentation/billing-copy';
 import type { LedgerEntryRecord } from '@/data/repositories/ledger-repository';
 import { worldNoun } from '@/features/worlds/world-copy';
 import { WorldScene, worldArtAspect } from '@/features/worlds/world-scene';
@@ -37,6 +38,7 @@ export function HistoryScreen({ goalId }: { goalId: string }) {
     store.state.status === 'ready' && store.state.data.currency.currency.status === 'set' ? store.state.data.currency.currency.currency : null,
   );
   const ledger = useCommittedRead(`history:${goalId}`, (db) => readGoalLedger(db, goalId));
+  const access = useAccessView();
 
   if (ledger.status === 'loading') {
     return null;
@@ -58,7 +60,10 @@ export function HistoryScreen({ goalId }: { goalId: string }) {
   }
 
   const { goal, entries, balanceMinor } = ledger.value;
-  const open = isOpenStatus(goal.status);
+  const closed = !isOpenStatus(goal.status);
+  // A goal that is read-only after a lost Pro entitlement keeps its whole history visible (Phase 16).
+  const use = access?.use(goal) ?? 'usable';
+  const open = !closed && use === 'usable';
   const locale = deviceLocale();
   const rows = newestFirst(entries);
 
@@ -80,12 +85,19 @@ export function HistoryScreen({ goalId }: { goalId: string }) {
         <Link href={{ pathname: '/entry-form', params: { goalId: goal.id } }} asChild>
           <Button label="Add savings" icon="add" testID="history-add" />
         </Link>
-      ) : (
+      ) : closed ? (
         <Notice
           tone="info"
           title="This goal is closed"
           message="Its history is read-only. Reopen it from Collection to add or change entries."
           testID="history-closed"
+        />
+      ) : (
+        <Notice
+          tone="info"
+          title={READ_ONLY_COPY.badge}
+          message={use === 'theme_locked' ? READ_ONLY_COPY.gardenSentence : READ_ONLY_COPY.sentence}
+          testID="history-read-only"
         />
       )}
       {rows.length === 0 ? (

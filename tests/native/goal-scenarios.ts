@@ -202,11 +202,16 @@ export const GOAL_SCENARIOS: Scenario[] = [
         expectError(await edit(goalFields('Kotor', 0)), 'invalid_target', 'target zero');
         expectError(await edit({ ...goalFields('Kotor', 150_000), themeId: 'garden' }), 'theme_unavailable', 'Free cannot switch theme');
         check((await edit({ ...goalFields('Kotor', 150_000), themeId: 'garden' }, { ...deps, capabilities: PRO })).ok, 'Pro switches theme');
+        // Without Pro a Garden goal is kept as it is (D75, Phase 16): no edit, no entry; nothing switches it.
+        expectError(await edit({ ...goalFields('Kotor', 140_000), themeId: 'garden' }), 'theme_locked', 'Garden goal without Pro cannot change');
+        expectError(await deposit(h, 1, '2026-11-02'), 'theme_locked', 'Garden goal without Pro cannot progress');
+        equal((await h.db.read((r) => getGoal(r, h.goalId)))?.themeId, 'garden', 'theme kept');
         const staleEdit = await editGoal(deps, { operationId: h.op(), goalId: h.goalId, expectedRevision: 1, ...goalFields('Old', 1_000) });
         expectError(staleEdit, 'stale_goal', 'stale edit');
 
         // Lower the target to the balance, finish, and the goal is read-only.
-        check((await edit({ ...goalFields('Kotor', 500, '2026-11-02'), themeId: 'garden' })).ok, 'target down to the balance');
+        check((await edit({ ...goalFields('Kotor', 500, '2026-11-02'), themeId: 'garden' }, { ...deps, capabilities: PRO })).ok, 'target down to the balance');
+        // A status change is still allowed on a Garden goal without Pro.
         check((await finishGoal(deps, await lifecycle(h, h.goalId))).ok, 'finish');
         expectError(await edit({ ...goalFields('Finished edit', 1_000), themeId: 'garden' }), 'goal_closed', 'completed goal is read-only');
         expectError(await deposit(h, 1, '2026-11-02'), 'goal_closed', 'no entries on a completed goal');
@@ -226,9 +231,11 @@ export const GOAL_SCENARIOS: Scenario[] = [
         check((await mustCreateGoal(fresh, fresh.deps, 'After onboarding')) !== '', 'goal after onboarding');
         expectError(await setGlobalCurrency(fresh.deps, { operationId: fresh.op(), currencyCode: 'XTS' }), 'unsupported_currency', 'test code');
 
-        const h = await s.harness('currency');
+        // Two goals: a Pro person (Phase 16 makes a second goal read-only without Pro).
+        const base = await s.harness('currency');
+        const h = { ...base, deps: { ...base.deps, capabilities: PRO } };
         const deps = h.deps;
-        const pro = { ...deps, capabilities: PRO };
+        const pro = deps;
         const second = await mustCreateGoal(h, pro, 'Paused empty goal', 2_500);
         check((await pauseGoal(deps, await lifecycle(h, second))).ok, 'pause the second goal');
         const set = (code: string) => setGlobalCurrency(deps, { operationId: h.op(), currencyCode: code });

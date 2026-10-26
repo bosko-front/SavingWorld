@@ -97,6 +97,10 @@ export function ledgerCommandMessage(action: LedgerAction, error: LedgerCommandE
       return plain('note', 'Remove unsupported characters from the note.');
     case 'goal_closed':
       return plain(null, 'This goal is closed. Reopen it from Collection to add or change entries.');
+    case 'goal_read_only':
+      return rule(null, 'Without Pro this goal is read-only, so nothing was saved. Your savings here are kept as they are.');
+    case 'theme_locked':
+      return rule(null, 'This Garden is kept as it is without Pro, so nothing was saved.');
     case 'stale_entry':
       return plain(null, 'This entry changed after you opened it. Close this form and open it again.');
     case 'entry_not_found':

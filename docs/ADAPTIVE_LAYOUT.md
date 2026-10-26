@@ -40,7 +40,7 @@ Do not install expo-hinge for layout. Saving Worlds has no hinge-driven effect r
 | History/challenges | Readable rows and explicit actions, dynamic row heights | Preserve row readability; collections may use measured columns without new functionality |
 | Collection | One coherent card/detail flow | Adaptive card grouping; native margins; historical world keeps aspect ratio |
 | Statistics | Global-currency text summary remains visible; chart fits its local region | More chart space without unreadably long lines or a different calculation |
-| Paywall/Settings | Purchase/restore/error actions remain scroll-reachable | Constrained content and correct native sheet/popover anchoring |
+| Paywall/Settings | Purchase/restore/error actions remain scroll-reachable; the paywall's purchase block is a pinned `footer` that moves to the end of the content above 35% of the screen height (D125) | Constrained content and correct native sheet/popover anchoring |
 
 Use one shared policy for readable widths/gutters. Component layout can react to measured available space, but must not proliferate separate per-screen device breakpoints. Numerical layout bounds are content constraints, not labels for specific iPhone models.
 

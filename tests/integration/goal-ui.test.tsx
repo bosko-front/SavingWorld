@@ -247,10 +247,13 @@ describe('Home lifecycle, Free goal limit and Collection', () => {
     // Goal administration lives in the ⋯ menu, not on Home (D73); Archive is gone (D74).
     expect(goalOptionLabels()).toEqual(['History', 'Edit goal', 'Pause goal', 'New goal', 'Delete goal…']);
     expect(screen.queryByTestId('home-new-goal')).not.toBeOnTheScreen();
-    // New goal while Free's one goal exists explains Pro and deleting instead of opening a form.
-    const limit = jest.spyOn(Alert, 'alert').mockImplementationOnce(() => undefined);
+    // New goal while Free's one goal exists opens the "Build another world" paywall entry (Phase 16)
+    // instead of a form that would be refused; Not now returns to Home.
     await chooseGoalOption('New goal');
-    expect(limit).toHaveBeenCalledWith('Build another world', expect.stringMatching(/^You’ve already created your free savings goal\./));
+    expect(screen).toHavePathname('/goal-form');
+    expect(screen.getByTestId('paywall-another-world')).toHaveTextContent(/You’ve already created your free savings goal\./);
+    expect(screen.queryByTestId('goal-title')).toBeNull();
+    await userEvent.press(screen.getByTestId('paywall-close'));
     expect(screen).toHavePathname('/');
 
     await chooseGoalOption('Pause goal');

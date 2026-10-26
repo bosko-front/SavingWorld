@@ -2,14 +2,14 @@ import { Link, useIsFocused } from 'expo-router';
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { AccessibilityInfo, Alert, Pressable, StyleSheet, View } from 'react-native';
 
-import { appClock, challengeCommandDeps, currentCapabilities, refreshAppData, useAppDataStore, useCommittedRead } from '@/bootstrap/app-data';
-import { hasGoalSlot } from '@/core/access';
+import { accessView, appClock, challengeCommandDeps, refreshAppData, useAccessView, useAppDataStore, useCommittedRead } from '@/bootstrap/app-data';
 import { formatMoney, type CurrencyMetadata } from '@/core/money';
 import { MILESTONE_COUNT, stageFor } from '@/core/progression';
 import { randomUuid } from '@/data/ids';
 import type { ChallengeRuleId } from '@/data/repositories/challenge-attempt-repository';
 import type { CollectibleRecord } from '@/data/repositories/collectible-repository';
 import { isOpenStatus, type GoalSummary } from '@/data/repositories/goal-repository';
+import { READ_ONLY_COPY } from '@/features/billing/presentation/billing-copy';
 import { stageName, themeManifestAt } from '@/features/worlds/registry';
 import { worldCompleteCopy, worldNoun } from '@/features/worlds/world-copy';
 import { WorldScene, worldArtAspect } from '@/features/worlds/world-scene';
@@ -77,7 +77,7 @@ export function ChallengesScreen() {
   if (!selected) {
     return (
       <Screen centered testID="challenges">
-        <NoOpenGoal goals={goals.goals} souvenirs={goals.souvenirs} canCreate={hasGoalSlot(currentCapabilities(), goals.goals.length)} />
+        <NoOpenGoal goals={goals.goals} souvenirs={goals.souvenirs} canCreate={accessView(state.data).canCreate} />
       </Screen>
     );
   }
@@ -160,6 +160,9 @@ function GoalQuests({ summary, currency }: GoalQuestsProps) {
   };
   const world: QuestWorld = { noun: worldNoun(goal.themeId), stageName: (stage) => stageName(goal.themeId, stage) };
   const celebrating = useCelebration(goal.id, board.status === 'ready' ? board.value : null, world, format);
+  // After a lost Pro entitlement a goal not kept in use starts no quest and adds no savings (Phase 16);
+  // its past quests stay. The quests themselves are identical in Free and Pro.
+  const use = useAccessView()?.use(goal) ?? 'usable';
 
   if (board.status === 'loading') {
     return null;
@@ -183,8 +186,16 @@ function GoalQuests({ summary, currency }: GoalQuestsProps) {
       {goal.status === 'paused' ? (
         <Notice tone="info" title="This goal is paused" message="Quests still count your savings. Resume it on Home." testID="challenges-paused" />
       ) : null}
+      {use !== 'usable' ? (
+        <Notice
+          tone="info"
+          title={READ_ONLY_COPY.badge}
+          message={use === 'theme_locked' ? READ_ONLY_COPY.gardenSentence : READ_ONLY_COPY.sentence}
+          testID="challenges-read-only"
+        />
+      ) : null}
       {celebrating ? <CompletedQuestCard attempt={celebrating} world={world} format={format} /> : null}
-      {complete ? null : <QuestBoard board={board.value} summary={summary} world={world} format={format} />}
+      {complete || use !== 'usable' ? null : <QuestBoard board={board.value} summary={summary} world={world} format={format} />}
       <PastQuests history={board.value.history} world={world} format={format} />
     </Screen>
   );

@@ -55,7 +55,7 @@ Saving Worlds is an English-language iOS savings tracker. Users manually record 
 
 Free is a complete experience, not a demo: a Free person can finish the whole Island (all ten unlocks), keep that finished world in Collection, and delete it to start over. Pro is the reason to buy more: more goals, more worlds, Garden and statistics (D74, D75).
 
-When Free tries to create a second goal, the Phase 16 paywall entry shows title "Build another world", message "You've already created your free savings goal. Unlock Pro to create more goals and grow your collection of worlds.", button "Explore Pro" and footnote "One-time purchase. No subscription.", with Garden shown as an extra Pro benefit. Until the paywall exists, Phase 08 shows the same text in a native alert.
+When Free tries to create a second goal, the Phase 16 paywall entry shows title "Build another world", message "You've already created your free savings goal. Unlock Pro to create more goals and grow your collection of worlds.", button "Explore Pro" and footnote "One-time purchase. No subscription.", with Garden shown as an extra Pro benefit. Implemented in Phase 16 (D117): the goal form shows this entry in place of Create, and buying Pro continues straight to Create in the same sheet; the Phase 08 alert is gone.
 
 ## Exact progression content
 

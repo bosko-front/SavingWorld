@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, userEvent } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, userEvent, within } from '@testing-library/react-native';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import { HeaderHeightContext } from 'expo-router/react-navigation';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -114,6 +114,29 @@ describe('Screen and FormScreen inset and keyboard policy', () => {
       </FormScreen>,
     );
     expect(columnStyle()).toEqual(expect.arrayContaining([{ maxWidth: 560 }]));
+  });
+});
+
+describe('pinned footer (FormScreen footer, D125)', () => {
+  it('pins the footer under the content, and moves it to the end of the content when it would take over 35% of the screen', async () => {
+    await render(
+      <FormScreen footer={<Text>Buy</Text>} testID="footer-screen">
+        <Text>Body</Text>
+      </FormScreen>,
+    );
+    expect(within(screen.getByTestId('screen-footer-pinned')).getByText('Buy')).toBeOnTheScreen();
+    const measure = async (testID: string, height: number) =>
+      fireEvent(screen.getByTestId(testID), 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 375, height } } });
+    // Viewport 400 + pinned footer 200 = a 600 pt screen.
+    await measure('footer-screen', 400);
+    await measure('screen-footer', 200);
+    expect(screen.getByTestId('screen-footer-pinned')).toBeOnTheScreen();
+    // Larger text: the footer grows to 300 of the same 600 pt screen (over 35%).
+    await measure('footer-screen', 300);
+    await measure('screen-footer', 300);
+    expect(screen.queryByTestId('screen-footer-pinned')).toBeNull();
+    expect(screen.getByText('Buy')).toBeOnTheScreen();
+    expect(screen.getByText('Body')).toBeOnTheScreen();
   });
 });
 

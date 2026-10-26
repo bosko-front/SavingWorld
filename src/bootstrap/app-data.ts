@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { create } from 'zustand';
 
-import { capabilitiesFor, type Capabilities } from '@/core/access';
+import { capabilitiesFor, goalUse, hasGoalSlot, needsKeptGoalChoice, type Capabilities, type GoalUse } from '@/core/access';
 import { systemClock, today, type CivilDate, type Clock } from '@/core/calendar';
+import type { ThemeId } from '@/core/progression';
 import { uuidGenerator } from '@/data/ids';
 import { readStoredEntitlement } from '@/features/billing/application/entitlement-reconciler';
 import { accessLevelFor, type EntitlementStatus } from '@/features/billing/domain/entitlement';
@@ -163,9 +164,41 @@ export function useCommittedRead<T>(key: string, read: (db: AppDatabase) => Prom
 }
 
 // What this person may do: Pro capabilities only while the stored entitlement is a verified
-// StoreKit purchase (Phase 15), Free otherwise. There is no override or test switch.
+// StoreKit purchase (Phase 15), Free otherwise. There is no override or test switch. Commands get
+// these through the `*CommandDeps` below and check them inside their transaction (Phase 16).
 export function currentCapabilities(): Capabilities {
   return capabilitiesFor(accessLevelFor(lastEntitlementStatus));
+}
+
+// What screens show and offer for one committed snapshot (Phase 16): the same rules the commands
+// enforce (`goalUse` in @/core/access), so a screen never offers an action its command refuses.
+export type AccessView = {
+  capabilities: Capabilities;
+  // Create Goal has a free slot (Free: one goal in any status, D74).
+  canCreate: boolean;
+  // Pro is not active, several goals exist and the person has not chosen the goal they keep using.
+  needsKeptChoice: boolean;
+  keptGoalId: string | null;
+  use: (goal: { id: string; themeId: ThemeId }) => GoalUse;
+};
+
+export function accessView(data: AppData): AccessView {
+  const capabilities = capabilitiesFor(accessLevelFor(data.entitlement.status));
+  const goalCount = data.goals.goals.length;
+  const { keptGoalId } = data.goals;
+  return {
+    capabilities,
+    canCreate: hasGoalSlot(capabilities, goalCount),
+    needsKeptChoice: needsKeptGoalChoice(capabilities, goalCount, keptGoalId),
+    keptGoalId,
+    use: (goal) => goalUse(capabilities, { goalCount, keptGoalId, goalId: goal.id, themeId: goal.themeId }),
+  };
+}
+
+// The access view of the current snapshot, or null before the first read.
+export function useAccessView(): AccessView | null {
+  const state = useAppDataStore((store) => store.state);
+  return state.status === 'ready' ? accessView(state.data) : null;
 }
 
 // Jest only: forgets the stored entitlement of the previous test's database.
@@ -178,7 +211,7 @@ export function goalCommandDeps(): GoalCommandDeps {
 }
 
 export function ledgerCommandDeps(): LedgerCommandDeps {
-  return { db: getAppDatabase(), clock, ids: uuidGenerator };
+  return { db: getAppDatabase(), clock, ids: uuidGenerator, capabilities: currentCapabilities() };
 }
 
 export function currencyCommandDeps(): CurrencyCommandDeps {
@@ -186,5 +219,5 @@ export function currencyCommandDeps(): CurrencyCommandDeps {
 }
 
 export function challengeCommandDeps(): ChallengeCommandDeps {
-  return { db: getAppDatabase(), clock, ids: uuidGenerator };
+  return { db: getAppDatabase(), clock, ids: uuidGenerator, capabilities: currentCapabilities() };
 }

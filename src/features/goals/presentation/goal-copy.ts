@@ -16,19 +16,16 @@ export type FormMessage = { field: GoalFormField | null; message: string };
 
 export const SAVE_FAILED = 'Couldn’t save. Nothing was changed. Try again.';
 
-// Shown when a second goal is attempted on Free (D73-D74): from Home's goal menu while the goal is
-// open, or from Home's empty state while Free's one goal is finished (Phase 11). Phase 16 turns this
-// into the paywall entry with "Explore Pro".
-export const ANOTHER_WORLD = {
-  title: 'Build another world',
-  message:
-    'You’ve already created your free savings goal. Unlock Pro to create more goals and grow your collection of worlds. One-time purchase, no subscription. To start over instead, delete this goal from its menu.',
-  finishedMessage:
-    'You’ve already created your free savings goal. Unlock Pro to create more goals and grow your collection of worlds. One-time purchase, no subscription. To start over instead, delete your finished goal in Collection.',
-} as const;
-
+// A second goal on Free opens the "Build another world" paywall entry (D74, Phase 16; the copy lives
+// in billing-copy.ts) instead of a form that would be refused; this message remains for a create
+// refused by the command itself.
 const FREE_LIMIT =
   'Free includes one goal. Delete your current goal to start over, or unlock Pro for more goals.';
+
+// After a lost Pro entitlement (D74): only the goal the person keeps using accepts changes.
+export const READ_ONLY_MESSAGE = 'Without Pro this goal is read-only, so nothing was changed. Your savings here are kept as they are.';
+const THEME_LOCKED_MESSAGE = 'This Garden is kept as it is without Pro, so nothing was changed.';
+const REOPEN_LIMIT = 'Without Pro, only the goal you keep using can be reopened. Your goals are unchanged.';
 
 export function goalCommandMessage(error: CreateGoalError | EditGoalError): FormMessage {
   switch (error.code) {
@@ -55,6 +52,10 @@ export function goalCommandMessage(error: CreateGoalError | EditGoalError): Form
       return { field: null, message: 'The saved currency can’t be read, so nothing was saved. Your goals are unchanged.' };
     case 'goal_closed':
       return { field: null, message: 'This goal is closed. Reopen it from Collection to make changes.' };
+    case 'goal_read_only':
+      return { field: null, message: READ_ONLY_MESSAGE };
+    case 'theme_locked':
+      return { field: null, message: THEME_LOCKED_MESSAGE };
     case 'stale_goal':
       return { field: null, message: 'This goal changed after you opened it. Close this form and open it again.' };
     case 'goal_not_found':
@@ -83,7 +84,9 @@ export const LIFECYCLE_COPY: Record<LifecycleAction, { label: string; done: stri
 export function lifecycleMessage(action: LifecycleAction, error: LifecycleError): string {
   switch (error.code) {
     case 'goal_limit':
-      return FREE_LIMIT;
+      return action === 'reopen' ? REOPEN_LIMIT : FREE_LIMIT;
+    case 'goal_read_only':
+      return READ_ONLY_MESSAGE;
     case 'not_funded':
       return 'Finish becomes available when this goal reaches its target.';
     case 'invalid_transition':

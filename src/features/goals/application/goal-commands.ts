@@ -1,4 +1,4 @@
-import { capabilitiesFor, canUseTheme, hasGoalSlot, withinGoalLimit, type Capabilities } from '@/core/access';
+import { canReopenGoal, capabilitiesFor, canUseTheme, hasGoalSlot, type Capabilities } from '@/core/access';
 import { parseCivilDate, today, utcTimestamp, validateNewDeadline, type CivilDate, type Clock } from '@/core/calendar';
 import { isPositiveMinorAmount, sumMinor, toMinorAmount } from '@/core/money';
 import { isThemeId, type ThemeId } from '@/core/progression';
@@ -28,6 +28,8 @@ import { awardSouvenirIfFirstFunded } from '@/features/collection/application/so
 
 import { lifecycleTarget, needsFunding, needsGoalLimit, type LifecycleAction } from '../domain/goal-lifecycle';
 
+import { readGoalAccessFacts, requireNotReadOnly, requireUsableGoal, type GoalAccessError } from './goal-access';
+
 // Goal commands (v1.2 sections 2-3, docs/DATA_MODEL.md "goals"). Each one validates its input, then
 // runs on the single serialized exclusive write path with a stable operation ID, a row revision
 // check where it changes an existing goal, and an identifiers-only receipt.
@@ -39,10 +41,12 @@ import { lifecycleTarget, needsFunding, needsGoalLimit, type LifecycleAction } f
 // - Edit Goal: the same fields on an open (active or paused) goal only. A changed deadline must be
 //   today or later; an unchanged one may already have passed. Changing the theme of an open goal
 //   is a Pro capability (Phase 17 adds Garden). A target edit that first leaves B >= T stores the
-//   goal's souvenir in the same transaction (Phase 11).
-// - Lifecycle: Pause, Resume, Finish (only when B ≥ T) and Reopen (within the goal limit, never an
-//   automatic Finish). Archive was removed (D74). No lifecycle change adds, removes or replaces a
-//   souvenir: it was stored when the goal first reached its target.
+//   goal's souvenir in the same transaction (Phase 11). A read-only goal after a lost Pro
+//   entitlement, or a Garden goal without Pro, accepts no edit (Phase 16, `goal-access.ts`).
+// - Lifecycle: Pause, Resume, Finish (only when B ≥ T) and Reopen (within the goal limit or for the
+//   goal kept after a lost entitlement, never an automatic Finish). A read-only goal changes no
+//   status. Archive was removed (D74). No lifecycle change adds, removes or replaces a souvenir: it
+//   was stored when the goal first reached its target.
 // - Delete Goal (D74): any goal, after the screen's confirmation; removes its entries, its souvenir,
 //   its challenge attempts (Phase 12) and the goal in one transaction. Nothing keeps a copy.
 
@@ -62,7 +66,8 @@ export type GoalCommandDeps = {
   db: AppDatabase;
   clock: Clock;
   ids: IdGenerator;
-  // Free by default; only a verified entitlement (Phase 15) supplies Pro.
+  // Free by default; only a verified entitlement (Phase 15) supplies Pro. The app passes the
+  // capabilities of the committed snapshot (`goalCommandDeps`).
   capabilities?: Capabilities;
 };
 
@@ -119,6 +124,7 @@ export type EditGoalError = CommandFailure<
   | { code: 'currency_missing' }
   | { code: 'currency_invalid' }
   | { code: 'goal_closed' }
+  | GoalAccessError
 >;
 
 export type LifecycleError = CommandFailure<
@@ -127,6 +133,7 @@ export type LifecycleError = CommandFailure<
   | { code: 'invalid_transition'; status: GoalStatus }
   | { code: 'goal_limit' }
   | { code: 'not_funded' }
+  | { code: 'goal_read_only' }
 >;
 
 export type DeleteGoalInput = LifecycleInput;
@@ -313,6 +320,7 @@ export async function editGoal(
     if (!isOpenStatus(goal.status)) {
       reject({ code: 'goal_closed' });
     }
+    await requireUsableGoal(tx, capabilities, goal);
     // An existing deadline may expire naturally; only a new or changed date must be today or later.
     if (
       details.deadlineDate !== null &&
@@ -336,8 +344,9 @@ export async function editGoal(
   });
 }
 
-// One revision-checked status transition. The goal limit (Reopen) and the funding rule (Finish) are
-// checked against current data inside the same exclusive transaction.
+// One revision-checked status transition. The goal limit (Reopen), the read-only rule after a lost
+// entitlement (Pause, Resume, Finish) and the funding rule (Finish) are checked against current data
+// inside the same exclusive transaction.
 export async function changeGoalStatus(
   deps: GoalCommandDeps,
   action: LifecycleAction,
@@ -364,8 +373,13 @@ export async function changeGoalStatus(
     if (next === null) {
       reject({ code: 'invalid_transition', status: goal.status });
     }
-    if (needsGoalLimit(action) && !withinGoalLimit(capabilities, await countGoals(tx))) {
-      reject({ code: 'goal_limit' });
+    if (needsGoalLimit(action)) {
+      const facts = await readGoalAccessFacts(tx);
+      if (!canReopenGoal(capabilities, facts.goalCount, facts.keptGoalId, goal.id)) {
+        reject({ code: 'goal_limit' });
+      }
+    } else {
+      await requireNotReadOnly(tx, capabilities, goal);
     }
     if (needsFunding(action) && (await goalBalance(tx, goal.id)) < BigInt(goal.targetMinor)) {
       reject({ code: 'not_funded' });

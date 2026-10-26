@@ -2,7 +2,7 @@ import { useState, type ReactElement, type ReactNode } from 'react';
 import { ScrollView, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { colors, layout, spacing } from '@/shared/theme';
+import { borders, colors, layout, spacing } from '@/shared/theme';
 
 import { ContentColumn, type ColumnWidth } from './content-column';
 import {
@@ -11,6 +11,8 @@ import {
   FLOATING_ACTION_MARGIN,
   floatingActionEdges,
   floatingActionInset,
+  footerEdges,
+  pinFooter,
   safeAreaEdges,
   scrollingScreenOwnership,
 } from './metrics';
@@ -29,6 +31,11 @@ type ScreenProps = {
   // The screen's one primary action as a floating button (FloatingActionButton) at the bottom
   // trailing corner, always visible while the content scrolls under it (DECISIONS D72).
   floatingAction?: ReactElement;
+  // Actions that stay visible under the scrolling content (the paywall's purchase block, D125),
+  // pinned to the bottom above the home indicator. When it would take more than
+  // PINNED_FOOTER_MAX_SHARE of the screen (large Dynamic Type, a short window) it is placed at the
+  // end of the content instead, so it never hides the content.
+  footer?: ReactNode;
   testID?: string;
 };
 
@@ -62,6 +69,7 @@ export function ScrollingScreen({
   onViewportLayout,
   insets = 'screen',
   floatingAction,
+  footer,
   bleed,
   hideScrollIndicator = false,
 }: ScrollingScreenProps) {
@@ -73,11 +81,29 @@ export function ScrollingScreen({
   const [viewportHeight, setViewportHeight] = useState(0);
   const [action, onActionLayout] = useMeasuredSize();
   const extraBottomInset = floatingAction ? floatingActionInset(action.height) : 0;
+  // The screen's height is the scroll viewport plus a pinned footer (the wrapper itself is never
+  // measured: a listener would keep it from being flattened, see below).
+  const [viewport, setViewport] = useState(0);
+  const [footerSize, onFooterLayout] = useMeasuredSize();
+  const [footerPinned, setFooterPinned] = useState(true);
+  const pinned = footer !== undefined && footerPinned;
+  const measuredScreen = viewport + (pinned ? footerSize.height : 0);
+  if (footer !== undefined && footerSize.height > 0 && viewport > 0 && pinFooter(measuredScreen, footerSize.height) !== footerPinned) {
+    setFooterPinned(!footerPinned);
+  }
+  const footerContent = footer === undefined ? null : (
+    <View onLayout={onFooterLayout} testID="screen-footer">
+      {footer}
+    </View>
+  );
   const scroll = (
     <ScrollView
       testID={testID}
       onLayout={(event) => {
         onViewportLayout?.(event);
+        if (footer !== undefined) {
+          setViewport(event.nativeEvent.layout.height);
+        }
         if (centered) {
           setViewportHeight(event.nativeEvent.layout.height);
         }
@@ -96,10 +122,25 @@ export function ScrollingScreen({
       <SafeAreaView edges={contained ? CONTAINED_EDGES : SCROLLING_EDGES} style={styles.content}>
         <ContentColumn width={width} minHeight={centered ? centeredContentHeight(viewportHeight, spacing.lg) : undefined}>
           {children}
+          {footerContent && !pinned ? <View style={styles.inlineFooter}>{footerContent}</View> : null}
         </ContentColumn>
       </SafeAreaView>
     </ScrollView>
   );
+  if (footerContent) {
+    // Layout only, like the floating host: the scroll view stays the first native subview. The
+    // footer draws its own canvas and a hairline, so content scrolling under it reads as continuing.
+    return (
+      <View style={styles.floatingHost}>
+        {scroll}
+        {pinned ? (
+          <SafeAreaView edges={footerEdges} style={styles.footer} testID="screen-footer-pinned">
+            <ContentColumn width={width}>{footerContent}</ContentColumn>
+          </SafeAreaView>
+        ) : null}
+      </View>
+    );
+  }
   if (!floatingAction) {
     return scroll;
   }
@@ -135,9 +176,9 @@ export function Screen({ children, width = 'readable', centered = false, floatin
 // Screen for text input, including native form sheets. Same insets as Screen plus keyboard-safe
 // scrolling. Keep the draft in the route component (or its store) above FormScreen so a resize,
 // rotation or sheet detent change re-lays out the form without resetting it.
-export function FormScreen({ children, width = 'form', testID }: ScreenProps) {
+export function FormScreen({ children, width = 'form', footer, testID }: ScreenProps) {
   return (
-    <ScrollingScreen width={width} keyboard="form" testID={testID}>
+    <ScrollingScreen width={width} keyboard="form" footer={footer} testID={testID}>
       {children}
     </ScrollingScreen>
   );
@@ -155,6 +196,17 @@ const styles = StyleSheet.create({
   // Layout only, so Fabric flattens it away; never add a background here (see ScrollingScreen).
   floatingHost: {
     flex: 1,
+  },
+  footer: {
+    backgroundColor: colors.canvas,
+    borderTopWidth: borders.hairline,
+    borderTopColor: colors.borderSubtle,
+    paddingHorizontal: layout.screenGutter,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  inlineFooter: {
+    marginTop: spacing.lg,
   },
   // Full width so the button's label can wrap at large text; touches outside the button pass
   // through to the content (pointerEvents box-none).

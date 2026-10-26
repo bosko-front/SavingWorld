@@ -1,3 +1,4 @@
+import { capabilitiesFor, type Capabilities } from '@/core/access';
 import { today, utcTimestamp, type Clock } from '@/core/calendar';
 import { sumMinor, toMinorAmount } from '@/core/money';
 import { err, type Result } from '@/core/result';
@@ -17,6 +18,7 @@ import {
 import { getGoal, isOpenStatus, type GoalRecord } from '@/data/repositories/goal-repository';
 import { listEntriesForGoal } from '@/data/repositories/ledger-repository';
 import { insertReceipt, lookupReceipt, requestHash } from '@/data/repositories/receipt-repository';
+import { requireUsableGoal, type GoalAccessError } from '@/features/goals/application/goal-access';
 
 import {
   outcomeChanged,
@@ -35,9 +37,12 @@ import {
 // - Start: the goal must exist and be open; the rule must be available (one unfinished attempt per
 //   goal, First step once per goal, Next milestone below the target, Weekly step with a deadline
 //   today or later, R > 0 and once per calendar week). The frozen target, milestone and saved week
-//   come from the goal's committed values at this moment. Stable operation ID and receipt, so a
-//   retry or a second tap never starts two.
-// - Skip: the current attempt becomes historical Skipped; its history stays. Stable operation ID.
+//   come from the goal's committed values at this moment. A goal that is read-only after a lost Pro
+//   entitlement, or a Garden goal without Pro, starts no quest (Phase 16): it could not progress.
+//   The three quests themselves are identical in Free and Pro. Stable operation ID and receipt, so
+//   a retry or a second tap never starts two.
+// - Skip: the current attempt becomes historical Skipped; its history stays. Allowed on a read-only
+//   goal too, so a quest never stays stuck. Stable operation ID.
 // - Close ended weeks: the foreground reconciliation settles every Weekly step whose saved week has
 //   ended. Idempotent; it writes nothing when nothing ended.
 // - `reconcileGoalAttempts` runs inside each ledger create, correction and deletion, in the same
@@ -49,7 +54,13 @@ export const CHALLENGE_COMMAND_KINDS = {
   skip: 'challenge.skip',
 } as const;
 
-export type ChallengeCommandDeps = { db: AppDatabase; clock: Clock; ids: IdGenerator };
+export type ChallengeCommandDeps = {
+  db: AppDatabase;
+  clock: Clock;
+  ids: IdGenerator;
+  // Free by default; the app passes the capabilities of the committed snapshot (Phase 16).
+  capabilities?: Capabilities;
+};
 
 export type StartChallengeInput = { operationId: string; goalId: string; ruleId: ChallengeRuleId };
 
@@ -61,6 +72,7 @@ export type ChallengeRuleError =
   | { code: 'operation_conflict' }
   | { code: 'goal_not_found' }
   | { code: 'goal_closed' }
+  | GoalAccessError
   | { code: 'challenge_unavailable'; reason: UnavailableReason }
   | { code: 'attempt_not_found' }
   // The attempt already ended (Completed, Not completed or Skipped) before the skip arrived.
@@ -173,6 +185,7 @@ export async function startChallenge(
       return replay;
     }
     const goal = await requireOpenGoal(tx, input.goalId);
+    await requireUsableGoal(tx, deps.capabilities ?? capabilitiesFor('free'), goal);
     // One reading of the clock for the whole decision: the same instant and zone give startedAt,
     // today and the saved week.
     const nowMs = deps.clock.nowMs();

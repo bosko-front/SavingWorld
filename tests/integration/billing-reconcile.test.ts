@@ -58,7 +58,7 @@ async function addFundedGoals() {
     ids.push(created.value.goalId);
   }
   const entry = await createEntry(
-    { db: getAppDatabase(), clock: systemClock, ids: uuidGenerator },
+    { db: getAppDatabase(), clock: systemClock, ids: uuidGenerator, capabilities: capabilitiesFor('pro') },
     { operationId: randomUuid(), goalId: ids[0]!, kind: 'deposit', amountMinor: 10_000, entryDate: TODAY, note: 'all of it' },
   );
   expect(entry.ok).toBe(true);

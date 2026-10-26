@@ -9,7 +9,7 @@ import { randomUuid, uuidGenerator } from '@/data/ids';
 import { getGoal } from '@/data/repositories/goal-repository';
 import { listEntriesForGoal } from '@/data/repositories/ledger-repository';
 import { capabilitiesFor } from '@/core/access';
-import { createGoal, finishGoal, pauseGoal } from '@/features/goals/application/goal-commands';
+import { createGoal, finishGoal, pauseGoal, reopenGoal } from '@/features/goals/application/goal-commands';
 import { correctEntry, createEntry } from '@/features/ledger/application/ledger-commands';
 import { civilDateToLocalDate } from '@/shared/i18n/local-date';
 
@@ -429,24 +429,22 @@ describe('History, corrections and confirmed deletion', () => {
   });
 });
 
-describe('Free-limit rejections play one warning haptic', () => {
+describe('Free limit (Phase 16: the paywall entry and the read-only rule replace refusals)', () => {
   beforeEach(async () => {
     await freshAppDatabase('ledger-free-limit');
     await chooseCurrency('EUR');
   });
 
-  it('Create Goal at the Free limit', async () => {
+  it('Create Goal at the Free limit opens "Build another world" instead of a form that would be refused', async () => {
     await setupGoal('Open goal');
     await renderRouter(APP_DIR, { initialUrl: '/goal-form' });
-    await userEvent.type(screen.getByTestId('goal-title'), 'Second');
-    await userEvent.type(screen.getByTestId('goal-target'), '100');
-    await userEvent.press(screen.getByTestId('goal-save'));
-    expect(screen.getByTestId('goal-form-error')).toHaveTextContent(/Free includes one goal\. Delete your current goal to start over/);
-    expect(hapticTypes()).toEqual(['warning']);
+    expect(screen.getByTestId('paywall-another-world')).toHaveTextContent(/Build another world/);
+    expect(screen.queryByTestId('goal-title')).toBeNull();
+    expect(hapticTypes()).toEqual([]);
     expect(liveToasts()).toHaveLength(0);
   });
 
-  it('Reopen over the Free limit (two goals, as after losing Pro)', async () => {
+  it('Reopen over the Free limit (two goals, as after losing Pro) is offered only for the goal kept in use', async () => {
     const closed = await setupGoal('Closed goal');
     await seedEntry(closed, 'deposit', 100_000, TODAY);
     expect((await finishGoal(deps(), { operationId: randomUuid(), goalId: closed, expectedRevision: 1 })).ok).toBe(true);
@@ -456,9 +454,12 @@ describe('Free-limit rejections play one warning haptic', () => {
     ).toBe(true);
     await renderRouter(APP_DIR, { initialUrl: '/collection' });
     await userEvent.press(screen.getByTestId(`collection-card-${closed}`));
-    await userEvent.press(screen.getByTestId(`reopen-${closed}`));
-    // A one-tap action has no form, so its refusal is an error toast with the explanation (D66).
-    await waitFor(() => expect(toastsShown()).toEqual([expect.stringMatching(/^Goal not reopened\. Free includes one goal/)]));
-    expect(hapticTypes()).toEqual(['warning']);
+    const reopen = screen.getByTestId(`reopen-${closed}`);
+    expect(reopen).toHaveTextContent(/Read-only until Pro returns/);
+    expect(reopen).toBeDisabled();
+    // The command refuses it on its own as well (a stale screen or deep link cannot bypass it).
+    const refused = await reopenGoal(deps(), { operationId: randomUuid(), goalId: closed, expectedRevision: 2 });
+    expect(!refused.ok && refused.error.code).toBe('goal_limit');
+    expect(hapticTypes()).toEqual([]);
   });
 });

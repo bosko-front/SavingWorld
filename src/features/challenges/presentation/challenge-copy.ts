@@ -243,6 +243,10 @@ export function challengeActionMessage(action: ChallengeAction, error: Challenge
       return 'This goal is finished. Reopen it in Collection first.';
     case 'goal_not_found':
       return 'This goal no longer exists.';
+    case 'goal_read_only':
+      return 'Without Pro this goal is read-only, so no quest was started.';
+    case 'theme_locked':
+      return 'This Garden is kept as it is without Pro, so no quest was started.';
     case 'attempt_not_active':
     case 'attempt_not_found':
       return 'This quest has already ended. You’ll find it in Past quests.';

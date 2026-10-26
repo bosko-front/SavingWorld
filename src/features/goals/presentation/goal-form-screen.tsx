@@ -2,12 +2,14 @@ import { Stack, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import { StyleSheet, View, type TextInputInstance } from 'react-native';
 
-import { appClock, goalCommandDeps, refreshAppData, useAppDataStore } from '@/bootstrap/app-data';
+import { accessView, appClock, goalCommandDeps, refreshAppData, useAppDataStore } from '@/bootstrap/app-data';
 import { today, type CivilDate } from '@/core/calendar';
 import { formatAmountInput, parseAmount, type CurrencyMetadata } from '@/core/money';
 import type { ThemeId } from '@/core/progression';
 import { randomUuid } from '@/data/ids';
 import { isOpenStatus, type GoalRecord } from '@/data/repositories/goal-repository';
+import { PaywallScreen } from '@/features/billing/presentation/paywall-screen';
+import { READ_ONLY_COPY } from '@/features/billing/presentation/billing-copy';
 import { deviceSeparators } from '@/shared/i18n/locale';
 import { FormScreen } from '@/shared/layout';
 import { spacing } from '@/shared/theme';
@@ -31,13 +33,22 @@ import { amountMessage, goalCommandMessage, type GoalFormField } from './goal-co
 // change re-lays out the form without resetting it, and a retry reuses the same operation ID. A
 // failed save keeps every field as typed and explains the problem inline; only a committed save
 // closes the sheet and shows a confirmation toast.
+//
+// Create without a free goal slot (Free already has its one goal, D74) shows the "Build another world"
+// paywall entry in this same sheet instead of a form that would be refused, for every way in (Home's
+// menu, its empty state, a deep link). Once Pro is bought the committed snapshot gains the slot and
+// this sheet turns into Create Goal, with one line saying Pro is unlocked (Phase 16). Edit of a goal
+// that is read-only after a lost entitlement explains that instead of showing the form.
 
 const THEME_NAMES: Record<ThemeId, string> = { island: 'Island', garden: 'Garden' };
 
 type FieldErrors = Partial<Record<GoalFormField, string>>;
 
 export function GoalFormScreen({ goalId }: { goalId: string | null }) {
+  const router = useRouter();
   const data = useAppDataStore((store) => (store.state.status === 'ready' ? store.state.data : null));
+  // The paywall entry was shown in this sheet, so a form that appears afterwards follows a purchase.
+  const [offeredPro, setOfferedPro] = useState(false);
   const currency = data?.currency.currency.status === 'set' ? data.currency.currency.currency : null;
   const goal = goalId === null ? null : (data?.goals.goals.find((summary) => summary.goal.id === goalId)?.goal ?? null);
 
@@ -48,6 +59,26 @@ export function GoalFormScreen({ goalId }: { goalId: string | null }) {
     return (
       <FormScreen>
         <Notice tone="error" title="No currency yet" message="Choose a currency in Settings before creating a goal." />
+      </FormScreen>
+    );
+  }
+  const access = accessView(data);
+  if (goalId === null && !access.canCreate) {
+    if (!offeredPro) {
+      setOfferedPro(true);
+    }
+    return <PaywallScreen entry="another_world" onClose={() => router.back()} />;
+  }
+  if (goal && isOpenStatus(goal.status) && access.use(goal) !== 'usable') {
+    return (
+      <FormScreen>
+        <Stack.Screen options={{ title: 'Edit goal' }} />
+        <Notice
+          tone="info"
+          title={READ_ONLY_COPY.badge}
+          message={access.use(goal) === 'theme_locked' ? READ_ONLY_COPY.gardenSentence : READ_ONLY_COPY.sentence}
+          testID="goal-form-read-only"
+        />
       </FormScreen>
     );
   }
@@ -63,10 +94,17 @@ export function GoalFormScreen({ goalId }: { goalId: string | null }) {
       </FormScreen>
     );
   }
-  return <GoalForm currency={currency} goal={goal} />;
+  return <GoalForm currency={currency} goal={goal} unlocked={offeredPro && goal === null} />;
 }
 
-function GoalForm({ currency, goal }: { currency: CurrencyMetadata; goal: GoalRecord | null }) {
+type GoalFormProps = {
+  currency: CurrencyMetadata;
+  goal: GoalRecord | null;
+  // Pro was just bought from the "Build another world" entry in this sheet.
+  unlocked: boolean;
+};
+
+function GoalForm({ currency, goal, unlocked }: GoalFormProps) {
   const router = useRouter();
   const separators = deviceSeparators();
   const [todayDate] = useState<CivilDate>(() => today(appClock()));
@@ -131,6 +169,7 @@ function GoalForm({ currency, goal }: { currency: CurrencyMetadata; goal: GoalRe
   return (
     <FormScreen testID="goal-form">
       <Stack.Screen options={{ title: editing ? 'Edit goal' : 'New goal' }} />
+      {unlocked ? <Notice tone="success" title="Pro is unlocked" message="Name your next goal and its world starts growing." testID="goal-form-unlocked" /> : null}
       {formError ? <Notice tone="error" title="Not saved" message={formError} testID="goal-form-error" /> : null}
       <TextField
         label="Goal name"

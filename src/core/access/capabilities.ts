@@ -38,8 +38,8 @@ export const PRO_CAPABILITIES: Capabilities = Object.freeze({
   proStatistics: true,
 });
 
-// Production behavior until Phase 15 integrates verified StoreKit entitlements: Free. There is no
-// override; only a verified entitlement may produce PRO_CAPABILITIES.
+// Production behavior without a verified StoreKit entitlement: Free. There is no override; only a
+// verified entitlement may produce PRO_CAPABILITIES (Phase 15, `accessLevelFor` in billing).
 export const DEFAULT_ACCESS_LEVEL: AccessLevel = 'free';
 
 export function capabilitiesFor(level: AccessLevel): Capabilities {
@@ -59,8 +59,8 @@ export function hasGoalSlot(capabilities: Capabilities, goalCount: number): bool
 }
 
 // Whether the existing goals fit the limit. Reopen adds no goal, so it is allowed while this holds;
-// after a lost Pro entitlement with several goals it does not (Phase 16 lets the person choose the
-// one goal they keep using, D74).
+// after a lost Pro entitlement with several goals it does not, except for the one goal the person
+// chose to keep using (`canReopenGoal`, D74).
 export function withinGoalLimit(capabilities: Capabilities, goalCount: number): boolean {
   checkCount(goalCount);
   return capabilities.goalLimit === null || goalCount <= capabilities.goalLimit;
@@ -68,4 +68,48 @@ export function withinGoalLimit(capabilities: Capabilities, goalCount: number): 
 
 export function canUseTheme(capabilities: Capabilities, themeId: ThemeId): boolean {
   return capabilities.themes[themeId];
+}
+
+// What a person may do with one existing goal (Phase 16, owner decisions D74/D75):
+// - usable: entries, corrections, edits, lifecycle changes and quests as its status allows;
+// - read_only: Pro is not active and there are more goals than Free allows; every goal except the
+//   one the person chose to keep using stays visible exactly as it is, with no new entries, entry
+//   corrections, edits, status changes or quests, until Pro returns or the person deletes goals;
+// - theme_locked: the goal uses a theme these capabilities do not include (a Garden goal without
+//   Pro). Its world stays as it is and cannot progress; status changes are still allowed, and the
+//   person may switch it to Island themselves (Phase 17). Nothing ever switches it automatically.
+// Viewing, History, Collection and deleting the goal are never restricted. Nothing here changes data:
+// it only decides which commands a goal accepts.
+export type GoalUse = 'usable' | 'read_only' | 'theme_locked';
+
+export type GoalUseContext = {
+  // Every goal in any status, as counted by the goal limit.
+  goalCount: number;
+  // The goal the person chose to keep using after losing Pro, when it still exists; null otherwise.
+  keptGoalId: string | null;
+  goalId: string;
+  themeId: ThemeId;
+};
+
+export function goalUse(capabilities: Capabilities, context: GoalUseContext): GoalUse {
+  if (!withinGoalLimit(capabilities, context.goalCount) && context.keptGoalId !== context.goalId) {
+    return 'read_only';
+  }
+  return canUseTheme(capabilities, context.themeId) ? 'usable' : 'theme_locked';
+}
+
+// More goals exist than these capabilities allow and the person has not yet chosen the one goal they
+// keep using: until they choose, every goal is read-only (the choice is theirs, never automatic).
+export function needsKeptGoalChoice(capabilities: Capabilities, goalCount: number, keptGoalId: string | null): boolean {
+  return !withinGoalLimit(capabilities, goalCount) && keptGoalId === null;
+}
+
+// Reopen adds no goal: allowed within the limit, and for the kept goal after a lost entitlement.
+export function canReopenGoal(capabilities: Capabilities, goalCount: number, keptGoalId: string | null, goalId: string): boolean {
+  return withinGoalLimit(capabilities, goalCount) || keptGoalId === goalId;
+}
+
+// The one Pro statistics screen (Phase 18 builds it; its entry and route check this).
+export function canOpenStatistics(capabilities: Capabilities): boolean {
+  return capabilities.proStatistics;
 }

@@ -115,6 +115,10 @@ describe('Icon', () => {
       add: 'plus',
       unlocked: 'sparkles',
       sparkle: 'sparkle',
+      goals: 'square.stack.3d.up',
+      switchWorld: 'arrow.triangle.2.circlepath',
+      statistics: 'chart.line.uptrend.xyaxis',
+      restore: 'arrow.clockwise',
     });
   });
 
