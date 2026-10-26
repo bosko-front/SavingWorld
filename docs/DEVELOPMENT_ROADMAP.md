@@ -1148,7 +1148,7 @@ Deliver the complete Pro Garden theme and the full confirmed personalization sco
 
 Phase 16
 
-Approved Garden art and provenance plus verified implementation of v1.2 Q03 and the D74-changed Q05 policies are required for visual and access acceptance. The Garden stages follow owner decision D115 (80% greenhouse and vegetable beds; the 60% fountain brings all the water; the pergola is part of 90%); the art comes from the Garden art workstream ([GARDEN_ART](prompts/GARDEN_ART.md), D114).
+Approved Garden art and provenance plus verified implementation of v1.2 Q03 and the D74-changed Q05 policies are required for visual and access acceptance. The Garden stages follow owner decision D115 (80% greenhouse and vegetable beds; the 60% fountain brings all the water; the pergola is part of 90%); the art comes from the Garden art workstream ([GARDEN_ART](prompts/GARDEN_ART.md), D114). Art input (D116): `assets/worlds/garden/export/` (copy it unchanged to `assets/themes/garden/`, never edit the PNGs) with `garden_manifest.json` version 1, which the current contract already accepts (base, two drifting clouds, ten unlocks, twelve swaying trees). Its `ambientExtensions` hold Garden motion the contract does not express yet (water flow and pond ripples owned by milestone 6, koi resting visible, lantern/greenhouse glows, butterflies, falling petals); using them means extending `manifest.ts`/`theme-export.ts` with new kinds that rest at 0, presets and limits, and owner confirmation of the proposed butterfly (30%) and petal (40%) milestones.
 
 ## Exact scope
 

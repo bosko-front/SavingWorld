@@ -2,7 +2,7 @@
 
 Source art for the Pro **Garden** theme (docs/ASSET_SPEC.md, PRODUCT_REQUIREMENTS R11). This folder holds the editable Blender scene and the scripts that generate it. It is **not** read by the app: approved exports go to `assets/themes/garden/` in Phase 17, with a manifest, exactly like the Island (D76, D77).
 
-Status (26 October 2026): **Step 3 of the owner's Garden brief — the 0%, 50% and 100% states are rendered and checked, awaiting the owner's approval.** The owner approved the completed Garden's appearance (Step 2). All eleven states, the layer export, the manifest and app integration wait for approval of Step 3 (Steps 4-5). The milestone order is decided (owner, D115; see "Milestone sequence").
+Status (26 October 2026): **Step 4 of the owner's Garden brief — all eleven states are rendered and exported as layers with a validated manifest, awaiting the owner's approval.** The owner approved the completed Garden (Step 2), the milestone order (D115) and the 0/50/100% states (Step 3). App integration (Step 5 = Phase 17) waits for approval of Step 4. The milestone order is decided (owner, D115; see "Milestone sequence").
 
 ## Reuse of the Island pipeline
 
@@ -29,6 +29,9 @@ Garden-specific code lives in `scripts/swg/`: `layout.py` (every position, singl
 | `scripts/draft_render.py` | Fast low-sample render for iteration |
 | `scripts/check_framing.py` | Reports whether a stage stays inside the shared frozen camera frame |
 | `scripts/verify_stages.py` | Per-stage checks (as the Island's): identical camera/lights/render settings/terrain fingerprint, add-only stages, no floating pieces |
+| `scripts/render_ambient.py` | Inputs for the ambient layers (`renders/ambient/`): stage 0 without the drifting clouds, stage 6 without the koi, the butterflies alone, flat ID masks (clouds, koi, trees, lights) and the 16-bit water flow pass |
+| `scripts/export_layers.py` | Exports the eleven approved renders as stacked layers plus `export/garden_manifest.json`, checks the rebuild against every render and writes the review sheets (uses the Island export's helper half read-only) |
+| `export/` | Phase 17 input: `2048/` and `1536/` layer PNGs, `garden_manifest.json`, `garden_layers_review.png`, `garden_ambient_review.png` |
 | `scripts/milestone_report.py` | Pixel checks between rendered stages (visible change per step, unchanged rock underside band, one resolution) and the side-by-side sheet `renders/milestones/garden_milestones.png` |
 | `source/garden.blend` | Editable scene (generated, compressed) |
 | `renders/review/` | The approved Step 2 review render (100%, butterflies shown) and the reference comparison (committed) |
@@ -115,11 +118,45 @@ Separate objects were planned from the start so the export can cut ambient layer
 
 Every ambient value must rest at 0 so the still stack equals the approved picture (as for the Island), run only on a visible Home with the app active, stop under Reduce Motion, and be measured on a physical iPhone in Phase 21.
 
-## Export and performance plan (Step 4)
+## Layer export for the app (Phase 17 input)
 
-- Same export as the Island (`export_layers.py` approach): base plus one cropped transparent part per separate object per milestone, positions and anchors on the 2048×1536 canvas, `2048/` master and `1536/` app size, manifest version with ambient marks validated by `src/features/worlds/manifest.ts`. The Garden keeps the 4:3 frame (`WORLD_SCENE_ASPECT`) and the shared camera, so the app's framing code needs no change.
-- Budget: ASSET_SPEC's ~32 MiB decoded per world. The Island is 13.7 MiB at 1536 with 49 layers. The Garden will have more small parts (13 trees, water flow layers, koi, butterflies, glows); crops stay small, so the estimate is 15-20 MiB at 1536. This is an estimate to measure at export, not a result; the physical-iPhone memory and frame check stays in Phase 21 (as D88/D90 for the Island).
-- Render cost: one full-quality Garden state takes about 8.5 minutes on the M4 (501 s at 256 samples, glass and dense foliage), against about 4.5 minutes for an Island state.
+```bash
+/Applications/Blender.app/Contents/MacOS/Blender -b assets/worlds/garden/source/garden.blend -P assets/worlds/garden/scripts/render_ambient.py
+```
+
+```bash
+/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup -P assets/worlds/garden/scripts/export_layers.py
+```
+
+Run `render_ambient.py` whenever the scene or a stage render changes, then `export_layers.py`. The cut is the Island's (D76, D91-D93): the Garden script loads the helper half of `island/scripts/export_layers.py` read-only, so both worlds are split, feathered and checked the same way.
+
+**What the current app reads** (`garden_manifest.json`, `themeId` "garden", `version` 1 = `CURRENT_THEME_VERSIONS.garden`, canvas 2048×1536):
+
+- `garden_base.png`: stage 0 without the two drifting clouds. The third cloud stays in the base: from 60% the waterfall falls into it.
+- `ambient`: `garden_cloud_1/2.png`, kind `cloud` (drift as on the Island).
+- `unlocks` 1-10 with the D115 names and draft VoiceOver descriptions: one part per separate object (59 layers in all with the base and clouds). Each tree that shows enough of itself is its own part with `ambient.kind = "sway"` and the trunk base as pivot (the blossom tree at 40%, eleven trees at 90%; the pine behind the blossom tree shows 161 px and stays still). Nothing is replaced (`hides` empty).
+- Checked with the app's own `manifestFromExport` and `validateManifest` (a throwaway Jest run, not committed): accepted unchanged; ten unlocks with the D115 names, version 1, 12 swaying trees, every extension file present.
+
+**What the current app does not read yet** (`ambientExtensions`, 16 layers): the Garden motion the current contract cannot express. Phase 17 extends `manifest.ts`/`theme-export.ts` before using it (the current adapter ignores this key):
+
+| Kind | Layers | Milestone | Rest | Planned motion |
+| --- | --- | --- | --- | --- |
+| `water` | `water_a/b/c` over the rill, stream, waterfall, fountain curtain, pond and basins | 6 | hidden | The Island's flow (D93): three layers faded in turn; streaks travel down the rill, stream and falls, and the pond and basins get rings travelling outward (ripples), never a blinking surface |
+| `koi` | `koi_1/2` (stage 6 is cut from a koi-free render, so the pond is whole underneath) | 6 | visible | Slow glide in a small loop (`center` given), within about 60 px |
+| `glow` | four path lanterns, greenhouse lights (the pergola lantern is hidden by its roses: no layer) | 7, 8 | hidden | A little warmth, very slow; never a pulse |
+| `butterfly` | `butterfly_1..3` (rendered alone, same rig and storybook pass) | 3 (proposal) | hidden | One at a time, an occasional short flight from where it rests |
+| `petal` | `petal_1..3`, small sprites in the blossom tree's own pink | 4 (proposal) | hidden | An occasional single petal falling from the canopy |
+
+The milestones for butterflies and petals are proposals for Phase 17; every ambient value rests at 0 so the still stack is the approved picture, and all motion follows D90 (Home visible, app active, off under Reduce Motion, Phase 21 measurement on a physical iPhone).
+
+**Checks** (`export_layers.py` output, 26 October 2026):
+
+- Rebuild against all eleven renders (base, clouds, milestone parts and the resting koi, at 2048): mean error 0.00-0.53/255 per stage (Island 0.2-0.5). The largest single pixels (up to 105/255) are the thin Freestyle outline along the garden's back rim, which Freestyle redraws slightly differently in every render; the layers keep the stage 0 rim line, so it never flickers (the Island's documented known difference, up to 112/255 there).
+- Layer bounds (120, 96)-(1792, 1388) in the shared canvas.
+- Decoded RGBA with every contract layer loaded: **16.0 MiB at 1536** (28.5 at 2048), plus 4.8 MiB for the extension layers (20.8 MiB in all). Island: 13.7 MiB at 1536. Budget (ASSET_SPEC): about 32 MiB per world. Physical-iPhone memory and frames stay a Phase 21 requirement.
+- Files: 75 PNGs per size (3.6 MB at 1536).
+- Render cost on the M4 at 256 samples: 56-443 s per state; the ambient inputs about 12 minutes.
+- `milestone_report.py` over all eleven states: one resolution; the rock underside band unchanged from 0% to 90% (max 2/255). Visible change per step at iPhone 17 Pro size: 0.39% (10%), 0.38% (20%), then 3.9, 2.9, 2.1, 3.9, 1.1, 3.3, 12.0 and 4.7%. **The 10% seedlings and 20% flower bed fall just under the 0.4% threshold used in the Island review** (the Island's weak 30% and 90% steps were strengthened at the owner's request). Enlarging them would change the approved 50% and 100% pictures and needs a full re-render, so it waits for the owner's decision.
 
 ## Review log
 
@@ -147,6 +184,10 @@ The owner approved the completed Garden's appearance and the milestone order (D1
 - Framing is unchanged (`check_framing.py`, see Step 2).
 
 To look at: at 0% and 50% the wall gaps kept for the later stairs (0%) and the two cascades (until 60%) read as bare earth ramps in the stone walls. They are part of the base terrain by design (the terrain must not change between stages); they could be softened with grass if the owner prefers.
+
+### 26 October 2026 — Step 3 approved; Step 4: all eleven states and the layer export
+
+The owner approved Step 3. Stages 1-4 and 6-9 were rendered from the same scene (`renders/milestones/`, 68-433 s each); `verify_stages.py` had already passed on all eleven stages. `render_ambient.py` and `export_layers.py` produced `export/` (see "Layer export for the app"). One correction during the export: the pond pattern first came out as radial spokes; its streaks now run around the pond so the rings travel outward.
 
 ## Provenance and licensing
 

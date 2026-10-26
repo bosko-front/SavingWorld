@@ -11,9 +11,10 @@ A separate session in the `claude/garden-theme-56e130` worktree ran Steps 1-2 of
 - Built: `assets/worlds/garden/` (README, `scripts/swg/` on the Island's shared rig, storybook pass and shaders, `source/garden.blend` with `SWG_00`-`SWG_10` and `SWG_Ambient`), the 100% review render and a reference comparison in `renders/review/`.
 - Decided (D115, owner): the Garden milestone order is v1.2 except 80% greenhouse and vegetable beds; the 60% fountain brings all the water; the pergola is part of 90%. PRODUCT_REQUIREMENTS, ASSET_SPEC, SOURCE_RECONCILIATION, docs/README, CLAUDE.md and the Phase 17 prompt/roadmap follow it.
 - Approved by the owner: the completed Garden's appearance (Step 2).
-- Step 3 done: 0%, 50% and 100% rendered (`assets/worlds/garden/renders/milestones/`, sheet `garden_milestones.png`); `verify_stages.py` PASS (one rig/terrain fingerprint, add-only, nothing floating after four small fixes) and `milestone_report.py` PASS (identical underside 0% → 50%). Waiting on the owner: approval of Step 3.
-- Next for this workstream after approval: brief Step 4 (all eleven states, the animation layers, the layer export and manifest, validated like the Island's). Step 5 (Phase 17 integration) follows only on further approval.
-- Not run: stages 1-4 and 6-9 renders, export, any app check (none apply yet).
+- Step 3 done: 0%, 50% and 100% rendered (`assets/worlds/garden/renders/milestones/`, sheet `garden_milestones.png`); `verify_stages.py` PASS (one rig/terrain fingerprint, add-only, nothing floating after four small fixes) and `milestone_report.py` PASS (identical underside 0% → 50%). Approved by the owner.
+- Step 4 done (D116): all eleven states rendered; `render_ambient.py` and `export_layers.py` produced `assets/worlds/garden/export/` (75 PNGs per size, `garden_manifest.json` version 1). Rebuild mean ≤ 0.53/255 on every stage; the app's `manifestFromExport`/`validateManifest` accept it unchanged (throwaway Jest run); 16.0 MiB decoded at 1536 + 4.8 MiB for the `ambientExtensions` layers (water/ripples at 60%, koi, glows, butterflies, petals). `milestone_report.py`: the 10% and 20% steps change 0.39%/0.38% of the image (Island threshold 0.4%); strengthening them is the owner's call. Waiting on the owner: approval of Step 4.
+- Next for this workstream after approval: brief Step 5, which is Phase 17 ([PHASE_17](prompts/PHASE_17.md), after Phases 15-16): copy the export to `assets/themes/garden/`, register Garden, and extend the manifest contract for the `ambientExtensions` layers.
+- Not run: any app or device check of the Garden (Phase 17/21).
 
 ## Completed
 
