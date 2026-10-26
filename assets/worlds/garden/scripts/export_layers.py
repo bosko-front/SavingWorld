@@ -96,8 +96,8 @@ MIN_LIGHT_PX = 40
 HALO_RADIUS = 18     # px of soft warm glow around a light
 HALO_ALPHA = 0.5
 HALO_COLOR = (1.0, 0.83, 0.52)
-BUTTERFLY_MILESTONE = 3   # proposal: butterflies once the flowers bloom
-PETAL_MILESTONE = 4       # with the blossom tree
+BUTTERFLY_MILESTONE = 3   # butterflies once the flowers bloom (D124)
+PETAL_MILESTONE = 4       # with the blossom tree (D124)
 PETAL_COUNT = 3
 
 STAGE_IDS = ["empty_garden", "first_seedlings", "small_flower_bed", "more_flowers",

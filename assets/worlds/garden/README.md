@@ -2,7 +2,7 @@
 
 Source art for the Pro **Garden** theme (docs/ASSET_SPEC.md, PRODUCT_REQUIREMENTS R11). This folder holds the editable Blender scene and the scripts that generate it. It is **not** read by the app: approved exports go to `assets/themes/garden/` in Phase 17, with a manifest, exactly like the Island (D76, D77).
 
-Status (26 October 2026): **art complete — the owner approved all eleven states, the layer export (Step 4, D120) and the visual polish pass (D123, art version 1 kept).** `renders/milestones/` and `export/` hold the polished art. Earlier approvals: the completed Garden (Step 2), the milestone order (D119) and the 0/50/100% states (Step 3). The export in `export/` is ready for Phase 17 (Step 5 of the brief), which copies it to `assets/themes/garden/` unchanged. The milestone order is decided (owner, D119; see "Milestone sequence").
+Status (26 October 2026): **art complete and closed — `export/` is the approved visual baseline for Phase 17 (D124).** The owner approved all eleven states, the layer export (Step 4, D120) and the visual polish pass (D123, art version 1 kept), then closed the workstream (D124): butterflies from 30%, petals from 40%; water, koi, butterflies, petals and the lantern/greenhouse glows are integrated in Phase 17 where feasible with the existing React Native renderer; flower swaying, canopy-only movement and butterfly wing animation are not required for the MVP. Phase 17 ([PHASE_17](../../../docs/prompts/PHASE_17.md), Step 5 of the brief) copies `export/` to `assets/themes/garden/` unchanged. Any later art change is a new owner-approved revision.
 
 ## Reuse of the Island pipeline
 
@@ -102,7 +102,7 @@ The owner chose the recommended column on 26 October 2026 (DECISIONS D119): v1.2
 
 Why: the fountain is the source of all the water, so "small fountain" at 60% can bring the pond, stream and waterfall with it (the owner's 60%) without renaming; the bridge waits for its stream (so 50% never shows a bridge over dry lawn); the greenhouse is the garden's hero building and lands where the Island's larger house lands (80%); the pergola is a planted ornament and fits "final plants and ornaments". Nothing is replaced between stages (Garden items coexist), and there is no gazebo.
 
-## Animation readiness (for Steps 4-5)
+## Animation readiness (planned in Step 1; final scope in D124)
 
 Separate objects were planned from the start so the export can cut ambient layers without masks where possible:
 
@@ -114,7 +114,7 @@ Separate objects were planned from the start so the export can cut ambient layer
 | Butterflies | `Butterfly_1..3` in `SWG_Ambient` | Occasional short flight, one at a time |
 | Lanterns | `Lantern_Glow_1..4`, `Lantern_Glow_Pergola`, `Greenhouse_LightGlow` | Very subtle warm glow change |
 | Clouds | `Cloud_1..3` | Drift, as on the Island |
-| Falling petals | from the blossom tree (to be added as a few export-only petal sprites) | Occasional single petal |
+| Falling petals | from the blossom tree (three export-only petal sprites) | Occasional single petal |
 
 Every ambient value must rest at 0 so the still stack equals the approved picture (as for the Island), run only on a visible Home with the app active, stop under Reduce Motion, and be measured on a physical iPhone in Phase 21.
 
@@ -127,8 +127,10 @@ What the current export can already move independently, and what needs more expo
 | Tree canopies | **Ready (whole tree)** | 12 trees are their own `sway` part with the trunk base as pivot (blossom tree at 40%, eleven at 90%), in the current contract; the app leans them with a skew like the Island's | A canopy-only sway (trunk still) needs the trunk and canopy cut as two layers: separate mask IDs for `Tree_*_Trunk` and `Tree_*_Canopy` in `render_ambient.py`, a canopy pivot at the crown base, and a contract kind for it |
 | Flower clusters | **Not ready** | Flowers are merged per stage into a few meshes (`Flowers_Patches`, `Path_BorderFlowers`, ...); the export cuts each milestone by changed pixels, so a drift ends up inside a stage part together with leaves and shrubs, with no pivot | One object per drift (or per border section), its own mask ID, a layer per drift with a base pivot, the blooms cut apart from the leaf mound so only the flowers nod, and a new ambient kind with small limits |
 | Fountain water | **Ready in `ambientExtensions`** | `water_a/b/c` flow layers over the fountain basins and curtain, rill, cascades, stream, waterfall, with pond ripples (D93 method), owned by milestone 6 | The contract allows water only in the base: Phase 17 must let an unlock own water layers |
-| Butterflies | **Ready in `ambientExtensions`** | Three single-pose sprites rendered alone (`butterfly_1..3`, rest hidden, proposed from 30%) | A contract kind; wing flapping would need a second wing pose per butterfly (optional) |
-| Falling petals | **Ready in `ambientExtensions`** | Three small petal sprites in the blossom canopy's colour (`petal_1..3`, from 40%), drawn by the export (not rendered) | A contract kind; petals from the new pink drifts are not planned |
+| Butterflies | **Ready in `ambientExtensions`** | Three single-pose sprites rendered alone (`butterfly_1..3`, rest hidden, from 30%, D124) | A contract kind; wing flapping would need a second wing pose per butterfly (optional) |
+| Falling petals | **Ready in `ambientExtensions`** | Three small petal sprites in the blossom canopy's colour (`petal_1..3`, from 40%, D124), drawn by the export (not rendered) | A contract kind; petals from the new pink drifts are not planned |
+
+**MVP scope (owner, D124):** Phase 17 integrates water, koi, butterflies, petals and the lantern/greenhouse glows where technically feasible with the existing React Native renderer (Reanimated in `WorldScene`; a kind that proves not feasible stays still and is recorded). Flower swaying, canopy-only movement and butterfly wing animation are **not required for the MVP**: no export work is planned for them; trees keep the whole-tree sway.
 
 The polish pass changed none of this: no object used by `render_ambient.py` (trees, koi, lights, water, clouds, butterflies) was renamed or moved.
 
@@ -158,10 +160,10 @@ Run `render_ambient.py` whenever the scene or a stage render changes, then `expo
 | `water` | `water_a/b/c` over the rill, stream, waterfall, fountain curtain, pond and basins | 6 | hidden | The Island's flow (D93): three layers faded in turn; streaks travel down the rill, stream and falls, and the pond and basins get rings travelling outward (ripples), never a blinking surface |
 | `koi` | `koi_1/2` (stage 6 is cut from a koi-free render, so the pond is whole underneath) | 6 | visible | Slow glide in a small loop (`center` given), within about 60 px |
 | `glow` | four path lanterns, greenhouse lights (the pergola lantern is hidden by its roses: no layer) | 7, 8 | hidden | A little warmth, very slow; never a pulse |
-| `butterfly` | `butterfly_1..3` (rendered alone, same rig and storybook pass) | 3 (proposal) | hidden | One at a time, an occasional short flight from where it rests |
-| `petal` | `petal_1..3`, small sprites in the blossom tree's own pink | 4 (proposal) | hidden | An occasional single petal falling from the canopy |
+| `butterfly` | `butterfly_1..3` (rendered alone, same rig and storybook pass) | 3 (D124) | hidden | One at a time, an occasional short flight from where it rests |
+| `petal` | `petal_1..3`, small sprites in the blossom tree's own pink | 4 (D124) | hidden | An occasional single petal falling from the canopy |
 
-The milestones for butterflies and petals are proposals for Phase 17; every ambient value rests at 0 so the still stack is the approved picture, and all motion follows D90 (Home visible, app active, off under Reduce Motion, Phase 21 measurement on a physical iPhone).
+The butterfly (30%) and petal (40%) milestones are decided (D124); every ambient value rests at 0 so the still stack is the approved picture, and all motion follows D90 (Home visible, app active, off under Reduce Motion, Phase 21 measurement on a physical iPhone).
 
 **Checks** (`export_layers.py` output, 26 October 2026, after the D123 polish):
 
@@ -239,6 +241,10 @@ Checks (full renders at 256 samples in `renders/preview/polish/`, 188-535 s per 
 Candidate renders were made in `renders/preview/polish/` (not committed). Review files: `renders/review/garden_polish_before_after.png` (approved top, polished bottom: 0, 30, 60, 100%), `garden_polish_0_30_60_100.png`, `garden_polish_iphone17pro.png` (0/30/60/100% at iPhone 17 Pro size), `garden_polish_early_iphone17pro.png` (0-30% polished top, approved bottom, at phone size), `garden_polish_stage10_iphone17pro_3x.png` and `garden_polish_milestones.png` (all eleven at SE size).
 
 **Approved by the owner the same day (D123), keeping art version 1** (no release has stored Garden art; a development-build Garden souvenir would now draw the polished art). The eleven 256-sample renders of the rebuilt source went to `renders/milestones/` (the same files as the candidates), then `render_ambient.py` (stage 0 without clouds 443 s, stage 6 without koi 362 s) and `export_layers.py` re-made `export/`: 51 contract layers (was 63), 15.4 MiB decoded at 1536 + 4.8 MiB extension (was 16.1 + 4.8), rebuild mean ≤ 0.53/255 (largest pixels again the back-rim Freestyle line), layer bounds unchanged, the VoiceOver drafts mention the new planting, and the app's adapter accepts it unchanged (throwaway Jest run). `milestone_report.py` on `renders/milestones/`: PASS.
+
+### 26 October 2026 — Workstream closed (D124)
+
+The owner approved the Garden asset work and closed the asset-generation session without starting Phase 17. Decided: butterflies from 30%, falling petals from 40% (already in the export; nothing re-exported); `export/` and `garden_manifest.json` version 1 are the approved visual baseline; flower swaying, canopy-only movement and butterfly wing animation are not required for the MVP; water, koi, butterflies, petals and the lantern and greenhouse glows are integrated in Phase 17 where feasible with the existing renderer; the Phase 16 paywall line that says "gazebo" becomes "greenhouse" in Phase 17. Only `export_layers.py` comments changed (the two milestones now cite D124); no render or export was re-made.
 
 ## Provenance and licensing
 
