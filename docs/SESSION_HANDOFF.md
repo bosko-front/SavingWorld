@@ -1,6 +1,6 @@
 # Latest session handoff
 
-Session date: 26 October 2026. Session kind: Phase 16 (Pro paywall and capability enforcement). Result: **Phase 16 IN PROGRESS**: code complete; lint, typecheck, Jest 1080/1080, `test:db` 51/51 + restart and a simulator look PASS; the owner's iPhone purchase walkthrough and VoiceOver remain. Next prompt: [PHASE_16](prompts/PHASE_16.md) (continuation). Details: [PHASE_16 evidence](evidence/PHASE_16.md).
+Session date: 26 October 2026. Session kind: Phase 16 (Pro paywall and capability enforcement). Result: **Phase 16 VERIFIED COMPLETE** (owner decision D128): code complete; lint, typecheck, Jest 1080/1080, `test:db` 51/51 + restart, a simulator look and the owner's own checks. Next prompt: [PHASE_17](prompts/PHASE_17.md). Details: [PHASE_16 evidence](evidence/PHASE_16.md).
 
 The previous handoff (Phase 15) is superseded; its record remains in [PHASE_15 evidence](evidence/PHASE_15.md) and DECISIONS D115-D116.
 
@@ -39,11 +39,11 @@ A separate session in the `claude/garden-theme-56e130` worktree ran Steps 1-2 of
 
 ## Incomplete work and blockers
 
-1. Owner's iPhone walkthrough (Xcode run, local StoreKit configuration and the sandbox account): Buy, cancel, Ask to Buy pending, Airplane Mode, Restore from the paywall (reached from Settings too), refund → keep one goal → others read-only, quests unchanged before/after Pro, Build another world → Buy → Create.
-2. VoiceOver of the paywall, keep-goal and read-only states, or the owner's deferral to Phases 19/21.
+1. Done: the owner checked purchase, Restore and read-only behavior himself and closed the phase (D128; device not itemized).
+2. Carried: VoiceOver of the paywall, keep-goal and read-only states (Phases 19/21, mandatory before release).
 3. The SE simulator has a pre-Phase-15 dev build: it shows a red ExpoIap error with today's JavaScript; reinstall build 7769c486 (or newer) there. The D115 claim that a build without the module opens normally should be rechecked.
-4. Git: this session is committed on `main` ("Phase 16: Pro paywall and capability enforcement (D117, D121-D122, D125-D126)"); not pushed. The simulator's text size was reset to the default.
+4. Git: Phase 16 is committed on `main` (Phase 16 commit, D127 follow-up and the phase close); not pushed. The simulator's text size was reset to the default.
 
 ## Exact next session
 
-In ~/Desktop/SavingWorld, continue with the full `docs/prompts/PHASE_16.md`: do not rebuild the enforcement or the paywall; record the owner's device walkthrough and VoiceOver result in `docs/evidence/PHASE_16.md`, then mark Phase 16 verified complete and name [PHASE_17](prompts/PHASE_17.md). Never enter Apple Account passwords or codes on the owner's behalf.
+In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_17.md` (Garden and per-goal theme switching). Verify Phase 16 from [PHASE_16 evidence](evidence/PHASE_16.md); reuse `goalUse`, `goal-access.ts`, the paywall and `/paywall` (D121, D122). Never enter Apple Account passwords or codes on the owner's behalf.

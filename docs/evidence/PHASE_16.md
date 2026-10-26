@@ -1,6 +1,6 @@
 # Phase 16 evidence: Pro paywall and capability enforcement
 
-Session date: 26 October 2026. State: **IN PROGRESS** (code complete; lint, typecheck, Jest 1080/1080, native SQLite 51/51 + restart and a simulator look PASS; the purchase walkthrough on the owner's iPhone and VoiceOver are still required). Decisions: D117 (engineering; implements D74/D75, R18/R21), D121-D122 (owner: hero stays the person's world, Garden preview and locked Garden card in Phase 17), D125 (owner: paywall polish and approved sale copy), D126 (owner: one Restore, on the paywall).
+Session date: 26 October 2026. State: **VERIFIED COMPLETE** (owner decision D128: code, lint, typecheck, Jest 1080/1080, native SQLite 51/51 + restart and a simulator look PASS; the owner reported his own checks of purchase, Restore and read-only behavior; VoiceOver carried to Phases 19/21). Decisions: D117 (engineering; implements D74/D75, R18/R21), D121-D122 (owner: hero stays the person's world, Garden preview and locked Garden card in Phase 17), D125 (owner: paywall polish and approved sale copy), D126 (owner: one Restore, on the paywall).
 
 ## Context verified first
 
@@ -50,8 +50,8 @@ Environment: macOS, Xcode 27.1 toolchain, Node from the project engines; Metro o
 | New tests | `tests/unit/access.test.ts` (goal use, kept choice, Reopen, statistics gate), `tests/unit/billing-copy.test.ts` (exact D74 and D125 copy, no forbidden promises, every outcome explained), `tests/integration/access-enforcement.test.ts` (command matrix: Free one goal in any status with repeated creates and replay, Pro unlimited, quests identical before/after Pro, offline keeps rights, verified loss changes nothing → read-only until the kept choice → kept goal reopens/saves → delete allowed → cold restart keeps the choice → Pro back via Restore, Garden locked without Pro with its souvenir kept), `tests/integration/paywall-ui.test.tsx` (D74 entry → Explore Pro → price from the store → Buy → same sheet becomes Create; cancelled/pending/offline/unverified in place with no toast and no trap; App Store unreachable → Try again; deep link while Pro; Settings and paywall Restore; loss journey on Home, keep-goal, read-only deep links to entry form, goal form, History and Challenges; restart; Pro returning), footer tests in `adaptive-layout.test.tsx` and `layout-metrics.test.ts`. Updated: goal-ui, ledger-ui, collection-ui, home-dashboard, billing-reconcile, goal-rules, toast-and-icon, native scenarios G03 (Garden lock), G04, C06, R1/R2 (Pro capabilities for multi-goal databases). |
 | `npm run test:db -- --device <17 Pro Max iOS 26.0>` | PASS 51/51 + R2 restart verify (expo-sqlite, Hermes; app database at schema 5, no re-migration) |
 | Simulator look (17 Pro Max iOS 26.0, Metro) | PASS: paywall from Settings with the person's island at its stage, D125 copy, "Unlock Pro for $7.99" from the App Store sandbox, pinned footer; scrolled list; accessibility-extra-large text moves the footer to the end of the content with everything readable; default text pins it again. Settings Pro section. Screenshots `phase-16/01`-`06` (04 shows the 40% threshold that crowded the content and led to 35%). |
-| Device purchase walkthrough (owner's iPhone) | NOT RUN: needs the owner (Xcode run with the local StoreKit configuration and the sandbox account): Buy, cancel, Ask to Buy pending, Airplane Mode, Restore from the paywall (reached from Settings), refund → keep one goal → others read-only, quests the same before/after Pro, "Build another world" → Buy → Create. |
-| VoiceOver of paywall, keep-goal and read-only states | NOT RUN (physical iPhone; joins the D102/D107/D109 carry to Phases 19/21 only if the owner defers it). |
+| Device purchase walkthrough (owner's iPhone) | Owner-reported PASS (D128: "provjerio sam sve, radi"; device, OS and individual scenarios not itemized). Planned list was (Xcode run with the local StoreKit configuration and the sandbox account): Buy, cancel, Ask to Buy pending, Airplane Mode, Restore from the paywall (reached from Settings), refund → keep one goal → others read-only, quests the same before/after Pro, "Build another world" → Buy → Create. |
+| VoiceOver of paywall, keep-goal and read-only states | NOT RUN; carried to Phases 19/21 by D128 (with D102/D107/D109), mandatory before release. |
 
 Observation outside this phase: the SE simulator's older dev build (built before expo-iap) shows a red "Cannot find native module 'ExpoIap'" render error at launch with the current JavaScript, although D115 says a build without the module opens normally (the gateway's lazy `require` is inside `try`). Release and current dev builds include the module, so users are not affected; reinstall the current dev build on the SE, and recheck the D115 claim when convenient.
 
@@ -61,7 +61,6 @@ Code: `src/core/access/capabilities.ts`, `index.ts`; `src/data/repositories/sett
 
 Docs: DECISIONS (D117, D121, D122, D125), DATA_MODEL, ARCHITECTURE, DESIGN_SYSTEM, ADAPTIVE_LAYOUT, UI_UX_GUIDELINES, PRODUCT_REQUIREMENTS, SOURCE_RECONCILIATION (Q07), Phase 17 prompt and roadmap (D121, D122), README, CLAUDE.md, PROJECT_STATUS, SESSION_HANDOFF, this file.
 
-## Remaining for VERIFIED COMPLETE
+## Close
 
-1. The owner's iPhone walkthrough above (purchase states, Restore, refund → keep one goal, quests unchanged, Build another world → Create).
-2. VoiceOver of the paywall, keep-goal screen and read-only notices (or an explicit owner deferral to Phases 19/21).
+Closed by the owner (D128) after his own checks. Carried: VoiceOver of the paywall, keep-goal screen and read-only notices (Phases 19/21); the SE simulator's stale dev build and the D115 "opens without the module" claim (reinstall, recheck). Next prompt: [PHASE_17](../prompts/PHASE_17.md).
