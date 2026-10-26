@@ -68,4 +68,9 @@ describe('eas.json', () => {
     expect(profiles.preview?.developmentClient).toBeUndefined();
     expect(profiles.production?.developmentClient).toBeUndefined();
   });
+
+  it('targets the verified App Store Connect app and team, with no credentials (docs/APPLE_SETUP.md)', () => {
+    expect(easJson.submit).toEqual({ production: { ios: { ascAppId: '6827062634', appleTeamId: '86J9LHRPM3' } } });
+    expect(JSON.stringify(easJson)).not.toMatch(/ascApiKey|\.p8|password|appleId"/i);
+  });
 });

@@ -24,6 +24,7 @@ The previous handoff (Phase 13) is superseded; its record remains in [PHASE_13 e
 
 ## Decisions
 
+- D113 (owner): Apple setup before Phase 15: bundle ID kept and verified, existing App Store Connect app 6827062634, Non-Consumable `com.bosko123.savingworlds.pro.lifetime` created without price; see APPLE_SETUP.md.
 - D112 (owner): the Collection souvenir detail without tab bar and with a short summary; snapshot unchanged.
 - D111 (owner): Settings design approved; short lines with info buttons, no tab bar on Settings.
 - D110 (owner): Settings in the shared look (Preferences, Reminders, About; diagnostics development-only; titles never break at accessibility sizes) and the approved reminder copy.
@@ -47,4 +48,4 @@ The previous handoff (Phase 13) is superseded; its record remains in [PHASE_13 e
 
 ## Exact next session
 
-In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_15.md` (verified StoreKit purchases and entitlement adapter). Verify Phase 14 from [PHASE_14 evidence](evidence/PHASE_14.md) first; do not redo it. Phase 15 needs the owner's Q07 product ID/store setup and Q09 identifiers, a native dependency (expo-iap per D41) and therefore a new development build under EAS_AND_OTA.
+In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_15.md` (verified StoreKit purchases and entitlement adapter). Verify Phase 14 from [PHASE_14 evidence](evidence/PHASE_14.md) first; do not redo it. Phase 15's Apple identifiers and product are ready ([APPLE_SETUP](APPLE_SETUP.md), D113); the owner still activates the Paid Applications agreement and sets a sandbox price when ready, or the phase starts with a local StoreKit configuration file. It adds a native dependency (expo-iap per D41) and therefore a new development build under EAS_AND_OTA; the API key stays in ~/.appstoreconnect/private_keys/ and its Key ID/Issuer ID come from the owner.

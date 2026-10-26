@@ -33,7 +33,7 @@ Product authority is [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx). Q01-Q06 
 
 ## Purchases and notifications
 
-- [ ] Final Pro price/storefronts/product ID are owner-approved. Product type is non-consumable, and the store's localized price is shown.
+- [ ] Final Pro price/storefronts/product ID are owner-approved. Product type is non-consumable, and the store's localized price is shown. Product ID approved and created without price (`com.bosko123.savingworlds.pro.lifetime`, D113); price, Paid Applications agreement and review screenshot pending ([APPLE_SETUP](APPLE_SETUP.md)).
 - [ ] Native verified/unverified states, pending/cancelled/error, finish/replay, reinstall restore, offline startup and revocation pass StoreKit and sandbox/TestFlight checks.
 - [ ] Paywall and Settings expose Restore Purchases; current entitlement queries do not repeatedly prompt for an Apple password at startup.
 - [ ] Future premium-theme entitlement rules/prices remain unresolved without misleading sales promises; no future products were accidentally offered.

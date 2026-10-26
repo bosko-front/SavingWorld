@@ -56,6 +56,7 @@ You may repeat a phase across multiple focused sessions. The 22-phase plan descr
 | [PROJECT_STATUS](PROJECT_STATUS.md) | Current verified phase, issues and recommended actions |
 | [SESSION_HANDOFF](SESSION_HANDOFF.md) | Latest session changes and exact continuation instructions |
 | [TEST_PLAN](TEST_PLAN.md) | Financial/native/UX scenarios and requirement traceability |
+| [APPLE_SETUP](APPLE_SETUP.md) | Verified Apple team, bundle ID, App Store Connect app and Lifetime Pro product; owner-only steps |
 | [EAS_AND_OTA](EAS_AND_OTA.md) | Required EAS build/update setup, channels/environments, runtime/schema safety and delivery/recovery workflow |
 | [RELEASE_CHECKLIST](RELEASE_CHECKLIST.md) | Native/store/data/privacy readiness and operator boundaries |
 | [prompts/README](prompts/README.md) | Ordered independent phase prompts |
