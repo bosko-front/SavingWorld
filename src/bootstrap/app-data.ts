@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { create } from 'zustand';
 
-import { capabilitiesFor, DEFAULT_ACCESS_LEVEL, type Capabilities } from '@/core/access';
+import { capabilitiesFor, type Capabilities } from '@/core/access';
 import { systemClock, today, type CivilDate, type Clock } from '@/core/calendar';
 import { uuidGenerator } from '@/data/ids';
+import { readStoredEntitlement } from '@/features/billing/application/entitlement-reconciler';
+import { accessLevelFor, type EntitlementStatus } from '@/features/billing/domain/entitlement';
 import { closeEndedAttempts, type ChallengeCommandDeps } from '@/features/challenges/application/challenge-commands';
 import type { GoalCommandDeps } from '@/features/goals/application/goal-commands';
 import { readGoalsOverview, type GoalsOverview } from '@/features/goals/application/goal-queries';
@@ -23,7 +25,9 @@ import { getAppDatabase } from './database-readiness';
 // `today` is the device's civil date when the snapshot was read (Phase 08). Screens derive
 // date-dependent values such as the deadline pace from it instead of reading the clock while
 // rendering, so one snapshot never mixes two dates.
-export type AppData = { currency: CurrencyOverview; goals: GoalsOverview; today: CivilDate };
+// `entitlement` is the stored Pro right (Phase 15): the last state StoreKit confirmed, read from
+// SQLite with the rest, so the app opens with it offline and before StoreKit answers.
+export type AppData = { currency: CurrencyOverview; goals: GoalsOverview; today: CivilDate; entitlement: { status: EntitlementStatus } };
 
 export type AppDataState =
   | { status: 'idle' }
@@ -37,6 +41,10 @@ export type AppDataState =
 // The clock every screen, snapshot and command dependency uses. The device clock in the app;
 // tests replace it to move across midnight, week and month boundaries.
 let clock: Clock = systemClock;
+
+// The stored entitlement from the last snapshot that was read, kept when a later read fails so a
+// temporary storage error does not take rights away.
+let lastEntitlementStatus: EntitlementStatus | null = null;
 
 export function appClock(): Clock {
   return clock;
@@ -67,8 +75,10 @@ export const useAppDataStore = create<AppDataStore>()((set, get) => ({
     try {
       const db = getAppDatabase();
       const todayDate = today(clock);
-      const [currency, goals] = await Promise.all([readCurrencyOverview(db), readGoalsOverview(db)]);
-      set({ state: { status: 'ready', data: { currency, goals, today: todayDate } }, version: get().version + 1 });
+      const [currency, goals, stored] = await Promise.all([readCurrencyOverview(db), readGoalsOverview(db), readStoredEntitlement(db)]);
+      const entitlement = { status: stored?.status ?? 'unknown' };
+      lastEntitlementStatus = entitlement.status;
+      set({ state: { status: 'ready', data: { currency, goals, today: todayDate, entitlement } }, version: get().version + 1 });
     } catch (error) {
       if (__DEV__) {
         // Development diagnostics only; messages come from SQLite or row decoders, never user data.
@@ -152,10 +162,15 @@ export function useCommittedRead<T>(key: string, read: (db: AppDatabase) => Prom
   return result.key === key ? result.read : { status: 'loading' };
 }
 
-// What this person may do. Free until Phase 15 supplies a verified StoreKit entitlement; there is
-// no override.
+// What this person may do: Pro capabilities only while the stored entitlement is a verified
+// StoreKit purchase (Phase 15), Free otherwise. There is no override or test switch.
 export function currentCapabilities(): Capabilities {
-  return capabilitiesFor(DEFAULT_ACCESS_LEVEL);
+  return capabilitiesFor(accessLevelFor(lastEntitlementStatus));
+}
+
+// Jest only: forgets the stored entitlement of the previous test's database.
+export function resetCapabilitiesForTests(): void {
+  lastEntitlementStatus = null;
 }
 
 export function goalCommandDeps(): GoalCommandDeps {

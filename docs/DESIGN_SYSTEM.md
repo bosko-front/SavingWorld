@@ -169,7 +169,7 @@ Decided (DECISIONS D43): Saving Worlds uses **SF Symbols only**, so icons match 
 - In-app icons use `expo-symbols` (`SymbolView`) behind one shared `src/shared/ui/icon.tsx` component and a semantic name map, created in Phase 06. Screens write `<Icon name="deposit" />`, never raw symbol names.
 - Implemented in Phase 06: `<Icon name role tone weight accessibilityLabel? />`. Size is the `role`'s font size multiplied by the current font scale (`useFontScale` from `@/shared/layout`), `tone` is one of the AppText tones, and the icon is hidden from VoiceOver unless it gets an `accessibilityLabel`. `Button` takes an optional `icon`, `Notice` shows its tone icon before the title, and `TextField` errors use the `error` icon. ESLint allows `expo-symbols` only in `icon.tsx`.
 - No icon fonts (`@expo/vector-icons` is not installed and should not be added), no custom SVG icon set, no emoji. The TextField warning glyph is replaced by the `error` icon in Phase 06.
-- Island/Garden art, souvenirs and the app icon are not part of this system: world art follows ASSET_SPEC, and the app icon and splash stay Expo placeholders until branding (Q09) before release.
+- Island/Garden art, souvenirs and the app icon are not part of this system: world art follows ASSET_SPEC, and the app icon and splash stay Expo placeholders until Phase 19.5 (D114) replaces them with owner-approved art before the first preview build.
 
 Rules:
 

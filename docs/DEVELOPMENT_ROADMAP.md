@@ -1342,6 +1342,59 @@ Every acceptance criterion above has evidence; required dependencies are verifie
 
 [Full implementation prompt](prompts/PHASE_19.md).
 
+## Phase 19.5 App icon and launch screen
+
+## Objective
+
+Replace the Expo placeholder app icon and launch screen with owner-approved Saving Worlds artwork before the first release-mode preview build, so every build tested from Phase 20 on carries the real identity (owner request, D114).
+
+## Dependencies and decision gates
+
+Phase 19. Island art approved (D76); Garden art only once approved. The store name (Q09) does not block the icon, which carries no text. The owner picks one concept and approves the final icons and launch screen. A native configuration change: new development build, and a new app version once runtime 1.0.0 is shared (EAS_AND_OTA), which doing it before Phase 20 avoids.
+
+## Exact scope
+
+- Two or three icon concepts drawn from the world art and the D97 direction, shown at real home-screen sizes; no text, "Pro", price or trademarks.
+- The chosen icon produced reproducibly from a script (Blender icon scene reusing the Island source, or vector), source and provenance under `assets/branding/`; 1024 × 1024 sRGB PNG without alpha or rounded corners, readable at 29 pt.
+- Dark and tinted variants as the pinned SDK supports (`ios.icon` light/dark/tinted; Icon Composer `.icon` for iOS 26 if supported), with the choice recorded.
+- Launch screen through `expo-splash-screen`: cream `LAUNCH_BACKGROUND` and a small mark, no text, no animation; the splash still hides after `DatabaseGate`.
+- No Expo placeholder left; new EAS development build to see the result.
+
+## Expected files and modules
+
+These are planned code paths, not claims that the files exist. Reuse equivalent existing modules after inspection; document mappings and do not create duplicates.
+
+- `assets/branding/ icon source, script, concepts, README`
+- `assets/images/ final icons and launch mark`
+- `app.config.ts icon and splash configuration`
+- `tests/unit/delivery-config.test.ts icon files, size, no alpha, launch color`
+- `docs/evidence/PHASE_19_5.md`
+
+## Technical requirements
+
+- Icons exactly 1024 × 1024, sRGB, opaque; launch color equals the palette's `LAUNCH_BACKGROUND` (contrast test guard).
+- Asset catalog checked in a throwaway prebuild; `ios/` never committed. No new runtime dependency.
+
+## Acceptance criteria
+
+- Owner chose a concept and approved the final light/dark/tinted icons and launch screen.
+- Icon readable on the home screen, Spotlight, Settings and the app switcher in light, dark and tinted appearance; cold start shows the new launch screen on the SE, 17 Pro Max and Duo.
+- No placeholder remains; standard checks pass.
+
+## Tests and verification
+
+- Lint, typecheck, Jest including the icon file test; throwaway prebuild asset-catalog check; new EAS development simulator build with screenshots. The physical-iPhone look joins the Phase 21 release-candidate check.
+
+## Definition of Done
+
+Every acceptance criterion above has evidence; required dependencies are verified; relevant automated/native/manual checks pass; no known critical regression remains; documentation and handoff reflect actual state. The owner's approval is mandatory. Use the detailed common Definition of Done in DEVELOPMENT_RULES.
+
+## Out of scope
+
+- App Store screenshots and metadata, the final store name (Phase 22), alternate in-app icons, animated launch screens, new in-app art.
+
+[Full implementation prompt](prompts/PHASE_19_5.md).
+
 ## Phase 20 EAS preview delivery and OTA recovery verification
 
 ## Objective
@@ -1350,7 +1403,7 @@ Prove the actual EAS release-mode preview/update/recovery path against the compl
 
 ## Dependencies and decision gates
 
-Phase 19. Verify the actual Phase 01 EAS project/profiles/runtime configuration and all intervening native/persistence changes as well as the completed feature/accessibility state.
+Phase 19.5 (the owner-approved app icon and launch screen are in every build from here on), after Phase 19. Verify the actual Phase 01 EAS project/profiles/runtime configuration and all intervening native/persistence changes as well as the completed feature/accessibility state.
 
 The selected Expo account/project, required signing/test-device access and permitted EAS build/update operations must be available. Executing this phase authorizes only the named development/preview builds and preview-channel OTA drill, using synthetic fixtures. No production publication, production routing change or App Store upload is part of it.
 
@@ -1463,6 +1516,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 - Carried from Phase 11 (DECISIONS D102): repeat the Collection VoiceOver walkthrough and haptics from Phase 19 on the release candidate, and include Collection (featured card, multi-world gallery with the D100 float, souvenir detail and sparkle burst) in the physical-iPhone frame and energy measurement.
 - Carried from Phase 13 (DECISIONS D107): repeat the Challenges VoiceOver walkthrough and haptics from Phase 19 on the release candidate, and include the Challenges tab (active quest bar glide after a saved entry, reached-target hero with its one-shot sparkle) in the physical-iPhone frame and energy measurement.
 - Carried from Phase 14 (DECISIONS D109): repeat the Phase 19 weekly reminder checks on the release candidate, including one real Sunday 18:00 delivery (or a device time-zone change that reaches it), travel to another zone and a DST change keeping 18:00 local, and a reinstall/upgrade that leaves exactly one request.
+- Carried from Phase 19.5 (DECISIONS D114): check the app icon (light, dark and tinted home screen) and the launch screen on a physical iPhone with the release candidate.
 - Run full regression only now after integration, not repeatedly after every unchanged earlier phase; update requirements traceability.
 
 ## Definition of Done

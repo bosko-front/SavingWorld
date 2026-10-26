@@ -3,7 +3,7 @@ import { utcTimestamp, type CivilDate, type Clock } from '@/core/calendar';
 import { DEFAULT_SEPARATORS, getCurrency, type CurrencyMetadata } from '@/core/money';
 import { AppDatabase, type DatabaseTestHooks } from '@/data/db/database';
 import type { Migration } from '@/data/db/migration-runner';
-import { MIGRATIONS } from '@/data/db/migrations';
+import { LATEST_SCHEMA_VERSION, MIGRATIONS } from '@/data/db/migrations';
 import type { SqlExecutor } from '@/data/db/sql';
 import type { IdGenerator } from '@/data/ids';
 import { getGoal, updateGoalStatus } from '@/data/repositories/goal-repository';
@@ -173,7 +173,19 @@ export async function mustCreate(h: Harness, kind: EntryValuesInput['kind'], amo
   return result.value;
 }
 
-const EXPECTED_TABLES = ['challenge_attempts', 'collectibles', 'goals', 'ledger_entries', 'migrations', 'operation_receipts', 'settings'];
+const EXPECTED_TABLES = [
+  'challenge_attempts',
+  'collectibles',
+  'entitlement_cache',
+  'goals',
+  'ledger_entries',
+  'migrations',
+  'operation_receipts',
+  'purchase_events',
+  'settings',
+];
+const LATEST = LATEST_SCHEMA_VERSION;
+const ALL_VERSIONS = MIGRATIONS.map((migration) => migration.version);
 
 export const DATABASE_SCENARIOS: Scenario[] = [
   {
@@ -182,7 +194,7 @@ export const DATABASE_SCENARIOS: Scenario[] = [
     run: (context) =>
       withSession(context, async (s) => {
         const db = await s.openDb(s.name('fresh'));
-        equal(db.migration, { fromVersion: 0, toVersion: 4, applied: [1, 2, 3, 4] }, 'migration outcome');
+        equal(db.migration, { fromVersion: 0, toVersion: LATEST, applied: ALL_VERSIONS }, 'migration outcome');
         const pragmas = await db.pragmas();
         equal(pragmas.writer.journalMode.toLowerCase(), 'wal', 'writer journal_mode');
         equal(pragmas.writer.foreignKeys, true, 'writer foreign_keys');
@@ -222,19 +234,14 @@ export const DATABASE_SCENARIOS: Scenario[] = [
         })();
         for (let i = 0; i < 3; i += 1) {
           const db = await s.openDb(h.name);
-          equal(db.migration, { fromVersion: 4, toVersion: 4, applied: [] }, `reopen ${i + 1} migration outcome`);
+          equal(db.migration, { fromVersion: LATEST, toVersion: LATEST, applied: [] }, `reopen ${i + 1} migration outcome`);
           const ledger = await readGoalLedger(db, h.goalId);
           equal(ledger?.balanceMinor, 3_750, `reopen ${i + 1} balance`);
           equal(ledger?.entries.map((e) => e.note), ['first', null], `reopen ${i + 1} notes`);
           const applied = await db.read((r) => r.all('SELECT version, applied_at_utc FROM migrations'));
           equal(
             applied,
-            [
-              { version: 1, applied_at_utc: firstAppliedAt },
-              { version: 2, applied_at_utc: firstAppliedAt },
-              { version: 3, applied_at_utc: firstAppliedAt },
-              { version: 4, applied_at_utc: firstAppliedAt },
-            ],
+            ALL_VERSIONS.map((version) => ({ version, applied_at_utc: firstAppliedAt })),
             `reopen ${i + 1} history unchanged`,
           );
           await db.close();
@@ -250,13 +257,13 @@ export const DATABASE_SCENARIOS: Scenario[] = [
         await mustCreate(h, 'deposit', 9_999, '2026-10-22', 'keep me');
         await h.db.close();
         const broken: Migration = {
-          version: 5,
+          version: LATEST + 1,
           name: 'broken_upgrade',
           sql: 'CREATE TABLE upgrade_probe (id TEXT PRIMARY KEY) STRICT; UPDATE ledger_entries SET note = NULL; INSERT INTO missing_table VALUES (1);',
         };
-        await rejects(s.openDb(h.name, [...MIGRATIONS, broken]), /migration_failed|Migration 5 failed/, 'broken migration');
+        await rejects(s.openDb(h.name, [...MIGRATIONS, broken]), new RegExp(`migration_failed|Migration ${LATEST + 1} failed`), 'broken migration');
         const db = await s.openDb(h.name);
-        equal(db.migration.applied, [], 'still schema 4');
+        equal(db.migration.applied, [], `still schema ${LATEST}`);
         const state = await db.read(async (r) => ({
           tables: await tableNames(r),
           notes: (await r.all<{ note: string | null }>('SELECT note FROM ledger_entries')).map((row) => row.note),
@@ -264,9 +271,9 @@ export const DATABASE_SCENARIOS: Scenario[] = [
         equal(state.tables, EXPECTED_TABLES, 'no partial upgrade table');
         equal(state.notes, ['keep me'], 'data untouched by the failed migration');
         await db.close();
-        const good: Migration = { version: 5, name: 'probe_upgrade', sql: 'CREATE TABLE upgrade_probe (id TEXT PRIMARY KEY) STRICT;' };
+        const good: Migration = { version: LATEST + 1, name: 'probe_upgrade', sql: 'CREATE TABLE upgrade_probe (id TEXT PRIMARY KEY) STRICT;' };
         const upgraded = await s.openDb(h.name, [...MIGRATIONS, good]);
-        equal(upgraded.migration, { fromVersion: 4, toVersion: 5, applied: [5] }, 'upgrade outcome');
+        equal(upgraded.migration, { fromVersion: LATEST, toVersion: LATEST + 1, applied: [LATEST + 1] }, 'upgrade outcome');
         equal((await readGoalLedger(upgraded, h.goalId))?.balanceMinor, 9_999, 'balance after upgrade');
       }),
   },
@@ -279,13 +286,13 @@ export const DATABASE_SCENARIOS: Scenario[] = [
         await mustCreate(h, 'deposit', 4_200, '2026-10-22');
         await h.db.close();
         const raw = await s.raw(h.name);
-        await raw.run("INSERT INTO migrations VALUES (5, 'from_the_future', 'ffff', '2027-01-01T00:00:00.000Z')");
+        await raw.run("INSERT INTO migrations VALUES (?, 'from_the_future', 'ffff', '2027-01-01T00:00:00.000Z')", [LATEST + 1]);
         await raw.close();
         await rejects(s.openDb(h.name), /newer_schema|newer than supported/, 'newer schema');
         const after = await s.raw(h.name);
         equal(await count(after, 'ledger_entries'), 1, 'entries kept after newer-schema refusal');
-        equal(await count(after, 'migrations'), 5, 'history kept');
-        await after.run('DELETE FROM migrations WHERE version = 5');
+        equal(await count(after, 'migrations'), LATEST + 1, 'history kept');
+        await after.run('DELETE FROM migrations WHERE version = ?', [LATEST + 1]);
         await after.close();
 
         const edited: Migration = { ...MIGRATIONS[0]!, sql: `${MIGRATIONS[0]!.sql}\n-- edited` };
@@ -748,7 +755,7 @@ export function restartVerifyScenario(seedId: string): Scenario {
       const clock = steppingClock();
       const db = await AppDatabase.open({ driver: context.driver, name, migrations: MIGRATIONS, clock });
       try {
-        equal(db.migration, { fromVersion: 4, toVersion: 4, applied: [] }, 'no re-migration');
+        equal(db.migration, { fromVersion: LATEST, toVersion: LATEST, applied: [] }, 'no re-migration');
         const state = await db.read(async (r) => ({
           currency: (await r.get<{ value_json: string }>("SELECT value_json FROM settings WHERE key = 'currency'"))?.value_json,
           goals: await r.all('SELECT id, title, target_minor, status, revision FROM goals ORDER BY created_at_utc, id'),

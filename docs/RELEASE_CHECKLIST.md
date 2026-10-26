@@ -70,7 +70,7 @@ Product authority is [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx). Q01-Q06 
 ## App Store materials and current requirements
 
 - [ ] Final brand/name availability, publisher and bundle identifier are confirmed by the owner; name checks are not implied by this planning task.
-- [ ] Supported iPhone/iOS versions, app version/build, icons, launch assets and orientations agree with actual device evidence.
+- [ ] Supported iPhone/iOS versions, app version/build, icons, launch assets and orientations agree with actual device evidence. The app icon (light/dark/tinted) and launch screen are the owner-approved Phase 19.5 art (D114), no Expo placeholder; their physical-iPhone look is checked on the release candidate (Phase 21).
 - [ ] Current accepted Xcode/SDK requirements are checked at submission time; do not freeze a guessed deadline from this plan.
 - [ ] Inspect the built archive's privacy manifests, required-reason API declarations and third-party SDK behavior; declare only accurate approved reasons.
 - [ ] Privacy-label answers reflect actual collected/transmitted data, including SDK defaults. Do not assume “no data collected” solely because there is no custom backend.

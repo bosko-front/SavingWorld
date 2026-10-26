@@ -1,0 +1,344 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		5A0000000000000000000101 /* HostApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0000000000000000000201 /* HostApp.swift */; };
+		5A0000000000000000000102 /* ProStoreKitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0000000000000000000202 /* ProStoreKitTests.swift */; };
+		5A0000000000000000000103 /* OpenIAP in Frameworks */ = {isa = PBXBuildFile; productRef = 5A0000000000000000000901 /* OpenIAP */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		5A0000000000000000000301 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5A0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5A0000000000000000000501;
+			remoteInfo = HostApp;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		5A0000000000000000000201 /* HostApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostApp.swift; sourceTree = "<group>"; };
+		5A0000000000000000000202 /* ProStoreKitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProStoreKitTests.swift; sourceTree = "<group>"; };
+		5A0000000000000000000203 /* HostApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HostApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5A0000000000000000000204 /* ProStoreKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ProStoreKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		5A0000000000000000000601 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5A0000000000000000000602 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5A0000000000000000000103 /* OpenIAP in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		5A0000000000000000000401 = {
+			isa = PBXGroup;
+			children = (
+				5A0000000000000000000402 /* HostApp */,
+				5A0000000000000000000403 /* Tests */,
+				5A0000000000000000000404 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		5A0000000000000000000402 /* HostApp */ = {
+			isa = PBXGroup;
+			children = (
+				5A0000000000000000000201 /* HostApp.swift */,
+			);
+			path = HostApp;
+			sourceTree = "<group>";
+		};
+		5A0000000000000000000403 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				5A0000000000000000000202 /* ProStoreKitTests.swift */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		5A0000000000000000000404 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5A0000000000000000000203 /* HostApp.app */,
+				5A0000000000000000000204 /* ProStoreKitTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		5A0000000000000000000501 /* HostApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5A0000000000000000000802 /* Build configuration list for PBXNativeTarget "HostApp" */;
+			buildPhases = (
+				5A0000000000000000000701 /* Sources */,
+				5A0000000000000000000601 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HostApp;
+			productName = HostApp;
+			productReference = 5A0000000000000000000203 /* HostApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+		5A0000000000000000000502 /* ProStoreKitTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5A0000000000000000000803 /* Build configuration list for PBXNativeTarget "ProStoreKitTests" */;
+			buildPhases = (
+				5A0000000000000000000702 /* Sources */,
+				5A0000000000000000000602 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5A0000000000000000000A01 /* PBXTargetDependency */,
+			);
+			name = ProStoreKitTests;
+			packageProductDependencies = (
+				5A0000000000000000000901 /* OpenIAP */,
+			);
+			productName = ProStoreKitTests;
+			productReference = 5A0000000000000000000204 /* ProStoreKitTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		5A0000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2700;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					5A0000000000000000000501 = {
+						CreatedOnToolsVersion = 27.1;
+					};
+					5A0000000000000000000502 = {
+						CreatedOnToolsVersion = 27.1;
+						TestTargetID = 5A0000000000000000000501;
+					};
+				};
+			};
+			buildConfigurationList = 5A0000000000000000000801 /* Build configuration list for PBXProject "StoreKitHost" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 5A0000000000000000000401;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				5A0000000000000000000B01 /* XCRemoteSwiftPackageReference "openiap" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 5A0000000000000000000404 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				5A0000000000000000000501 /* HostApp */,
+				5A0000000000000000000502 /* ProStoreKitTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5A0000000000000000000701 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5A0000000000000000000101 /* HostApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5A0000000000000000000702 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5A0000000000000000000102 /* ProStoreKitTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5A0000000000000000000A01 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5A0000000000000000000501 /* HostApp */;
+			targetProxy = 5A0000000000000000000301 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		5A0000000000000000000C01 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		5A0000000000000000000C02 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		5A0000000000000000000C03 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				CURRENT_PROJECT_VERSION = 1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bosko123.savingworlds.storekithost;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		5A0000000000000000000C04 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				CURRENT_PROJECT_VERSION = 1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bosko123.savingworlds.storekithost;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		5A0000000000000000000C05 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				CURRENT_PROJECT_VERSION = 1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bosko123.savingworlds.storekithost.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HostApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/HostApp";
+			};
+			name = Debug;
+		};
+		5A0000000000000000000C06 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				CURRENT_PROJECT_VERSION = 1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bosko123.savingworlds.storekithost.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HostApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/HostApp";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		5A0000000000000000000801 /* Build configuration list for PBXProject "StoreKitHost" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5A0000000000000000000C01 /* Debug */,
+				5A0000000000000000000C02 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5A0000000000000000000802 /* Build configuration list for PBXNativeTarget "HostApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5A0000000000000000000C03 /* Debug */,
+				5A0000000000000000000C04 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5A0000000000000000000803 /* Build configuration list for PBXNativeTarget "ProStoreKitTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5A0000000000000000000C05 /* Debug */,
+				5A0000000000000000000C06 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		5A0000000000000000000B01 /* XCRemoteSwiftPackageReference "openiap" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/hyodotdev/openiap.git";
+			requirement = {
+				kind = exactVersion;
+				version = 4.0.5;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5A0000000000000000000901 /* OpenIAP */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5A0000000000000000000B01 /* XCRemoteSwiftPackageReference "openiap" */;
+			productName = OpenIAP;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 5A0000000000000000000001 /* Project object */;
+}

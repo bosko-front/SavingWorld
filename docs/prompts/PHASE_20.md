@@ -18,7 +18,7 @@ Prove the actual EAS release-mode preview/update/recovery path against the compl
 
 ## Dependencies and decision gates
 
-Phase 19. Verify the actual Phase 01 EAS project/profiles/runtime configuration and all intervening native/persistence changes as well as the completed feature/accessibility state.
+Phase 19.5 (the owner-approved app icon and launch screen are in every build from here on), after Phase 19. Verify the actual Phase 01 EAS project/profiles/runtime configuration and all intervening native/persistence changes as well as the completed feature/accessibility state.
 
 The selected Expo account/project, required signing/test-device access and permitted EAS build/update operations must be available. Executing this phase authorizes only the named development/preview builds and preview-channel OTA drill, using synthetic fixtures. No production publication, production routing change or App Store upload is part of it.
 

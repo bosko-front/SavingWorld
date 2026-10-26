@@ -56,6 +56,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // Local notifications only (the one weekly reminder, Phase 14): no push, so no aps-environment
     // entitlement and no remote-notification background mode.
     ['expo-notifications', { enableRemoteNotifications: false }],
+    // StoreKit 2 through expo-iap (Phase 15): the one lifetime Pro product. iOS In-App Purchase needs
+    // no entitlement or Info.plist key; the plugin only links the native module.
+    'expo-iap',
+    // Xcode runs of a development build use the local StoreKit test configuration (Phase 15).
+    './plugins/with-storekit-test-config',
   ],
   experiments: {
     typedRoutes: true,

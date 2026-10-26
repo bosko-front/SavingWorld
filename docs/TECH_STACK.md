@@ -20,7 +20,7 @@ Research date: 22 October 2026. These are recommendations for a new app, not ins
 | Lottie | Not in the initial dependency set | Reanimated is sufficient for planned effects. Avoid a second animation pipeline without an actual asset requirement. |
 | Images/assets | Expo-compatible local image/asset tools | Bundle both themes; no runtime remote asset dependency. Use static import/require references. |
 | Charts | Minimal SVG line/bar primitives using react-native-svg | One simple progress chart and monthly summary do not justify a chart framework. Accessible text/table is required. |
-| Purchases | Evaluate expo-iap with native StoreKit 2 verification behind PurchaseGateway | Fits no-backend scope. A supported package version must prove required verified APIs, updates and restore before adoption. |
+| Purchases | expo-iap 6.3.0 (exact pin; native OpenIAP Apple 4.0.5, StoreKit 2) behind PurchaseGateway | Fits no-backend scope. Source reviewed and Xcode StoreKit tests pass for verified/pending/unverified/refund/replay (Phase 15, D115); iPhone sandbox purchase/restore verified by the owner. |
 | Notifications | expo-notifications local scheduling | No remote push service or token registration. |
 | Localization | expo-localization, Intl, a small typed English message catalog | Launch English; prepare text and monetary/calendar formatting for later languages. No large localization service. |
 | Testing | jest-expo, Jest, React Native Testing Library; real-native scenarios; Maestro | Distinguish mocked logic/UI tests from SQLite, StoreKit, notifications and device evidence. |
@@ -66,7 +66,7 @@ Phase 01 records every selected version, why it is needed, whether the template 
 | Phase 06/07/14 native inputs | Existing @expo/ui (DatePicker, Picker, Switch) | No extra date-picker package. |
 | Phase 09 scenes | expo-image, when the approved renderer needs it | Validate static asset references and memory; avoid an unused second image pipeline. |
 | Phase 14 reminders | expo-notifications ~58.1.6 (installed) | Local scheduling only: config plugin with `enableRemoteNotifications: false` (no aps-environment, no remote background mode); repeating calendar trigger (weekday 1, 18:00, no fixed zone); adapter `src/features/reminders/native/notification-gateway.ts` (D108). |
-| Phase 15 purchases | Selected compatible expo-iap or the bounded verified StoreKit adapter | Add purchase native configuration and rebuild when it can be tested. No hosted service by default. |
+| Phase 15 purchases | expo-iap 6.3.0 (installed, `expo-iap` config plugin) | New development build 7769c486. No hosted service; no custom StoreKit module needed (D115). |
 | Phase 18 statistics | react-native-svg (installed in Phase 06 for toasts) for the minimal chart | No general chart framework. |
 
 Phase 01 locked Expo SDK 58.0.17 with React Native 0.88.0, React 19.3.0 and Expo Router 58.0.25 on 23 October 2026. The exact install matrix, template-supplied packages, removed template packages and EAS CLI pin are in [PHASE_01 evidence](evidence/PHASE_01.md) and DECISIONS D31-D36.

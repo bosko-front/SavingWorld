@@ -67,6 +67,7 @@ These are planned code paths, not claims that the files exist. Reuse the actual 
 - Carried from Phase 11 (DECISIONS D102): repeat the Collection VoiceOver walkthrough and haptics from Phase 19 on the release candidate, and include Collection (featured card, multi-world gallery with the D100 float, souvenir detail and sparkle burst) in the physical-iPhone frame and energy measurement.
 - Carried from Phase 13 (DECISIONS D107): repeat the Challenges VoiceOver walkthrough and haptics from Phase 19 on the release candidate, and include the Challenges tab (active quest bar glide after a saved entry, reached-target hero with its one-shot sparkle) in the physical-iPhone frame and energy measurement.
 - Carried from Phase 14 (DECISIONS D109): repeat the Phase 19 weekly reminder checks on the release candidate, including one real Sunday 18:00 delivery (or a device time-zone change that reaches it), travel to another zone and a DST change keeping 18:00 local, and a reinstall/upgrade that leaves exactly one request.
+- Carried from Phase 19.5 (DECISIONS D114): check the app icon (light, dark and tinted home screen) and the launch screen on a physical iPhone with the release candidate.
 - Run full regression only now after integration, not repeatedly after every unchanged earlier phase; update requirements traceability.
 
 ## Definition of Done
