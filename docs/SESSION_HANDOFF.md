@@ -17,6 +17,13 @@ The previous handoff (Phase 16) is superseded; its record remains in [PHASE_16 e
 
 - Owner fixes after review: Done on the Pro screen is a compact centered button; the shared pinned footer (`screen.tsx`) keeps at least 16 pt under its last control. Owner: "sad je ok", then "komituj i zatvori fazu".
 
+## Also: onboarding redesign (owner request, D132)
+
+- Onboarding is three steps (Welcome on a full-screen sky, How it works, Choose your currency; Next, Next, Get Started) in `src/features/settings/presentation/onboarding-screen.tsx`; new shared `TopBleed` (`src/shared/layout/top-bleed.tsx`) and FormScreen `bleed`. Currency rules, command and persistence unchanged; no other screen changed.
+- A double-tap guard (presses within 600 ms of a step change are ignored) after the simulator showed a second tap saving the currency on step 3.
+- Screenshots: `docs/evidence/onboarding-redesign/` (17 Pro iOS 26.0 steps 1-3, SE iOS 18.5 step 1). The owner checked the pull-down and the result himself ("dobro je to sad sve je ok provjero sam").
+- Throwaway simulators "SW 17 Pro Onboarding" (new) and "SW SE 3 Phase17" (reinstalled build 7769c486, onboarded with RSD) are shut down; both can be deleted. VoiceOver of the steps is a physical-iPhone check (Phase 19/21).
+
 ## Decisions
 
 - D130 (owner): closes Phase 17.

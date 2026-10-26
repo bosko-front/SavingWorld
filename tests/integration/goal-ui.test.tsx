@@ -5,8 +5,9 @@ import fs from 'fs';
 import path from 'path';
 import { AccessibilityInfo, Alert, type AlertButton } from 'react-native';
 
+import { setAppClockForTests } from '@/bootstrap/app-data';
 import { getAppDatabase } from '@/bootstrap/database-readiness';
-import { fixedClock, systemClock, today } from '@/core/calendar';
+import { fixedClock, systemClock, today, type Clock } from '@/core/calendar';
 import { randomUuid, uuidGenerator } from '@/data/ids';
 import { listGoals } from '@/data/repositories/goal-repository';
 import { createGoal, finishGoal } from '@/features/goals/application/goal-commands';
@@ -77,24 +78,73 @@ async function createGoalThroughForm(title: string, target: string) {
   await waitFor(() => expect(screen).toHavePathname('/'));
 }
 
+// The onboarding buttons ignore a press within 600 ms of a step change (double-tap guard, D132),
+// timed on the app clock: `apart` makes every reading a second later, as a person's taps are;
+// `rapid` a millisecond later, as a double tap is.
+function onboardingClock(stepMs: number): Clock {
+  let instant = Date.now();
+  return { nowMs: () => (instant += stepMs), timeZone: () => systemClock.timeZone() };
+}
+
 describe('onboarding', () => {
   beforeEach(async () => {
     await freshAppDatabase('onboarding');
   });
 
-  it('asks for the one global currency first and then opens Home', async () => {
+  afterEach(() => {
+    setAppClockForTests(systemClock);
+  });
+
+  it('walks three short steps, asks for the one global currency and then opens Home', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+    setAppClockForTests(onboardingClock(1000));
     await renderRouter(APP_DIR, { initialUrl: '/' });
     expect(screen).toHavePathname('/onboarding');
-    expect(screen.getByText('A record, not a bank account')).toBeOnTheScreen();
-    // The first thing on screen is a finished Island (D98, V09), decorative: the text says the same.
-    const onboardingWorld = within(screen.getByTestId('onboarding-world')).getByTestId('world-scene', { includeHiddenElements: true });
+
+    // Step 1: the finished Island (D98, V09), decorative: the title says what it is.
+    expect(screen.getByText('Welcome to Saving Worlds')).toBeOnTheScreen();
+    expect(screen.getByText('Turn your savings goals into little worlds that grow with every step.')).toBeOnTheScreen();
+    expect(screen.getByTestId('onboarding-steps').props.accessibilityLabel).toBe('Step 1 of 3');
+    const onboardingWorld = within(screen.getByTestId('onboarding-world', { includeHiddenElements: true })).getByTestId('world-scene', {
+      includeHiddenElements: true,
+    });
     expect(onboardingWorld.props.accessible).toBe(false);
     expect(onboardingWorld.props.accessibilityLabel).toBe('Island world, 10 of 10 milestones unlocked');
-    // Preselected from the device region (Jest locale en-US), then changed natively.
+    expect(screen.queryByTestId('onboarding-back')).toBeNull();
+    expect(screen.getByTestId('onboarding-next-welcome')).toHaveTextContent('Next');
+    await userEvent.press(screen.getByTestId('onboarding-next-welcome'));
+
+    // Step 2: the person keeps their money; the full disclosure is one tap away.
+    expect(screen.getByText('How it works')).toBeOnTheScreen();
+    expect(screen.getByText('You keep your money wherever you like. Saving Worlds simply tracks what you set aside.')).toBeOnTheScreen();
+    expect(screen.getByTestId('onboarding-progression').props.accessibilityLabel).toBe(
+      'An island that grows from empty to complete as you record your savings.',
+    );
+    expect(screen.getByTestId('onboarding-steps').props.accessibilityLabel).toBe('Step 2 of 3');
+    await userEvent.press(screen.getByTestId('onboarding-record-info'));
+    expect(alert).toHaveBeenLastCalledWith(
+      'A record, not a bank account',
+      'Saving Worlds never holds, moves or checks your money. You record what you set aside yourself, and your records stay on this iPhone.',
+    );
+    await userEvent.press(screen.getByTestId('onboarding-next'));
+
+    // Step 3: preselected from the device region (Jest locale en-US), then changed natively.
+    expect(screen.getByText('Choose your currency')).toBeOnTheScreen();
+    expect(screen.getByTestId('onboarding-currency-rule')).toHaveTextContent('Every goal uses it. You can change it until your first savings entry.');
+    await userEvent.press(screen.getByTestId('onboarding-currency-rule-info'));
+    expect(alert).toHaveBeenLastCalledWith('About your currency', expect.stringMatching(/Amounts are never converted/));
     expect(screen.getByTestId('onboarding-selected')).toHaveTextContent('Selected: USD – US Dollar');
     await fireEvent(nativeView({ label: 'Currency' }), 'selectionChange', { nativeEvent: { selection: 'JPY' } });
     expect(screen.getByTestId('onboarding-selected')).toHaveTextContent('Selected: JPY – Yen');
 
+    // Back and forth keeps the choice; nothing is saved before Start building.
+    await userEvent.press(screen.getByTestId('onboarding-back'));
+    expect(screen.getByText('How it works')).toBeOnTheScreen();
+    expect((await readCurrencyOverview(getAppDatabase())).currency.status).toBe('missing');
+    await userEvent.press(screen.getByTestId('onboarding-next'));
+    expect(screen.getByTestId('onboarding-selected')).toHaveTextContent('Selected: JPY – Yen');
+
+    expect(screen.getByTestId('onboarding-continue')).toHaveTextContent('Get Started');
     await userEvent.press(screen.getByTestId('onboarding-continue'));
     await waitFor(() => expect(screen).toHavePathname('/'));
     expect(screen.getByText('Start your first goal')).toBeOnTheScreen();
@@ -106,6 +156,16 @@ describe('onboarding', () => {
       router.navigate('/onboarding');
     });
     expect(screen).not.toHavePathname('/onboarding');
+    alert.mockRestore();
+  });
+
+  it('ignores the second tap of a double tap, so the currency step is never skipped', async () => {
+    setAppClockForTests(onboardingClock(1));
+    await renderRouter(APP_DIR, { initialUrl: '/' });
+    await userEvent.press(screen.getByTestId('onboarding-next-welcome'));
+    await userEvent.press(screen.getByTestId('onboarding-next'));
+    expect(screen.getByText('How it works')).toBeOnTheScreen();
+    expect((await readCurrencyOverview(getAppDatabase())).currency.status).toBe('missing');
   });
 });
 

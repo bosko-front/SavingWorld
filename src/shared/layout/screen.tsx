@@ -36,10 +36,12 @@ type ScreenProps = {
   // PINNED_FOOTER_MAX_SHARE of the screen (large Dynamic Type, a short window) it is placed at the
   // end of the content instead, so it never hides the content.
   footer?: ReactNode;
+  // FormScreen only: full-width content above the column (TopBleed on a headerless screen, D132).
+  bleed?: ReactNode;
   testID?: string;
 };
 
-type ScrollingScreenProps = ScreenProps & {
+type ScrollingScreenProps = Omit<ScreenProps, 'bleed'> & {
   keyboard: 'form' | 'none';
   // Visible scroll viewport, for content that sizes itself to the window it is shown in.
   onViewportLayout?: (event: LayoutChangeEvent) => void;
@@ -176,9 +178,9 @@ export function Screen({ children, width = 'readable', centered = false, floatin
 // Screen for text input, including native form sheets. Same insets as Screen plus keyboard-safe
 // scrolling. Keep the draft in the route component (or its store) above FormScreen so a resize,
 // rotation or sheet detent change re-lays out the form without resetting it.
-export function FormScreen({ children, width = 'form', footer, testID }: ScreenProps) {
+export function FormScreen({ children, width = 'form', footer, bleed, testID }: ScreenProps) {
   return (
-    <ScrollingScreen width={width} keyboard="form" footer={footer} testID={testID}>
+    <ScrollingScreen width={width} keyboard="form" footer={footer} bleed={bleed} testID={testID}>
       {children}
     </ScrollingScreen>
   );

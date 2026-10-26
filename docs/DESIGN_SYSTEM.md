@@ -375,7 +375,7 @@ Proposals become part of the app only once the owner approves them. V01-V04 and 
 | V06 | Paywall hero uses the person's own current world plus the Garden preview. | Phase 16/17 | Confirmed by the owner (D121): the current world stays the main hero (built in Phase 16); Phase 17 adds the compact completed-Garden preview once the Garden export is in the registry. Until then Garden is described in words. |
 | V07 | Statistics wording "finished worlds" for the completed-goal count, with a link to Collection. | Phase 18 | The count stays status = completed (R19). |
 | V08 | Weekly reminder notification text "Your world is ready for this week's savings." | Phase 14 | **Replaced by owner-approved copy (D110):** title "A little progress goes a long way 🌱", body "Ready to grow your world? Check in on your savings this week." |
-| V09 | Onboarding opens with the finished Island (still, decorative), the world a goal grows into. | Phase 06 onboarding | **Added by the owner review, approved and built (D98).** |
+| V09 | Onboarding opens with the finished Island (still, decorative), the world a goal grows into. Redesigned by D132: three steps, the Island on a full-screen sky. | Phase 06 onboarding | **Added by the owner review, approved and built (D98).** |
 
 ## Change policy
 
