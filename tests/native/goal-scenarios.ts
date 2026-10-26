@@ -3,7 +3,7 @@ import type { Clock } from '@/core/calendar';
 import { getCurrency, type CurrencyMetadata } from '@/core/money';
 import type { ThemeId } from '@/core/progression';
 import { AppDatabase } from '@/data/db/database';
-import { MIGRATIONS } from '@/data/db/migrations';
+import { LATEST_SCHEMA_VERSION, MIGRATIONS } from '@/data/db/migrations';
 import { getGoal } from '@/data/repositories/goal-repository';
 import {
   createGoal,
@@ -464,7 +464,11 @@ export const GOAL_SCENARIOS: Scenario[] = [
         // The current app (schema 4) opens it and can delete the goal; it is below target, so the
         // schema 3 upgrade gives it no souvenir.
         const current = await s.openDb(name);
-        equal(current.migration, { fromVersion: 2, toVersion: 4, applied: [3, 4] }, 'upgrade to the current schema');
+        equal(
+          current.migration,
+          { fromVersion: 2, toVersion: LATEST_SCHEMA_VERSION, applied: MIGRATIONS.map((m) => m.version).filter((v) => v > 2) },
+          'upgrade to the current schema',
+        );
         equal(await current.read((r) => count(r, 'collectibles')), 0, 'no souvenir below target');
         const removed = await deleteGoal({ db: current, clock: steppingClock() }, { operationId: 'op-upgrade-delete', goalId: 'legacy-1', expectedRevision: 3 });
         check(removed.ok, 'upgraded goal can be deleted');

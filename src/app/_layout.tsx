@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { refreshAppData, useAppDataStore } from '@/bootstrap/app-data';
+import { useBillingReconciliation } from '@/bootstrap/billing';
 import { DatabaseGate } from '@/bootstrap/database-gate';
 import { useForegroundReconciliation } from '@/bootstrap/foreground';
 import { useReminderReconciliation, useReminderTapRouting } from '@/bootstrap/reminders';
@@ -37,6 +38,7 @@ function AppNavigator() {
   const state = useAppDataStore((store) => store.state);
   useForegroundReconciliation();
   useReminderReconciliation();
+  useBillingReconciliation();
 
   useEffect(() => {
     if (state.status === 'idle') {

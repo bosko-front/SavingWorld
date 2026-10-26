@@ -1,0 +1,39 @@
+{
+  "identifier" : "6C1F2E0A-5B7D-4F43-9C1E-3A2B8D7E4F10",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "7.99",
+      "familyShareable" : false,
+      "internalID" : "6827087893",
+      "localizations" : [
+        {
+          "description" : "Unlimited goals, Garden and Pro statistics",
+          "displayName" : "Saving Worlds Pro",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.bosko123.savingworlds.pro.lifetime",
+      "referenceName" : "Saving Worlds Pro (Lifetime)",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_developerTeamID" : "86J9LHRPM3",
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

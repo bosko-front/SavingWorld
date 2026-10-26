@@ -20,7 +20,7 @@ Prove a restorable lifetime purchase and native verified entitlement state witho
 
 Phase 14
 
-Q07 product ID/store setup and Q09 bundle identifier are required; a configured test price is not a decision on the final Pro price. Done before Phase 15 (D113, [APPLE_SETUP](APPLE_SETUP.md)): bundle ID `com.bosko123.savingworlds`, App Store Connect app 6827062634, Non-Consumable `com.bosko123.savingworlds.pro.lifetime` without price; the Paid Applications agreement and a sandbox price are owner actions. Native sandbox credentials/device access are external dependencies.
+Q07 product ID/store setup and Q09 bundle identifier are required; a configured test price is not a decision on the final Pro price. Done before Phase 15 (D113, [APPLE_SETUP](../APPLE_SETUP.md)): bundle ID `com.bosko123.savingworlds`, App Store Connect app 6827062634, Non-Consumable `com.bosko123.savingworlds.pro.lifetime` without price; the Paid Applications agreement and a sandbox price are owner actions. Native sandbox credentials/device access are external dependencies.
 
 ## Exact scope
 

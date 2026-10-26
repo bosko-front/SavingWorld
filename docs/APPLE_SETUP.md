@@ -11,7 +11,7 @@ Verified 26 October 2026, before Phase 15, through Apple's official App Store Co
 | App ID capability | In-App Purchase | Enabled on `2WVF7Z5269` |
 | App Store Connect app | `6827062634` | Existing record, name "SavingWorlds", SKU `saving-worlds`, primary language English (U.S.). Not created again |
 | App Store version | 1.0 | "Prepare for Submission", no builds uploaded |
-| Lifetime Pro product | `com.bosko123.savingworlds.pro.lifetime` | Created 26 October 2026: in-app purchase `6827087893`, **Non-Consumable**, reference name "Saving Worlds Pro (Lifetime)", Family Sharing off, review note on the Pro scope; state **Missing Metadata** (no price, by owner choice) |
+| Lifetime Pro product | `com.bosko123.savingworlds.pro.lifetime` | Created 26 October 2026: in-app purchase `6827087893`, **Non-Consumable**, reference name "Saving Worlds Pro (Lifetime)", Family Sharing off, review note on the Pro scope; price schedule set 26 October 2026 (D116): base territory United States at **US$7.99** (price point for 7.99, proceeds 5.60), 174 other storefronts by Apple's automatic equalization (e.g. 8.99 in Serbia, Bosnia and Herzegovina and Germany, 7.99 in the UK); state still **Missing Metadata** until the review screenshot (Phase 16) |
 | Product localization (en-US) | "Saving Worlds Pro" / "Unlimited goals, Garden and Pro statistics" | Localization `f5507fbe-8765-48db-a16d-62f20d4b5dc3`, Prepare for Submission |
 | EAS project | `@bosko123/saving-worlds` (`25d3089f-a32e-461f-baf2-7c95a396984e`) | `app.config.ts`; `eas.json` `submit.production.ios` holds `ascAppId` and `appleTeamId` only |
 | Registered device | "Bosko's iPhone" (iPhone 14 Pro), enabled | For device development builds |
@@ -34,8 +34,8 @@ Verified 26 October 2026, before Phase 15, through Apple's official App Store Co
 
 ## What remains before Phase 15 (owner actions)
 
-1. **Paid Applications agreement**: App Store Connect → Business. It must be active, with bank and tax information, before any purchase works, also in sandbox. The API cannot show or sign it.
-2. **Price (Q07, owner decision)**: the product stays Missing Metadata until a price is set. Sandbox purchases need a price; Phase 15 can start with a local StoreKit configuration file instead. A configured test price is not the final price decision.
+1. **Paid Applications agreement: done (owner, 26 October 2026; confirmed by the sandbox product load in Phase 15).** App Store Connect → Business. It must be active, with bank and tax information, before any purchase works, also in sandbox. The API cannot show or sign it.
+2. **Price: done (D116).** US$7.99, final, set through the API on 26 October 2026 at the owner's instruction.
 3. **Review screenshot**: required with the price before the product can be submitted with an app version; it needs the Phase 16 paywall, so it comes later.
 4. **App name (Q09)**: the record is named "SavingWorlds"; the App Store name can change before the first submission. The store version string is 1.0 while `app.config.ts` says 1.0.0; align one of them before uploading a build.
 5. **Sandbox tester (optional)**: a dedicated tester for Saving Worlds (Users and Access → Sandbox → Test Accounts) keeps purchase history separate from other apps. The existing team tester also works.

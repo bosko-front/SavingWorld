@@ -1,5 +1,5 @@
 import type { Clock } from '@/core/calendar';
-import { MIGRATIONS } from '@/data/db/migrations';
+import { LATEST_SCHEMA_VERSION, MIGRATIONS } from '@/data/db/migrations';
 import { getAttempt, listAttemptsForGoal, type ChallengeAttemptRecord } from '@/data/repositories/challenge-attempt-repository';
 import { getGoal } from '@/data/repositories/goal-repository';
 import { closeEndedAttempts, skipChallenge, startChallenge } from '@/features/challenges/application/challenge-commands';
@@ -441,7 +441,11 @@ export const CHALLENGE_SCENARIOS: Scenario[] = [
         await old.close();
         const clock = movableClock(WEDNESDAY);
         const db = await s.openDb(name, MIGRATIONS, clock);
-        equal(db.migration, { fromVersion: 3, toVersion: 4, applied: [4] }, 'upgrade to schema 4');
+        equal(
+          db.migration,
+          { fromVersion: 3, toVersion: LATEST_SCHEMA_VERSION, applied: MIGRATIONS.map((m) => m.version).filter((v) => v > 3) },
+          'upgrade through schema 4',
+        );
         const state = await db.read(async (r) => [
           await count(r, 'goals'),
           await count(r, 'ledger_entries'),

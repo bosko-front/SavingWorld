@@ -1,6 +1,6 @@
 import { capabilitiesFor } from '@/core/access';
 import { currentThemeVersion, stageFor } from '@/core/progression';
-import { MIGRATIONS } from '@/data/db/migrations';
+import { LATEST_SCHEMA_VERSION, MIGRATIONS } from '@/data/db/migrations';
 import { getCollectible, listCollectibles } from '@/data/repositories/collectible-repository';
 import { getGoal } from '@/data/repositories/goal-repository';
 import {
@@ -339,7 +339,11 @@ export const SOUVENIR_SCENARIOS: Scenario[] = [
         await old.close();
 
         const db = await s.openDb(name, MIGRATIONS, steppingClock());
-        equal(db.migration, { fromVersion: 2, toVersion: 4, applied: [3, 4] }, 'upgrade through schema 3');
+        equal(
+          db.migration,
+          { fromVersion: 2, toVersion: LATEST_SCHEMA_VERSION, applied: MIGRATIONS.map((m) => m.version).filter((v) => v > 2) },
+          'upgrade through schema 3',
+        );
         const rows = await db.read((r) => listCollectibles(r));
         equal(
           rows.map((row) => [row.goalId, row.themeId, row.themeVersion, row.targetMinorAtAward]).sort(),

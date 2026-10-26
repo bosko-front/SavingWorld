@@ -105,4 +105,4 @@ Finish by reporting: concrete behavior implemented, changed modules, checks and 
 
 Evidence path: `docs/evidence/PHASE_19.md` (create it during implementation; the planning baseline intentionally has no test evidence for this phase).
 
-If this phase is incomplete, the next prompt is `docs/prompts/PHASE_19.md`. If verified complete, the next prompt is `docs/prompts/PHASE_20.md`.
+If this phase is incomplete, the next prompt is `docs/prompts/PHASE_19.md`. If verified complete, the next prompt is `docs/prompts/PHASE_19_5.md`.

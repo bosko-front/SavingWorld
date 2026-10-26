@@ -38,6 +38,7 @@ export default function HomeStackLayout() {
         <Stack.Screen name="dev-home" options={{ title: 'Home directions', headerLargeTitleEnabled: false }} />
         <Stack.Screen name="dev-world" options={{ title: 'World inspector', headerLargeTitleEnabled: false }} />
         <Stack.Screen name="dev-reminder" options={{ title: 'Reminder lab', headerLargeTitleEnabled: false }} />
+        <Stack.Screen name="dev-store" options={{ title: 'Store lab', headerLargeTitleEnabled: false }} />
       </Stack.Protected>
     </Stack>
   );

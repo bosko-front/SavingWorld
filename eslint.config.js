@@ -32,6 +32,7 @@ const styleGuardrails = [
 // SQLite belongs to the data layer (docs/ARCHITECTURE.md): only src/data/db talks to expo-sqlite.
 // The toast engine, SF Symbols and haptics each have one shared wrapper (docs/DESIGN_SYSTEM.md).
 // The weekly reminder's local-notification adapter is the one module that imports expo-notifications.
+// The store adapter (PurchaseGateway) is the one module that imports expo-iap.
 function restrictedImports({
   layoutOwner,
   sqliteOwner = false,
@@ -39,6 +40,7 @@ function restrictedImports({
   iconOwner = false,
   hapticsOwner = false,
   notificationsOwner = false,
+  iapOwner = false,
 }) {
   return [
     'error',
@@ -89,6 +91,14 @@ function restrictedImports({
               {
                 name: 'expo-notifications',
                 message: 'Use the reminder adapter in src/features/reminders/native; no other module schedules notifications.',
+              },
+            ]),
+        ...(iapOwner
+          ? []
+          : [
+              {
+                name: 'expo-iap',
+                message: 'Use the PurchaseGateway in src/features/billing/native; rights come only from the entitlement reconciler.',
               },
             ]),
         ...(layoutOwner
@@ -146,6 +156,11 @@ module.exports = defineConfig([
     // The development-only reminder lab inspects the notification center directly (Phase 14 evidence).
     files: ['src/features/reminders/native/notification-gateway.ts', 'src/dev/reminder-lab.tsx'],
     rules: { 'no-restricted-imports': restrictedImports({ layoutOwner: false, notificationsOwner: true }) },
+  },
+  {
+    // The PurchaseGateway is the one module that talks to StoreKit through expo-iap (Phase 15).
+    files: ['src/features/billing/native/store-gateway.ts'],
+    rules: { 'no-restricted-imports': restrictedImports({ layoutOwner: false, iapOwner: true }) },
   },
   {
     // The SQLite adapter is the one module that imports expo-sqlite.

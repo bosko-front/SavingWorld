@@ -31,9 +31,9 @@ The 22-phase decomposition (plus the owner-added design checkpoint 07.5, DECISIO
 
 ## Remaining release decisions and dependencies
 
-- Q07 OPEN (price and sale copy only): final Pro price/storefronts and sale copy. The product ID is decided and the product exists without a price (`com.bosko123.savingworlds.pro.lifetime`, D113, [APPLE_SETUP](APPLE_SETUP.md)). Always show the actual localized store price. Core testing does not wait for final commercial price.
+- Q07 PARTLY RESOLVED: the price is decided (D116: US$7.99 Lifetime, final; base territory United States, other storefronts by Apple's equalization). Sale copy (exact purchase text) remains open. The product ID is decided and the product exists (`com.bosko123.savingworlds.pro.lifetime`, D113, [APPLE_SETUP](APPLE_SETUP.md)). Always show the actual localized store price. Core testing does not wait for final commercial price.
 - Q08 FUTURE ONLY: future theme prices/rights are outside v1 and do not block it. Do not create extra products or promise future themes.
-- Q09 OPERATIONAL: final name/identity, legal publisher, support/privacy URLs, supported iPhone/iOS/toolchain and actual native/device verification. The bundle identifier is decided and registered (`com.bosko123.savingworlds`, D113). Resolve identifiers before purchase testing, release materials before Phase 22.
+- Q09 OPERATIONAL: final name/identity, legal publisher, support/privacy URLs, supported iPhone/iOS/toolchain and actual native/device verification. The bundle identifier is decided and registered (`com.bosko123.savingworlds`, D113). The app icon and launch screen are made and approved in Phase 19.5 (D114), before the first preview build. Resolve identifiers before purchase testing, release materials before Phase 22.
 - Licensed approved Island/Garden artwork is required for visual acceptance in 09/17; independent registry work can proceed while art evidence remains pending.
 - EAS owner/project/roles, signing and test-device/store access are external execution dependencies. None has been configured or verified by this documentation alignment.
 

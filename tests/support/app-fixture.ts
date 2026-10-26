@@ -1,6 +1,6 @@
 import path from 'path';
 
-import { useAppDataStore } from '@/bootstrap/app-data';
+import { resetCapabilitiesForTests, useAppDataStore } from '@/bootstrap/app-data';
 import { useReminderStore } from '@/bootstrap/reminders';
 import {
   getAppDatabase,
@@ -13,6 +13,7 @@ import { randomUuid } from '@/data/ids';
 import { setGlobalCurrency } from '@/features/settings/application/currency-commands';
 
 import { resetFakeHaptics } from './expo-haptics-fake';
+import { resetFakeStore } from './expo-iap-fake';
 import { resetFakeNotifications } from './expo-notifications-fake';
 import { createNodeSqliteDriver, temporaryDirectory } from './node-sqlite-driver';
 import { resetFakeToasts } from './sonner-native-fake';
@@ -46,5 +47,7 @@ export async function resetApp(): Promise<void> {
   resetFakeToasts();
   resetFakeHaptics();
   resetFakeNotifications();
+  resetFakeStore();
+  resetCapabilitiesForTests();
   useReminderStore.setState({ status: null });
 }

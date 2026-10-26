@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test": "jest --ci",
     "test:db": "node scripts/test-db.mjs",
+    "test:storekit": "node scripts/test-storekit.mjs",
     "doctor": "npx --yes expo-doctor@latest",
     "deps:check": "expo install --check",
     "eas": "npx --yes eas-cli@25.3.0"
@@ -24,6 +25,7 @@
     "expo-dev-client": "~58.0.14",
     "expo-font": "~58.0.9",
     "expo-haptics": "~58.0.7",
+    "expo-iap": "6.3.0",
     "expo-image": "~58.0.17",
     "expo-linking": "~58.0.14",
     "expo-localization": "~58.0.5",
@@ -73,6 +75,7 @@
       "^sonner-native$": "<rootDir>/tests/support/sonner-native-fake.tsx",
       "^expo-haptics$": "<rootDir>/tests/support/expo-haptics-fake.ts",
       "^expo-notifications$": "<rootDir>/tests/support/expo-notifications-fake.ts",
+      "^expo-iap$": "<rootDir>/tests/support/expo-iap-fake.ts",
       "^\\./installUIRuntimeBindings$": "<rootDir>/tests/support/gesture-handler-ui-runtime-fake.ts"
     },
     "resolver": "react-native-reanimated/jest/resolver"

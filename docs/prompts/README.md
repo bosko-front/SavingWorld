@@ -1,6 +1,6 @@
 # Phase prompt index
 
-All 22 independent prompts use [MVP plan v1.2](../Saving_Worlds_MVP_Plan_v1_2.docx) as supreme product authority and [current status](../PROJECT_STATUS.md). Q01-Q06 are resolved; historical v1.1/feature decisions cannot reintroduce old scope. Keep the 22-phase sequence plus the owner-added checkpoint 07.5 between 07 and 08 (DECISIONS D49), and continue an incomplete phase using the same prompt.
+All 22 independent prompts use [MVP plan v1.2](../Saving_Worlds_MVP_Plan_v1_2.docx) as supreme product authority and [current status](../PROJECT_STATUS.md). Q01-Q06 are resolved; historical v1.1/feature decisions cannot reintroduce old scope. Keep the 22-phase sequence plus the owner-added checkpoints 07.5 between 07 and 08 (DECISIONS D49), 10.5 between 10 and 11 (D90) and 19.5 between 19 and 20 (D114), and continue an incomplete phase using the same prompt.
 
 | Phase | Objective | Prompt |
 | --- | --- | --- |
@@ -25,6 +25,7 @@ All 22 independent prompts use [MVP plan v1.2](../Saving_Worlds_MVP_Plan_v1_2.do
 | 17 | Garden and per-goal theme switching | [PHASE_17](PHASE_17.md) |
 | 18 | Four precise Pro savings statistics | [PHASE_18](PHASE_18.md) |
 | 19 | Accessibility localization and Settings review | [PHASE_19](PHASE_19.md) |
+| 19.5 | App icon and launch screen (owner-added, D114) | [PHASE_19_5](PHASE_19_5.md) |
 | 20 | EAS preview delivery and OTA recovery verification | [PHASE_20](PHASE_20.md) |
 | 21 | Resilience performance and release candidate | [PHASE_21](PHASE_21.md) |
 | 22 | App Store release preparation and final handoff | [PHASE_22](PHASE_22.md) |
