@@ -2,7 +2,7 @@
 
 Source art for the Pro **Garden** theme (docs/ASSET_SPEC.md, PRODUCT_REQUIREMENTS R11). This folder holds the editable Blender scene and the scripts that generate it. It is **not** read by the app: approved exports go to `assets/themes/garden/` in Phase 17, with a manifest, exactly like the Island (D76, D77).
 
-Status (26 October 2026): **art complete — the owner approved all eleven states and the layer export (Step 4, with the strengthened 10% and 20%).** Earlier approvals: the completed Garden (Step 2), the milestone order (D115) and the 0/50/100% states (Step 3). The export in `export/` is ready for Phase 17 (Step 5 of the brief), which copies it to `assets/themes/garden/` unchanged. The milestone order is decided (owner, D115; see "Milestone sequence").
+Status (26 October 2026): **art complete — the owner approved all eleven states and the layer export (Step 4, with the strengthened 10% and 20%).** Earlier approvals: the completed Garden (Step 2), the milestone order (D118) and the 0/50/100% states (Step 3). The export in `export/` is ready for Phase 17 (Step 5 of the brief), which copies it to `assets/themes/garden/` unchanged. The milestone order is decided (owner, D118; see "Milestone sequence").
 
 ## Reuse of the Island pipeline
 
@@ -66,7 +66,7 @@ A rounder floating garden than the Island's squarish rock, on three lawn terrace
 
 One collection per Garden state; stage *n* shows `SWG_00` to `SWG_nn`. Nothing is replaced (ASSET_SPEC: Garden items coexist). `SWG_Rig` holds the shared rig; `SWG_Ambient` holds ambient-only elements (butterflies), shown only on request.
 
-The table is the final order (owner decision D115).
+The table is the final order (owner decision D118).
 
 | Stage | Threshold | Collection | Contents |
 | --- | --- | --- | --- |
@@ -82,11 +82,11 @@ The table is the final order (owner decision D115).
 | 9 | 90% | `SWG_09_PergolaFinalPlants` | Rose pergola with bench and lantern, twelve trees, rim shrubs, wall ivy |
 | 10 | 100% | `SWG_10_CompletedGarden` | Seating nook, flowering cliff vines, meadow flowers, flower patches, three floating islets |
 
-## Milestone sequence (decided: D115)
+## Milestone sequence (decided: D118)
 
-The owner chose the recommended column on 26 October 2026 (DECISIONS D115): v1.2 everywhere except 80%, now in PRODUCT_REQUIREMENTS and ASSET_SPEC. The comparison that was decided on:
+The owner chose the recommended column on 26 October 2026 (DECISIONS D118): v1.2 everywhere except 80%, now in PRODUCT_REQUIREMENTS and ASSET_SPEC. The comparison that was decided on:
 
-| % | MVP plan v1.2 | Owner's brief | Recommended (chosen, D115) |
+| % | MVP plan v1.2 | Owner's brief | Recommended (chosen, D118) |
 | --- | --- | --- | --- |
 | 0 | Empty garden | Base floating terrain, grass and basic landscape | Empty garden (terraces, walls, lawn) |
 | 10 | First seedlings | First seedlings and small plants | First seedlings |
@@ -134,8 +134,8 @@ Run `render_ambient.py` whenever the scene or a stage render changes, then `expo
 
 - `garden_base.png`: stage 0 without the two drifting clouds. The third cloud stays in the base: from 60% the waterfall falls into it.
 - `ambient`: `garden_cloud_1/2.png`, kind `cloud` (drift as on the Island).
-- `unlocks` 1-10 with the D115 names and draft VoiceOver descriptions: one part per separate object (63 layers in all with the base and clouds). Each tree that shows enough of itself is its own part with `ambient.kind = "sway"` and the trunk base as pivot (the blossom tree at 40%, eleven trees at 90%; the pine behind the blossom tree shows 161 px and stays still). Nothing is replaced (`hides` empty).
-- Checked with the app's own `manifestFromExport` and `validateManifest` (a throwaway Jest run, not committed): accepted unchanged; ten unlocks with the D115 names, version 1, 12 swaying trees, every extension file present.
+- `unlocks` 1-10 with the D118 names and draft VoiceOver descriptions: one part per separate object (63 layers in all with the base and clouds). Each tree that shows enough of itself is its own part with `ambient.kind = "sway"` and the trunk base as pivot (the blossom tree at 40%, eleven trees at 90%; the pine behind the blossom tree shows 161 px and stays still). Nothing is replaced (`hides` empty).
+- Checked with the app's own `manifestFromExport` and `validateManifest` (a throwaway Jest run, not committed): accepted unchanged; ten unlocks with the D118 names, version 1, 12 swaying trees, every extension file present.
 
 **What the current app does not read yet** (`ambientExtensions`, 16 layers): the Garden motion the current contract cannot express. Phase 17 extends `manifest.ts`/`theme-export.ts` before using it (the current adapter ignores this key):
 
@@ -176,7 +176,7 @@ Main differences from the reference:
 
 ### 26 October 2026 — Step 2 approved; Step 3: 0%, 50% and 100%
 
-The owner approved the completed Garden's appearance and the milestone order (D115). Step 3 rendered stages 0, 5 and 10 at 256 samples (`renders/milestones/`, 56 s, 253 s and 443 s on the M4), without the ambient-only butterflies.
+The owner approved the completed Garden's appearance and the milestone order (D118). Step 3 rendered stages 0, 5 and 10 at 256 samples (`renders/milestones/`, 56 s, 253 s and 443 s on the M4), without the ambient-only butterflies.
 
 - `verify_stages.py`, all eleven stages: **PASS.** One camera/lights/render-settings/terrain fingerprint for every stage (`61843db132018b42`; the rig part `ce1d218181e6a3b5` comes from the Island's `swi/rig.py`); every stage only adds collections; no floating pieces. The first run found four real gaps, fixed in the scripts before the final renders: a vegetable bed corner and its posts over the wall top (bed frames now reach down to the lowest corner), bank stones beside both cascades (now on the ground), one stepped stone under the lower cascade, and the pergola lantern hanging in the air (now on the middle joist). Soil inside the raised frames is allowed to sit above the lawn.
 - `milestone_report.py` 0 → 50 → 100: **PASS.** One resolution (2048×1536); 9.7% and 23.3% of the pixels change visibly at iPhone 17 Pro size; the rock underside band is unchanged between 0% and 50% (mean 0.006/255, max 1/255), so camera, light and terrain are identical.

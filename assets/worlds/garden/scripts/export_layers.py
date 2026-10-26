@@ -397,9 +397,9 @@ def main():
     manifest["provenance"] = {
         "source": "assets/worlds/garden (Blender 5.2.3 LTS, procedural, no third-party assets; "
                   "shared Island rig, storybook pass and shaders)",
-        "decision": "D114 (art workstream), D115 (milestone sequence)",
+        "decision": "D117 (art workstream), D118 (milestone sequence)",
         "approved": "2026-10-26, owner approved all eleven states and this export (strengthened "
-                    "10% and 20%); D116",
+                    "10% and 20%); D119",
         "renders": "Cycles 256 samples + swi/stylize.py storybook pass, 2048x1536",
         "ambientInputs": "renders/ambient from scripts/render_ambient.py: stage 0 without the two "
                          "drifting clouds, stage 6 without the koi, the butterflies alone (same rig, "
@@ -412,7 +412,7 @@ def main():
                      "Positions are top-left in the 2048x1536 canvas; scale them for other sizes. "
                      "anchor is the ground point to grow a part from; incidental parts show without "
                      "animation. A layer with ambient.kind 'sway' is one tree; ambient.pivot is its "
-                     "trunk base. Nothing is replaced (D115).",
+                     "trunk base. Nothing is replaced (D118).",
     }
     with open(os.path.join(OUT, "garden_manifest.json"), "w") as f:
         json.dump(manifest, f, indent=2)
