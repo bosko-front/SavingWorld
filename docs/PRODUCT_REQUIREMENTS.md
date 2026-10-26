@@ -18,7 +18,7 @@ Saving Worlds is an English-language iOS savings tracker. Users manually record 
 | R08 | Free financial views and optional deadline | Current balance, percentage, remaining and history. Weekly/monthly estimates use the exact inclusive-day formulas below, not contribution schedules. Home presents them as a savings plan (owner decision D84): the remaining amount plus at most one per-period amount, a weekly one only with at least 14 days (D) and a monthly one from 60, none on or after the deadline. Overfunding remains numeric. |
 | R09 | Shared live progression | Base at 0% plus ten unlocks at 10%-100%; derive from current balance/target. Withdrawals/corrections/target increases can regress the scene; scene caps at 100%. |
 | R10 | Island | Complete Free theme with local assets and exact sequence below. |
-| R11 | Garden | Complete Pro theme in the first public release with exact sequence below (v1.2, changed at 80% by owner decision D118). |
+| R11 | Garden | Complete Pro theme in the first public release with exact sequence below (v1.2, changed at 80% by owner decision D119). |
 | R12 | Scene experience | Cozy isometric 2.5D layers and short feedback using Reanimated; no full 3D engine. Reduced Motion remains fully usable. |
 | R13 | Permanent souvenir and explicit Finish | First saved transaction mutation or target edit reaching >=100% atomically awards one immutable souvenir per goal, also Free, with theme/version at that time. It persists after corrections, withdrawals and theme/target changes and is removed only when its goal is deleted (D74). Finish separately sets completed at >=100%; Reopen sets active while within the limit, never auto-finishes. No duplicate souvenir. |
 | R14 | Three fixed challenges for Free and Pro | First step, Next milestone, Weekly step only; at most one unfinished attempt per goal. Skip preserves history. No challenge pause, amount/rule/frequency editing or custom challenge. |
@@ -71,11 +71,11 @@ Each row represents the resulting scene at that threshold. Previously earned ele
 | 5 | 50% | Bridge | Garden pathway |
 | 6 | 60% | Pond | Small fountain |
 | 7 | 70% | Additional trees | Bench and decorations |
-| 8 | 80% | Larger house and details | Greenhouse and vegetable beds (D118) |
+| 8 | 80% | Larger house and details | Greenhouse and vegetable beds (D119) |
 | 9 | 90% | Final decorations | Final plants and ornaments |
 | 10 | 100% | Completed island | Completed garden |
 
-Garden (owner decision D118): the 60% small fountain is the source of all the Garden's water, so the rill, pond, stream, bridge and waterfall unlock with it; the flower-covered pergola is part of 90%; v1.2's 80% gazebo is replaced by the greenhouse and vegetable beds.
+Garden (owner decision D119): the 60% small fountain is the source of all the Garden's water, so the rill, pond, stream, bridge and waterfall unlock with it; the flower-covered pergola is part of 90%; v1.2's 80% gazebo is replaced by the greenhouse and vegetable beds.
 
 A €2,000 goal at €199.99 has state 0; at €200 it has state 1; at €1,000 it has state 5; at €2,000 it has state 10. A withdrawal to €1,800 shows state 9. At €2,100 it still shows state 10 and reports €2,100 saved, €0 remaining and 105% numerically. The first saved qualifying mutation awards one permanent souvenir per goal, without changing goal status.
 

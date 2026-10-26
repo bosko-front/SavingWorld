@@ -5,7 +5,7 @@
 
 For every requested stage (default 0..10) it reports:
 - the visible collections, and that each stage only adds to the previous one
-  (the Garden replaces nothing, D118);
+  (the Garden replaces nothing, D119);
 - a fingerprint of the camera, lights, render settings and base terrain
   (lawn, underside, walls), which must be identical for every stage, and
   equal to the Island's rig part;

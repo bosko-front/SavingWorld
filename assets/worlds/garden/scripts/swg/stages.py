@@ -1,7 +1,7 @@
 """Stage collections. One collection per Garden state: stage n shows SWG_00
 ... SWG_nn. Nothing is replaced (ASSET_SPEC: Garden items coexist).
 
-The order follows owner decision D118: MVP plan v1.2 except 80%
+The order follows owner decision D119: MVP plan v1.2 except 80%
 (greenhouse and vegetable beds instead of a gazebo); the 60% small fountain
 brings all the water and the pergola is part of 90%.
 

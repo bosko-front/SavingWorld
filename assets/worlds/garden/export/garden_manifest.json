@@ -1256,8 +1256,8 @@
   },
   "provenance": {
     "source": "assets/worlds/garden (Blender 5.2.3 LTS, procedural, no third-party assets; shared Island rig, storybook pass and shaders)",
-    "decision": "D117 (art workstream), D118 (milestone sequence)",
-    "approved": "2026-10-26, owner approved all eleven states and this export (strengthened 10% and 20%); D119",
+    "decision": "D118 (art workstream), D119 (milestone sequence)",
+    "approved": "2026-10-26, owner approved all eleven states and this export (strengthened 10% and 20%); D120",
     "renders": "Cycles 256 samples + swi/stylize.py storybook pass, 2048x1536",
     "ambientInputs": "renders/ambient from scripts/render_ambient.py: stage 0 without the two drifting clouds, stage 6 without the koi, the butterflies alone (same rig, samples and storybook pass), flat ID masks and the 16-bit water flow pass",
     "sourceBlendSha256": "389566ea41eb7edb",
@@ -1329,7 +1329,7 @@
         "max": 105.0
       }
     ],
-    "stackRule": "Draw base, then the ambient (cloud) layers, then the layers of milestones 1..n in order (and the ambientExtensions rest-visible layers after their milestone). Positions are top-left in the 2048x1536 canvas; scale them for other sizes. anchor is the ground point to grow a part from; incidental parts show without animation. A layer with ambient.kind 'sway' is one tree; ambient.pivot is its trunk base. Nothing is replaced (D118)."
+    "stackRule": "Draw base, then the ambient (cloud) layers, then the layers of milestones 1..n in order (and the ambientExtensions rest-visible layers after their milestone). Positions are top-left in the 2048x1536 canvas; scale them for other sizes. anchor is the ground point to grow a part from; incidental parts show without animation. A layer with ambient.kind 'sway' is one tree; ambient.pivot is its trunk base. Nothing is replaced (D119)."
   },
   "decodedBytesAllLayers": {
     "2048": 29931456,
