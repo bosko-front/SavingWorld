@@ -42,7 +42,8 @@ FLOAT_OK = ("_Canopy", "Cloud_", "Waterfall", "Water_Foam", "Water_FountainFoam"
             "Butterfly", "Koi", "VegBeds_Plants", "VegBeds_Vegetables", "Seedlings_Sprouts",
             "Decor_Plants", "Nook_Teaset", "Pond_LilyFlowers", "Pond_Plants", "Fountain_Stone",
             "Water_Fountain", "Water_Birdbath", "Seedlings_WateringCan", "Lily",
-            "FlowerBed_Soil", "VegBeds_Soil")  # soil sits inside the raised frames
+            "FlowerBed_Soil", "VegBeds_Soil",  # soil sits inside the raised frames
+            "Seedlings_TrayPlants")  # young plants in their seed tray
 GAP_LIMIT = 0.12
 
 

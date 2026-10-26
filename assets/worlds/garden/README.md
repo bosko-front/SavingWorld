@@ -71,8 +71,8 @@ The table is the final order (owner decision D115).
 | Stage | Threshold | Collection | Contents |
 | --- | --- | --- | --- |
 | 0 | 0% | `SWG_00_Base_EmptyGarden` | Terraced lawn, two dry-stone retaining walls (with grassy gaps where the stairs and the cascade will cross), grass lip and fringe, moss, rock underside with stone shelves, rocks, tufts, three clouds |
-| 1 | 10% | `SWG_01_FirstSeedlings` | Board-edged vegetable plot with four rows of sprouts, a label stake and a watering can |
-| 2 | 20% | `SWG_02_SmallFlowerBed` | Raised wooden planter full of mixed flowers |
+| 1 | 10% | `SWG_01_FirstSeedlings` | Board-edged vegetable plot (3.0 × 1.9) with five rows of sprouts and young lettuce, a seed tray of young plants, a label stake and a watering can |
+| 2 | 20% | `SWG_02_SmallFlowerBed` | Raised wooden planter (2.6 × 1.15) full of mixed flowers, with tall foxgloves along the back |
 | 3 | 30% | `SWG_03_MoreFlowers` | Hydrangeas (blue, lilac, pink), lavender, flower patches, flowering bushes, shrubs along the walls |
 | 4 | 40% | `SWG_04_DecorativeTree` | Pink blossom tree with fallen petals |
 | 5 | 50% | `SWG_05_GardenPathway` | Flagstone path and two flights of stone stairs |
@@ -134,7 +134,7 @@ Run `render_ambient.py` whenever the scene or a stage render changes, then `expo
 
 - `garden_base.png`: stage 0 without the two drifting clouds. The third cloud stays in the base: from 60% the waterfall falls into it.
 - `ambient`: `garden_cloud_1/2.png`, kind `cloud` (drift as on the Island).
-- `unlocks` 1-10 with the D115 names and draft VoiceOver descriptions: one part per separate object (59 layers in all with the base and clouds). Each tree that shows enough of itself is its own part with `ambient.kind = "sway"` and the trunk base as pivot (the blossom tree at 40%, eleven trees at 90%; the pine behind the blossom tree shows 161 px and stays still). Nothing is replaced (`hides` empty).
+- `unlocks` 1-10 with the D115 names and draft VoiceOver descriptions: one part per separate object (63 layers in all with the base and clouds). Each tree that shows enough of itself is its own part with `ambient.kind = "sway"` and the trunk base as pivot (the blossom tree at 40%, eleven trees at 90%; the pine behind the blossom tree shows 161 px and stays still). Nothing is replaced (`hides` empty).
 - Checked with the app's own `manifestFromExport` and `validateManifest` (a throwaway Jest run, not committed): accepted unchanged; ten unlocks with the D115 names, version 1, 12 swaying trees, every extension file present.
 
 **What the current app does not read yet** (`ambientExtensions`, 16 layers): the Garden motion the current contract cannot express. Phase 17 extends `manifest.ts`/`theme-export.ts` before using it (the current adapter ignores this key):
@@ -151,12 +151,12 @@ The milestones for butterflies and petals are proposals for Phase 17; every ambi
 
 **Checks** (`export_layers.py` output, 26 October 2026):
 
-- Rebuild against all eleven renders (base, clouds, milestone parts and the resting koi, at 2048): mean error 0.00-0.53/255 per stage (Island 0.2-0.5). The largest single pixels (up to 105/255) are the thin Freestyle outline along the garden's back rim, which Freestyle redraws slightly differently in every render; the layers keep the stage 0 rim line, so it never flickers (the Island's documented known difference, up to 112/255 there).
+- Rebuild against all eleven renders (base, clouds, milestone parts and the resting koi, at 2048): mean error 0.00-0.54/255 per stage (Island 0.2-0.5). The largest single pixels (up to 105/255) are the thin Freestyle outline along the garden's back rim, which Freestyle redraws slightly differently in every render; the layers keep the stage 0 rim line, so it never flickers (the Island's documented known difference, up to 112/255 there).
 - Layer bounds (120, 96)-(1792, 1388) in the shared canvas.
-- Decoded RGBA with every contract layer loaded: **16.0 MiB at 1536** (28.5 at 2048), plus 4.8 MiB for the extension layers (20.8 MiB in all). Island: 13.7 MiB at 1536. Budget (ASSET_SPEC): about 32 MiB per world. Physical-iPhone memory and frames stay a Phase 21 requirement.
-- Files: 75 PNGs per size (3.6 MB at 1536).
-- Render cost on the M4 at 256 samples: 56-443 s per state; the ambient inputs about 12 minutes.
-- `milestone_report.py` over all eleven states: one resolution; the rock underside band unchanged from 0% to 90% (max 2/255). Visible change per step at iPhone 17 Pro size: 0.39% (10%), 0.38% (20%), then 3.9, 2.9, 2.1, 3.9, 1.1, 3.3, 12.0 and 4.7%. **The 10% seedlings and 20% flower bed fall just under the 0.4% threshold used in the Island review** (the Island's weak 30% and 90% steps were strengthened at the owner's request). Enlarging them would change the approved 50% and 100% pictures and needs a full re-render, so it waits for the owner's decision.
+- Decoded RGBA with every contract layer loaded: **16.1 MiB at 1536** (28.5 at 2048), plus 4.8 MiB for the extension layers (20.9 MiB in all). Island: 13.7 MiB at 1536. Budget (ASSET_SPEC): about 32 MiB per world. Physical-iPhone memory and frames stay a Phase 21 requirement.
+- Files: 79 PNGs per size (about 3.6 MB at 1536).
+- Render cost on the M4 at 256 samples: about 1-12 minutes per state (slower while the machine is busy); the ambient inputs about 8-12 minutes.
+- `milestone_report.py` over all eleven states: **PASS.** One resolution; the rock underside band unchanged from 0% to 90% (max 2/255). Visible change per step at iPhone 17 Pro size: 0.65% (10%), 0.68% (20%), then 3.8, 3.0, 2.1, 3.9, 1.1, 3.3, 11.9 and 4.6%. The first export had 0.39% and 0.38% for 10% and 20%, under the 0.4% threshold used in the Island review; the owner asked to strengthen them (see the review log).
 
 ## Review log
 
@@ -188,6 +188,10 @@ To look at: at 0% and 50% the wall gaps kept for the later stairs (0%) and the t
 ### 26 October 2026 — Step 3 approved; Step 4: all eleven states and the layer export
 
 The owner approved Step 3. Stages 1-4 and 6-9 were rendered from the same scene (`renders/milestones/`, 68-433 s each); `verify_stages.py` had already passed on all eleven stages. `render_ambient.py` and `export_layers.py` produced `export/` (see "Layer export for the app"). One correction during the export: the pond pattern first came out as radial spokes; its streaks now run around the pond so the rings travel outward.
+
+### 26 October 2026 — 10% and 20% strengthened, everything re-rendered and re-exported
+
+The owner asked to strengthen the 10% seedlings and 20% flower bed. The plot grew from 2.3 × 1.45 to 3.0 × 1.9 with five rows (sprouts with three larger leaves, alternating with young lettuce rosettes) and a seed tray of young plants; the planter grew from 1.9 × 0.92 to 2.6 × 1.15 with three rows of fuller flower clusters and tall foxgloves along the back. Their reserved ground grew with them (`terrain.reserved`), so the seeded scatter of small details (grass tufts, small rocks, meadow flowers, rim shrubs) now steers around them: about 2% of the canvas differs from the approved 50% and 100% pictures, almost all of it those two objects and scattered small details; terrain, walls, buildings, trees and water are unchanged (same rig/terrain fingerprint). `verify_stages.py` PASS (the young plants sitting in the seed tray are allowed, like soil in a planter). All eleven states and the ambient inputs were re-rendered and the export re-run: visible change now 0.65% (10%) and 0.68% (20%), `milestone_report.py` PASS, rebuild mean ≤ 0.54/255, 63 contract layers, 16.1 MiB at 1536, and the app's adapter accepts it unchanged (throwaway Jest run). `renders/review/garden_strengthened_0_10_20.png` shows 0%, 10% and 20% at iPhone 17 Pro size. The Step 2 files in `renders/review/` stay as the record of what was approved then; `renders/milestones/` holds the current states.
 
 ## Provenance and licensing
 

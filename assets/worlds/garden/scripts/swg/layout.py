@@ -49,8 +49,9 @@ STREAM = [(0.75, -4.75), (-0.6, -5.3), (-2.3, -5.75), (-4.0, -6.15), (-5.6, -6.7
 STREAM_HALF_WIDTH = 0.42
 
 # ------------------------------------------------------------------ milestone placements
-SEEDLINGS = dict(center=(-4.6, 0.25), size=(2.3, 1.45))        # stage 1
-FLOWER_BED = dict(center=(0.85, 0.9), size=(1.9, 0.92))        # stage 2
+# 10% and 20% enlarged after the Step 4 review so each step reads on a phone
+SEEDLINGS = dict(center=(-4.75, 0.65), size=(3.0, 1.9))        # stage 1
+FLOWER_BED = dict(center=(0.85, 0.9), size=(2.6, 1.15))        # stage 2
 BLOSSOM_TREE = dict(pos=(6.3, 5.5), height=4.4, canopy=2.0, seed=33)  # stage 4
 BRIDGE_LENGTH = 2.7                                            # stage 6, where path meets stream
 BENCH_POND = dict(pos=(4.75, -5.55), yaw_toward=POND)          # stage 7

@@ -128,7 +128,7 @@ def _reserved_shapes():
              (polyline_vu(L.STREAM), L.STREAM_HALF_WIDTH + 0.45)]
     circles = [(L.POND, L.POND_RADIUS + 0.7), (L.FOUNTAIN, L.FOUNTAIN_RADIUS + 0.5),
                (L.GREENHOUSE["center"], 2.6), (L.VEG_BEDS["center"], 2.2),
-               (L.SEEDLINGS["center"], 1.4), (L.FLOWER_BED["center"], 1.1),
+               (L.SEEDLINGS["center"], 1.95), (L.FLOWER_BED["center"], 1.5),
                (L.PERGOLA["center"], 1.7), (L.NOOK["center"], 1.1),
                (L.BLOSSOM_TREE["pos"], 0.8), (L.BENCH_POND["pos"], 0.8), (L.BIRDBATH, 0.5)]
     circles += [(p, 0.45) for p in L.LANTERNS + L.POTS]

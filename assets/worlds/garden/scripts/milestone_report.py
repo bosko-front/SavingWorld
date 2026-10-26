@@ -11,7 +11,7 @@ that all full-size renders share one resolution and that the rock underside
 band (below the lip, left of the waterfall, outside the vines) is unchanged
 between stages that add nothing there, which shows the light, camera and
 terrain stayed the same. Writes renders/milestones/garden_milestones.png
-(the stages side by side at SE size).
+(the stages at SE size in rows of four).
 """
 
 import os
@@ -83,7 +83,23 @@ for s in wanted:
                   f"{'ok' if same else 'CHANGED'}")
     prev = (s, img)
 
-sheet = preview.side_by_side([path(s, "_backdrop_iphoneSE_2x") for s in wanted],
-                             os.path.join(DIR, "garden_milestones.png"), gap=16, backdrop_hex=rig.BACKDROP)
-print("sheet:", sheet)
+# contact sheet: rows of four (like the Island's), stage order left to right, top to bottom
+rows = []
+for r in range(0, len(wanted), 4):
+    paths = [path(s, "_backdrop_iphoneSE_2x") for s in wanted[r:r + 4]]
+    rows.append(preview.side_by_side(paths, os.path.join(DIR, f"_row{r}.png"), gap=16,
+                                     backdrop_hex=rig.BACKDROP))
+imgs = [load(p)[1] for p in rows]
+width = max(i.shape[1] for i in imgs)
+bg = np.array(preview._hex(rig.BACKDROP), dtype=np.float32)
+canvas = np.concatenate([np.concatenate([i, np.ones((i.shape[0], width - i.shape[1], 3), np.float32) * bg],
+                                        axis=1) for i in imgs], axis=0)[::-1]  # Blender is bottom-up
+out = bpy.data.images.new("garden_sheet", canvas.shape[1], canvas.shape[0], alpha=False)
+out.pixels.foreach_set(np.concatenate([canvas, np.ones(canvas.shape[:2] + (1,), np.float32)], axis=2).ravel())
+out.filepath_raw = os.path.join(DIR, "garden_milestones.png")
+out.file_format = "PNG"
+out.save()
+for p in rows:
+    os.remove(p)
+print("sheet:", out.filepath_raw)
 print("RESULT", "PASS" if ok else "FAIL")

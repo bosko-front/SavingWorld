@@ -307,25 +307,35 @@ def build_seedlings(col):
     z = zmax + 0.02
     soil.box((origin.x, origin.y, z), (w, d, 0.14), SOIL, rot=(0, 0, yaw), bevel=0.06,
              color_fn=lambda v, cc: mix_color(cc, SOIL_LIGHT, 0.3 + 0.3 * fbm(v.co.x * 5, v.co.y * 5, 0, 2, 101.0)))
-    rows = 4
+    rows = 5
     r = rng(102)
     for j in range(rows):
-        uo = (j / (rows - 1) - 0.5) * d * 0.72
-        a = origin + AY * uo - AX * (w / 2 - 0.15)
-        b = origin + AY * uo + AX * (w / 2 - 0.15)
-        soil.tube([Vector((a.x, a.y, z + 0.08)), Vector((b.x, b.y, z + 0.08))], [0.09, 0.09],
+        uo = (j / (rows - 1) - 0.5) * d * 0.76
+        a = origin + AY * uo - AX * (w / 2 - 0.18)
+        b = origin + AY * uo + AX * (w / 2 - 0.18)
+        soil.tube([Vector((a.x, a.y, z + 0.08)), Vector((b.x, b.y, z + 0.08))], [0.1, 0.1],
                   SOIL_LIGHT, segs=8, color_fn=lambda v, cc: scale_color(cc, 0.9 + 0.1 * fbm(v.co.x * 9, v.co.y * 9, 0, 1, 103.0)))
-        n = 7
+        n = 8
         for i in range(n):
-            p = a.lerp(b, (i + 0.5) / n) + Vector((0, 0, z + 0.14 - a.z))
-            h = r.uniform(0.12, 0.2)
-            sprouts.tube([p, p + Vector((0, 0, h))], [0.016, 0.012], srgb("#6FB240"), segs=4,
+            p = a.lerp(b, (i + 0.5) / n) + Vector((0, 0, z + 0.15 - a.z))
+            if j % 2:
+                # young lettuce rosettes: a few broad leaves, bright enough to read on a phone
+                for k in range(4):
+                    ang = TAU * k / 4 + r.uniform(-0.3, 0.3)
+                    lp = p + Vector((math.cos(ang) * 0.09, math.sin(ang) * 0.09, 0.07))
+                    sprouts.ico(lp, 0.13, mix_color(SPROUT, srgb("#C4E57A"), r.random() * 0.6),
+                                subdiv=1, scale=(1.0, 0.65, 0.35), rot=(0, -0.5, ang))
+                sprouts.ico(p + Vector((0, 0, 0.12)), 0.08, srgb("#A9DA62"), subdiv=1)
+                continue
+            h = r.uniform(0.18, 0.28)
+            sprouts.tube([p, p + Vector((0, 0, h))], [0.02, 0.014], srgb("#6FB240"), segs=4,
                          cap_start=False)
-            for side in (-1, 1):
-                ang = yaw + side * math.pi / 2 + r.uniform(-0.4, 0.4)
-                lp = p + Vector((math.cos(ang) * 0.07, math.sin(ang) * 0.07, h * 0.95))
-                sprouts.ico(lp, 0.075, mix_color(SPROUT, srgb("#B6E06A"), r.random() * 0.5),
-                            subdiv=1, scale=(1.0, 0.55, 0.28), rot=(0, -side * 0.35, ang))
+            for k, side in enumerate((-1, 1, 0)):
+                ang = yaw + side * math.pi / 2 + r.uniform(-0.4, 0.4) + (0.0 if side else math.pi / 4)
+                reach = 0.1 if side else 0.03
+                lp = p + Vector((math.cos(ang) * reach, math.sin(ang) * reach, h * (0.95 if side else 1.05)))
+                sprouts.ico(lp, 0.12 if side else 0.09, mix_color(SPROUT, srgb("#B6E06A"), r.random() * 0.5),
+                            subdiv=1, scale=(1.0, 0.55, 0.3), rot=(0, -side * 0.35, ang))
     # board edging
     for sv in (-1, 1):
         p = origin + AX * sv * (w / 2 + 0.04)
@@ -354,6 +364,18 @@ def build_seedlings(col):
           q + AX * 0.1 + Vector((0, 0, zz + 0.28))]
     can.tube(hp, [0.025] * 3, green, segs=6)
     can.to_object("Seedlings_WateringCan", col, [M.painted("SWG_Metal", roughness=0.45, specular=0.5)])
+    # a seed tray of young plants waiting to go in, on the other side of the plot
+    tray, tray_plants = Geo(), Geo()
+    q = origin - AX * (w / 2 + 0.55) + AY * 0.35
+    zz = T.height_at(q.x, q.y)
+    tray.box((q.x, q.y, zz + 0.07), (0.62, 0.9, 0.14), srgb("#A8743F"), bevel=0.02)
+    tray.box((q.x, q.y, zz + 0.13), (0.54, 0.82, 0.04), SOIL, bevel=0.01)
+    for i in range(2):
+        for k in range(3):
+            p = Vector((q.x + (i - 0.5) * 0.26, q.y + (k - 1) * 0.26, zz + 0.16))
+            leaf_mound(tray_plants, p, 0.1, 1150 + i * 3 + k, color=mix_color(SPROUT, LEAF, 0.3))
+    tray.to_object("Seedlings_Tray", col, [M.wood()], sharp_angle=40)
+    tray_plants.to_object("Seedlings_TrayPlants", col, [M.foliage()])
 
 
 def raised_bed(wood, soil_geo, center, length, width, yaw, height=0.32, color=None):
@@ -398,14 +420,24 @@ def build_flower_bed(col):
     top = raised_bed(wood, soil, c, length, width, yaw, height=0.36, color=srgb("#B07A48"))
     r = rng(120)
     palette = ["#F6A9C4", "#FFFFFF", "#F7D45A", "#F49A7A", "#B9A2E8"]
-    for i in range(7):
-        t = (i + 0.5) / 7 - 0.5
-        for j, uo in enumerate((-0.2, 0.18)):
+    for i in range(9):
+        t = (i + 0.5) / 9 - 0.5
+        for j, uo in enumerate((-0.34, 0.0, 0.32)):
             p = c + AY * t * (length - 0.3) + AX * uo
             p.z = top
-            leaf_mound(leaves, p + Vector((0, 0, 0.02)), 0.17, 1200 + i * 2 + j)
-            flower_cluster(flowers, p + Vector((0, 0, 0.2 + r.uniform(0, 0.06))),
-                           palette[(i + j * 2) % len(palette)], 0.13, 1300 + i * 2 + j)
+            leaf_mound(leaves, p + Vector((0, 0, 0.02)), 0.21, 1200 + i * 3 + j)
+            flower_cluster(flowers, p + Vector((0, 0, 0.25 + r.uniform(0, 0.07))),
+                           palette[(i + j * 2) % len(palette)], 0.18, 1300 + i * 3 + j)
+        if i % 2 == 0:
+            # tall foxglove spikes along the back edge give the bed height
+            p = c + AY * t * (length - 0.3) + AX * -0.36
+            p.z = top + 0.15
+            spike = srgb(["#F49AB8", "#FFFFFF", "#C9A6EE"][i // 2 % 3])
+            leaves.tube([p, p + Vector((0, 0, 0.82))], [0.03, 0.018], LEAF_DARK, segs=5, cap_start=False)
+            for k in range(7):
+                q = p + Vector((0, 0, 0.26 + k * 0.085))
+                flowers.ico(q, 0.095 - k * 0.008, scale_color(spike, 0.9 + 0.03 * k), subdiv=1,
+                            scale=(1, 1, 0.8))
     wood.to_object("FlowerBed_Wood", col, [M.wood()], sharp_angle=40)
     soil.to_object("FlowerBed_Soil", col, [M.painted("SWG_Soil", roughness=0.95)])
     leaves.to_object("FlowerBed_Leaves", col, [M.foliage()])

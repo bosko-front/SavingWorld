@@ -61,26 +61,26 @@
         {
           "id": "first_seedlings_1",
           "file": "garden_s01_p1.png",
-          "x": 604,
-          "y": 596,
-          "width": 216,
-          "height": 128,
+          "x": 568,
+          "y": 560,
+          "width": 260,
+          "height": 164,
           "anchor": {
-            "x": 709,
-            "y": 718
+            "x": 697,
+            "y": 716
           },
           "incidental": false
         },
         {
           "id": "first_seedlings_2",
           "file": "garden_s01_p2.png",
-          "x": 864,
-          "y": 700,
-          "width": 48,
+          "x": 872,
+          "y": 696,
+          "width": 44,
           "height": 28,
           "anchor": {
-            "x": 888,
-            "y": 723
+            "x": 893,
+            "y": 718
           },
           "incidental": true
         }
@@ -97,13 +97,13 @@
         {
           "id": "small_flower_bed_1",
           "file": "garden_s02_p1.png",
-          "x": 936,
-          "y": 572,
-          "width": 192,
-          "height": 124,
+          "x": 900,
+          "y": 536,
+          "width": 260,
+          "height": 172,
           "anchor": {
-            "x": 1026,
-            "y": 691
+            "x": 1023,
+            "y": 703
           },
           "incidental": false
         }
@@ -126,7 +126,7 @@
           "height": 68,
           "anchor": {
             "x": 1241,
-            "y": 367
+            "y": 366
           },
           "incidental": false
         },
@@ -134,9 +134,9 @@
           "id": "more_flowers_2",
           "file": "garden_s03_p2.png",
           "x": 768,
-          "y": 304,
+          "y": 308,
           "width": 96,
-          "height": 72,
+          "height": 68,
           "anchor": {
             "x": 815,
             "y": 368
@@ -172,6 +172,19 @@
         {
           "id": "more_flowers_5",
           "file": "garden_s03_p5.png",
+          "x": 928,
+          "y": 444,
+          "width": 260,
+          "height": 188,
+          "anchor": {
+            "x": 1059,
+            "y": 626
+          },
+          "incidental": false
+        },
+        {
+          "id": "more_flowers_6",
+          "file": "garden_s03_p6.png",
           "x": 700,
           "y": 512,
           "width": 160,
@@ -183,24 +196,11 @@
           "incidental": false
         },
         {
-          "id": "more_flowers_6",
-          "file": "garden_s03_p6.png",
-          "x": 924,
-          "y": 444,
-          "width": 264,
-          "height": 188,
-          "anchor": {
-            "x": 1059,
-            "y": 626
-          },
-          "incidental": false
-        },
-        {
           "id": "more_flowers_7",
           "file": "garden_s03_p7.png",
-          "x": 864,
+          "x": 860,
           "y": 412,
-          "width": 780,
+          "width": 784,
           "height": 440,
           "anchor": {
             "x": 1302,
@@ -214,10 +214,10 @@
           "x": 740,
           "y": 664,
           "width": 92,
-          "height": 60,
+          "height": 64,
           "anchor": {
             "x": 777,
-            "y": 719
+            "y": 720
           },
           "incidental": false
         },
@@ -242,7 +242,7 @@
           "width": 336,
           "height": 196,
           "anchor": {
-            "x": 1284,
+            "x": 1286,
             "y": 1028
           },
           "incidental": false
@@ -256,7 +256,7 @@
           "height": 68,
           "anchor": {
             "x": 720,
-            "y": 1015
+            "y": 1014
           },
           "incidental": false
         },
@@ -306,13 +306,13 @@
         {
           "id": "decorative_tree_2",
           "file": "garden_s04_p2.png",
-          "x": 1060,
+          "x": 1056,
           "y": 300,
-          "width": 552,
-          "height": 368,
+          "width": 556,
+          "height": 364,
           "anchor": {
             "x": 1316,
-            "y": 662
+            "y": 657
           },
           "incidental": false
         }
@@ -365,6 +365,19 @@
         {
           "id": "small_fountain_2",
           "file": "garden_s06_p2.png",
+          "x": 744,
+          "y": 1272,
+          "width": 24,
+          "height": 20,
+          "anchor": {
+            "x": 756,
+            "y": 1285
+          },
+          "incidental": true
+        },
+        {
+          "id": "small_fountain_3",
+          "file": "garden_s06_p3.png",
           "x": 480,
           "y": 1260,
           "width": 52,
@@ -388,19 +401,32 @@
         {
           "id": "bench_decorations_1",
           "file": "garden_s07_p1.png",
-          "x": 680,
-          "y": 404,
-          "width": 432,
-          "height": 620,
+          "x": 856,
+          "y": 656,
+          "width": 24,
+          "height": 20,
           "anchor": {
-            "x": 893,
-            "y": 1017
+            "x": 867,
+            "y": 670
           },
-          "incidental": false
+          "incidental": true
         },
         {
           "id": "bench_decorations_2",
           "file": "garden_s07_p2.png",
+          "x": 680,
+          "y": 404,
+          "width": 432,
+          "height": 624,
+          "anchor": {
+            "x": 891,
+            "y": 1023
+          },
+          "incidental": false
+        },
+        {
+          "id": "bench_decorations_3",
+          "file": "garden_s07_p3.png",
           "x": 1136,
           "y": 784,
           "width": 32,
@@ -412,15 +438,15 @@
           "incidental": true
         },
         {
-          "id": "bench_decorations_3",
-          "file": "garden_s07_p3.png",
+          "id": "bench_decorations_4",
+          "file": "garden_s07_p4.png",
           "x": 1216,
           "y": 744,
-          "width": 180,
-          "height": 188,
+          "width": 184,
+          "height": 192,
           "anchor": {
-            "x": 1292,
-            "y": 926
+            "x": 1293,
+            "y": 928
           },
           "incidental": false
         }
@@ -446,6 +472,19 @@
             "y": 543
           },
           "incidental": false
+        },
+        {
+          "id": "greenhouse_2",
+          "file": "garden_s08_p2.png",
+          "x": 708,
+          "y": 692,
+          "width": 24,
+          "height": 24,
+          "anchor": {
+            "x": 720,
+            "y": 708
+          },
+          "incidental": true
         }
       ],
       "hides": []
@@ -571,14 +610,14 @@
           "width": 160,
           "height": 240,
           "anchor": {
-            "x": 518,
+            "x": 517,
             "y": 566
           },
           "incidental": false,
           "ambient": {
             "kind": "sway",
             "pivot": {
-              "x": 518,
+              "x": 517,
               "y": 566
             }
           }
@@ -631,7 +670,7 @@
           "width": 672,
           "height": 848,
           "anchor": {
-            "x": 644,
+            "x": 645,
             "y": 1061
           },
           "incidental": false
@@ -760,7 +799,7 @@
           "width": 376,
           "height": 188,
           "anchor": {
-            "x": 1149,
+            "x": 1155,
             "y": 504
           },
           "incidental": false
@@ -768,12 +807,12 @@
         {
           "id": "completed_garden_2",
           "file": "garden_s10_p2.png",
-          "x": 764,
+          "x": 768,
           "y": 440,
-          "width": 56,
+          "width": 52,
           "height": 52,
           "anchor": {
-            "x": 788,
+            "x": 789,
             "y": 484
           },
           "incidental": false
@@ -781,38 +820,38 @@
         {
           "id": "completed_garden_3",
           "file": "garden_s10_p3.png",
-          "x": 1436,
+          "x": 672,
+          "y": 532,
+          "width": 32,
+          "height": 28,
+          "anchor": {
+            "x": 688,
+            "y": 553
+          },
+          "incidental": true
+        },
+        {
+          "id": "completed_garden_4",
+          "file": "garden_s10_p4.png",
+          "x": 1400,
           "y": 504,
-          "width": 120,
+          "width": 156,
           "height": 100,
           "anchor": {
-            "x": 1501,
+            "x": 1489,
             "y": 598
           },
           "incidental": false
         },
         {
-          "id": "completed_garden_4",
-          "file": "garden_s10_p4.png",
-          "x": 1072,
-          "y": 552,
-          "width": 28,
-          "height": 28,
-          "anchor": {
-            "x": 1085,
-            "y": 572
-          },
-          "incidental": true
-        },
-        {
           "id": "completed_garden_5",
           "file": "garden_s10_p5.png",
           "x": 1252,
-          "y": 580,
+          "y": 544,
           "width": 88,
-          "height": 52,
+          "height": 88,
           "anchor": {
-            "x": 1299,
+            "x": 1302,
             "y": 625
           },
           "incidental": false
@@ -820,75 +859,88 @@
         {
           "id": "completed_garden_6",
           "file": "garden_s10_p6.png",
-          "x": 508,
-          "y": 516,
-          "width": 364,
-          "height": 192,
+          "x": 752,
+          "y": 536,
+          "width": 120,
+          "height": 168,
           "anchor": {
-            "x": 688,
-            "y": 701
+            "x": 806,
+            "y": 699
           },
           "incidental": false
         },
         {
           "id": "completed_garden_7",
           "file": "garden_s10_p7.png",
-          "x": 928,
-          "y": 552,
-          "width": 244,
+          "x": 508,
+          "y": 516,
+          "width": 104,
           "height": 184,
           "anchor": {
-            "x": 1033,
-            "y": 731
+            "x": 561,
+            "y": 693
           },
           "incidental": false
         },
         {
           "id": "completed_garden_8",
           "file": "garden_s10_p8.png",
-          "x": 1280,
-          "y": 676,
-          "width": 28,
-          "height": 28,
+          "x": 928,
+          "y": 548,
+          "width": 244,
+          "height": 188,
           "anchor": {
-            "x": 1292,
+            "x": 1047,
+            "y": 731
+          },
+          "incidental": false
+        },
+        {
+          "id": "completed_garden_9",
+          "file": "garden_s10_p9.png",
+          "x": 1280,
+          "y": 668,
+          "width": 36,
+          "height": 36,
+          "anchor": {
+            "x": 1297,
             "y": 697
           },
           "incidental": true
         },
         {
-          "id": "completed_garden_9",
-          "file": "garden_s10_p9.png",
-          "x": 1500,
-          "y": 724,
-          "width": 80,
-          "height": 80,
-          "anchor": {
-            "x": 1533,
-            "y": 796
-          },
-          "incidental": false
-        },
-        {
           "id": "completed_garden_10",
           "file": "garden_s10_p10.png",
+          "x": 1500,
+          "y": 728,
+          "width": 80,
+          "height": 76,
+          "anchor": {
+            "x": 1531,
+            "y": 796
+          },
+          "incidental": true
+        },
+        {
+          "id": "completed_garden_11",
+          "file": "garden_s10_p11.png",
           "x": 1320,
           "y": 708,
           "width": 136,
           "height": 168,
           "anchor": {
-            "x": 1397,
+            "x": 1392,
             "y": 871
           },
           "incidental": false
         },
         {
-          "id": "completed_garden_11",
-          "file": "garden_s10_p11.png",
-          "x": 940,
-          "y": 784,
-          "width": 32,
-          "height": 28,
+          "id": "completed_garden_12",
+          "file": "garden_s10_p12.png",
+          "x": 944,
+          "y": 788,
+          "width": 20,
+          "height": 24,
           "anchor": {
             "x": 954,
             "y": 806
@@ -896,8 +948,8 @@
           "incidental": true
         },
         {
-          "id": "completed_garden_12",
-          "file": "garden_s10_p12.png",
+          "id": "completed_garden_13",
+          "file": "garden_s10_p13.png",
           "x": 1232,
           "y": 772,
           "width": 52,
@@ -909,47 +961,47 @@
           "incidental": false
         },
         {
-          "id": "completed_garden_13",
-          "file": "garden_s10_p13.png",
-          "x": 536,
-          "y": 748,
-          "width": 292,
-          "height": 276,
-          "anchor": {
-            "x": 662,
-            "y": 1016
-          },
-          "incidental": false
-        },
-        {
           "id": "completed_garden_14",
           "file": "garden_s10_p14.png",
-          "x": 1188,
-          "y": 904,
-          "width": 104,
-          "height": 72,
+          "x": 536,
+          "y": 748,
+          "width": 272,
+          "height": 260,
           "anchor": {
-            "x": 1238,
-            "y": 968
+            "x": 660,
+            "y": 1000
           },
           "incidental": false
         },
         {
           "id": "completed_garden_15",
           "file": "garden_s10_p15.png",
-          "x": 120,
-          "y": 408,
-          "width": 1672,
-          "height": 840,
+          "x": 1188,
+          "y": 904,
+          "width": 96,
+          "height": 72,
           "anchor": {
-            "x": 1021,
-            "y": 1241
+            "x": 1229,
+            "y": 968
           },
           "incidental": false
         },
         {
           "id": "completed_garden_16",
           "file": "garden_s10_p16.png",
+          "x": 120,
+          "y": 408,
+          "width": 1672,
+          "height": 840,
+          "anchor": {
+            "x": 1020,
+            "y": 1241
+          },
+          "incidental": false
+        },
+        {
+          "id": "completed_garden_17",
+          "file": "garden_s10_p17.png",
           "x": 668,
           "y": 1200,
           "width": 36,
@@ -1208,7 +1260,7 @@
     "approved": "2026-10-26, owner approved the completed Garden and the 0/50/100% states",
     "renders": "Cycles 256 samples + swi/stylize.py storybook pass, 2048x1536",
     "ambientInputs": "renders/ambient from scripts/render_ambient.py: stage 0 without the two drifting clouds, stage 6 without the koi, the butterflies alone (same rig, samples and storybook pass), flat ID masks and the 16-bit water flow pass",
-    "sourceBlendSha256": "dde7ab9ecb834779",
+    "sourceBlendSha256": "389566ea41eb7edb",
     "rebuildErrorPer255": [
       {
         "stage": 0,
@@ -1218,70 +1270,70 @@
       },
       {
         "stage": 1,
-        "mean": 0.072,
-        "p999": 2.0,
-        "max": 21.0
+        "mean": 0.08,
+        "p999": 3.0,
+        "max": 20.0
       },
       {
         "stage": 2,
-        "mean": 0.099,
-        "p999": 5.0,
-        "max": 24.0
+        "mean": 0.113,
+        "p999": 7.0,
+        "max": 20.0
       },
       {
         "stage": 3,
-        "mean": 0.235,
-        "p999": 9.0,
+        "mean": 0.248,
+        "p999": 10.0,
         "max": 63.7
       },
       {
         "stage": 4,
-        "mean": 0.377,
+        "mean": 0.385,
         "p999": 12.0,
         "max": 63.7
       },
       {
         "stage": 5,
-        "mean": 0.36,
+        "mean": 0.361,
         "p999": 12.0,
         "max": 63.7
       },
       {
         "stage": 6,
-        "mean": 0.476,
-        "p999": 14.0,
+        "mean": 0.478,
+        "p999": 15.0,
         "max": 105.0
       },
       {
         "stage": 7,
-        "mean": 0.534,
+        "mean": 0.536,
         "p999": 16.0,
         "max": 105.0
       },
       {
         "stage": 8,
-        "mean": 0.5,
+        "mean": 0.502,
         "p999": 17.0,
         "max": 105.0
       },
       {
         "stage": 9,
-        "mean": 0.436,
-        "p999": 21.2,
+        "mean": 0.431,
+        "p999": 21.0,
         "max": 105.0
       },
       {
         "stage": 10,
-        "mean": 0.462,
-        "p999": 23.9,
+        "mean": 0.465,
+        "p999": 23.7,
         "max": 105.0
       }
     ],
     "stackRule": "Draw base, then the ambient (cloud) layers, then the layers of milestones 1..n in order (and the ambientExtensions rest-visible layers after their milestone). Positions are top-left in the 2048x1536 canvas; scale them for other sizes. anchor is the ground point to grow a part from; incidental parts show without animation. A layer with ambient.kind 'sway' is one tree; ambient.pivot is its trunk base. Nothing is replaced (D115)."
   },
   "decodedBytesAllLayers": {
-    "2048": 29902784,
-    "1536": 16820316
+    "2048": 29931456,
+    "1536": 16836444
   },
   "decodedBytesAmbientLayers": {
     "2048": 225536,
