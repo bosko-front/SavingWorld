@@ -4,7 +4,7 @@ A parallel art workstream before Phase 17, like the Island art before Phase 09 (
 
 Every session first follows CLAUDE.md (read the v1.2 DOCX and the normalized docs), then reads `assets/worlds/garden/README.md` (current step, review log, milestone sequence) and DECISIONS D114 onward. Steps advance only on the owner's explicit approval; each step updates PROJECT_STATUS, SESSION_HANDOFF, DECISIONS, ASSET_SPEC and the Garden README.
 
-Decided since the first session: the milestone sequence (D115): v1.2 except 80% greenhouse and vegetable beds; the 60% fountain brings all the water; the pergola is part of 90%.
+Decided since the first session: the milestone sequence (D115): v1.2 except 80% greenhouse and vegetable beds; the 60% fountain brings all the water; the pergola is part of 90%. Steps 1-4 are complete and approved (26 October 2026, D114-D116): the approved export is `assets/worlds/garden/export/`. Step 5 is Phase 17 ([PHASE_17](PHASE_17.md)), which starts after Phases 15-16.
 
 ## Owner additions for the first session
 

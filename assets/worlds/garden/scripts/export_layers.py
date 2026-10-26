@@ -398,7 +398,8 @@ def main():
         "source": "assets/worlds/garden (Blender 5.2.3 LTS, procedural, no third-party assets; "
                   "shared Island rig, storybook pass and shaders)",
         "decision": "D114 (art workstream), D115 (milestone sequence)",
-        "approved": "2026-10-26, owner approved the completed Garden and the 0/50/100% states",
+        "approved": "2026-10-26, owner approved all eleven states and this export (strengthened "
+                    "10% and 20%); D116",
         "renders": "Cycles 256 samples + swi/stylize.py storybook pass, 2048x1536",
         "ambientInputs": "renders/ambient from scripts/render_ambient.py: stage 0 without the two "
                          "drifting clouds, stage 6 without the koi, the butterflies alone (same rig, "

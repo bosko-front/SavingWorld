@@ -2,7 +2,7 @@
 
 Source art for the Pro **Garden** theme (docs/ASSET_SPEC.md, PRODUCT_REQUIREMENTS R11). This folder holds the editable Blender scene and the scripts that generate it. It is **not** read by the app: approved exports go to `assets/themes/garden/` in Phase 17, with a manifest, exactly like the Island (D76, D77).
 
-Status (26 October 2026): **Step 4 of the owner's Garden brief — all eleven states are rendered and exported as layers with a validated manifest, awaiting the owner's approval.** The owner approved the completed Garden (Step 2), the milestone order (D115) and the 0/50/100% states (Step 3). App integration (Step 5 = Phase 17) waits for approval of Step 4. The milestone order is decided (owner, D115; see "Milestone sequence").
+Status (26 October 2026): **art complete — the owner approved all eleven states and the layer export (Step 4, with the strengthened 10% and 20%).** Earlier approvals: the completed Garden (Step 2), the milestone order (D115) and the 0/50/100% states (Step 3). The export in `export/` is ready for Phase 17 (Step 5 of the brief), which copies it to `assets/themes/garden/` unchanged. The milestone order is decided (owner, D115; see "Milestone sequence").
 
 ## Reuse of the Island pipeline
 
@@ -192,6 +192,10 @@ The owner approved Step 3. Stages 1-4 and 6-9 were rendered from the same scene 
 ### 26 October 2026 — 10% and 20% strengthened, everything re-rendered and re-exported
 
 The owner asked to strengthen the 10% seedlings and 20% flower bed. The plot grew from 2.3 × 1.45 to 3.0 × 1.9 with five rows (sprouts with three larger leaves, alternating with young lettuce rosettes) and a seed tray of young plants; the planter grew from 1.9 × 0.92 to 2.6 × 1.15 with three rows of fuller flower clusters and tall foxgloves along the back. Their reserved ground grew with them (`terrain.reserved`), so the seeded scatter of small details (grass tufts, small rocks, meadow flowers, rim shrubs) now steers around them: about 2% of the canvas differs from the approved 50% and 100% pictures, almost all of it those two objects and scattered small details; terrain, walls, buildings, trees and water are unchanged (same rig/terrain fingerprint). `verify_stages.py` PASS (the young plants sitting in the seed tray are allowed, like soil in a planter). All eleven states and the ambient inputs were re-rendered and the export re-run: visible change now 0.65% (10%) and 0.68% (20%), `milestone_report.py` PASS, rebuild mean ≤ 0.54/255, 63 contract layers, 16.1 MiB at 1536, and the app's adapter accepts it unchanged (throwaway Jest run). `renders/review/garden_strengthened_0_10_20.png` shows 0%, 10% and 20% at iPhone 17 Pro size. The Step 2 files in `renders/review/` stay as the record of what was approved then; `renders/milestones/` holds the current states.
+
+### 26 October 2026 — Step 4 approved
+
+The owner approved Step 4 with the strengthened 10% and 20% and declared the export ready for Phase 17. The export was re-run only to record the approval in the manifest's provenance; every PNG and review sheet came out byte-identical.
 
 ## Provenance and licensing
 
