@@ -106,18 +106,22 @@ STAGE_IDS = ["empty_garden", "first_seedlings", "small_flower_bed", "more_flower
 # Draft English scene descriptions for VoiceOver; Phase 17 owns the final copy.
 DESCRIPTIONS = [
     "An empty floating garden with three lawn terraces held up by stone walls.",
-    "A small vegetable plot with rows of seedlings appears on the middle terrace.",
-    "A raised wooden planter full of flowers sits on the middle terrace.",
-    "Hydrangeas, lavender and flowering bushes bloom around the garden.",
+    "A small vegetable plot with rows of seedlings, marigolds and young sunflowers appears on "
+    "the middle terrace.",
+    "A raised wooden planter full of flowers, ringed by a stone-edged flower bed, sits on the "
+    "middle terrace.",
+    "Large patches of pink, purple, white and yellow flowers, hydrangeas and lavender bloom "
+    "around the garden.",
     "A pink blossom tree grows on the top terrace.",
-    "A paved path with stone stairs climbs to the top terrace.",
-    "A small fountain sends water down a stream into a lily pond with koi, under a bridge "
-    "and over the edge as a waterfall.",
+    "A paved path lined with lavender and white flowers climbs stone stairs to the top terrace.",
+    "A small fountain sends water down a stream into a lily pond with koi and irises, under a "
+    "bridge and over the edge as a waterfall.",
     "A bench by the pond, lanterns along the path, a birdbath and flower pots appear.",
-    "A glass greenhouse with vegetable beds and a white fence stands on the top terrace.",
+    "A glass greenhouse with vegetable beds, sunflowers and roses along a white fence stands on "
+    "the top terrace.",
     "A rose-covered pergola, more trees and shrubs fill the garden.",
-    "The garden is complete: a seating nook, flowering vines over the cliff and small "
-    "floating islets.",
+    "The garden is complete: a seating nook, more flowers, wisteria hanging over the cliff "
+    "and small flowering islets.",
 ]
 
 
@@ -397,9 +401,10 @@ def main():
     manifest["provenance"] = {
         "source": "assets/worlds/garden (Blender 5.2.3 LTS, procedural, no third-party assets; "
                   "shared Island rig, storybook pass and shaders)",
-        "decision": "D118 (art workstream), D119 (milestone sequence)",
-        "approved": "2026-10-26, owner approved all eleven states and this export (strengthened "
-                    "10% and 20%); D120",
+        "decision": "D118 (art workstream), D119 (milestone sequence), D120 (export), "
+                    "D123 (visual polish, version 1 kept)",
+        "approved": "2026-10-26, owner approved all eleven states and the export (D120), then the "
+                    "visual polish pass, keeping art version 1 (D123)",
         "renders": "Cycles 256 samples + swi/stylize.py storybook pass, 2048x1536",
         "ambientInputs": "renders/ambient from scripts/render_ambient.py: stage 0 without the two "
                          "drifting clouds, stage 6 without the koi, the butterflies alone (same rig, "

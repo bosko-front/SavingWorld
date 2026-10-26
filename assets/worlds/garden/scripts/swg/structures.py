@@ -444,8 +444,8 @@ def build_greenhouse(col):
         pl.box((x, y, zg(x, y) + 0.15), (0.75, 0.32, 0.3), srgb("#B07A48"), bevel=0.03)
         for k in range(3):
             P.leaf_mound(fl, Vector((x - 0.22 + k * 0.22, y, zg(x, y) + 0.32)), 0.13, 870 + k + sx * 5)
-            P.flower_cluster(fl, Vector((x - 0.22 + k * 0.22, y, zg(x, y) + 0.44)),
-                             ["#F6A9C4", "#FFFFFF", "#F49A7A"][k], 0.1, 880 + k + sx * 5)
+            P.flower_cluster(fl, Vector((x - 0.22 + k * 0.22, y, zg(x, y) + 0.46)),
+                             [P.PINK, P.WHITE, P.LILAC][k], 0.14, 880 + k + sx * 5)
     pl.to_object("Greenhouse_Planters", col, [M.wood()], sharp_angle=40)
     fl.to_object("Greenhouse_PlanterFlowers", col, [M.foliage()])
 
@@ -629,6 +629,7 @@ def build_islets(col):
 def build_completion(col):
     build_nook(col)
     build_islets(col)
+    P.build_islet_flowers(col)
     P.build_cliff_vines(col)
     P.build_final_flowers(col)
     P.build_meadow(col)

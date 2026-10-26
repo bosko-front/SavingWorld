@@ -2,7 +2,7 @@
 
 Source art for the Pro **Garden** theme (docs/ASSET_SPEC.md, PRODUCT_REQUIREMENTS R11). This folder holds the editable Blender scene and the scripts that generate it. It is **not** read by the app: approved exports go to `assets/themes/garden/` in Phase 17, with a manifest, exactly like the Island (D76, D77).
 
-Status (26 October 2026): **art complete — the owner approved all eleven states and the layer export (Step 4, with the strengthened 10% and 20%).** Earlier approvals: the completed Garden (Step 2), the milestone order (D119) and the 0/50/100% states (Step 3). The export in `export/` is ready for Phase 17 (Step 5 of the brief), which copies it to `assets/themes/garden/` unchanged. The milestone order is decided (owner, D119; see "Milestone sequence").
+Status (26 October 2026): **art complete — the owner approved all eleven states, the layer export (Step 4, D120) and the visual polish pass (D123, art version 1 kept).** `renders/milestones/` and `export/` hold the polished art. Earlier approvals: the completed Garden (Step 2), the milestone order (D119) and the 0/50/100% states (Step 3). The export in `export/` is ready for Phase 17 (Step 5 of the brief), which copies it to `assets/themes/garden/` unchanged. The milestone order is decided (owner, D119; see "Milestone sequence").
 
 ## Reuse of the Island pipeline
 
@@ -71,16 +71,16 @@ The table is the final order (owner decision D119).
 | Stage | Threshold | Collection | Contents |
 | --- | --- | --- | --- |
 | 0 | 0% | `SWG_00_Base_EmptyGarden` | Terraced lawn, two dry-stone retaining walls (with grassy gaps where the stairs and the cascade will cross), grass lip and fringe, moss, rock underside with stone shelves, rocks, tufts, three clouds |
-| 1 | 10% | `SWG_01_FirstSeedlings` | Board-edged vegetable plot (3.0 × 1.9) with five rows of sprouts and young lettuce, a seed tray of young plants, a label stake and a watering can |
-| 2 | 20% | `SWG_02_SmallFlowerBed` | Raised wooden planter (2.6 × 1.15) full of mixed flowers, with tall foxgloves along the back |
-| 3 | 30% | `SWG_03_MoreFlowers` | Hydrangeas (blue, lilac, pink), lavender, flower patches, flowering bushes, shrubs along the walls |
+| 1 | 10% | `SWG_01_FirstSeedlings` | Board-edged vegetable plot (3.0 × 1.9) with five rows of sprouts and young lettuce, a seed tray of young plants, a label stake and a watering can; marigold edging and five young sunflowers (polish) |
+| 2 | 20% | `SWG_02_SmallFlowerBed` | Raised wooden planter (2.6 × 1.15) full of mixed flowers, with tall foxgloves along the back; a two-row flower bed round its open sides with a cream stone edge (polish) |
+| 3 | 30% | `SWG_03_MoreFlowers` | Eight large flower drifts (pink, purple, white, yellow; `layout.DRIFTS_MORE_FLOWERS`), hydrangeas (blue, lilac, pink), lavender clumps, flowering bushes, shrubs along the walls |
 | 4 | 40% | `SWG_04_DecorativeTree` | Pink blossom tree with fallen petals |
-| 5 | 50% | `SWG_05_GardenPathway` | Flagstone path and two flights of stone stairs |
-| 6 | 60% | `SWG_06_FountainPondStream` | Small fountain and the water it feeds: stone fountain, rill with two cascades, lily pond with koi, stream, bridge, waterfall over the lip |
+| 5 | 50% | `SWG_05_GardenPathway` | Flagstone path and two flights of stone stairs; a lavender and white border along the flat path (polish) |
+| 6 | 60% | `SWG_06_FountainPondStream` | Small fountain and the water it feeds: stone fountain, rill with two cascades, lily pond with koi, stream, bridge, waterfall over the lip; irises, pink plumes and low marsh flowers round the pond, a flower ring round the fountain, clumps along the rill (polish) |
 | 7 | 70% | `SWG_07_BenchDecorations` | Pond bench, four lanterns, birdbath, potted plants |
-| 8 | 80% | `SWG_08_Greenhouse` | Greenhouse with plants and lights, vegetable beds with fence, picket fence |
+| 8 | 80% | `SWG_08_Greenhouse` | Greenhouse with plants and lights, vegetable beds with fence, picket fence; rose bushes along the fence, lavender between fence and glass, two flower pots by the door, sunflowers behind the vegetable beds (polish) |
 | 9 | 90% | `SWG_09_PergolaFinalPlants` | Rose pergola with bench and lantern, twelve trees, rim shrubs, wall ivy |
-| 10 | 100% | `SWG_10_CompletedGarden` | Seating nook, flowering cliff vines, meadow flowers, flower patches, three floating islets |
+| 10 | 100% | `SWG_10_CompletedGarden` | Seating nook, flowering cliff vines with wisteria, wildflower groups, four flower drifts (`layout.DRIFTS_COMPLETED`), three floating islets with flowers |
 
 ## Milestone sequence (decided: D119)
 
@@ -118,6 +118,20 @@ Separate objects were planned from the start so the export can cut ambient layer
 
 Every ambient value must rest at 0 so the still stack equals the approved picture (as for the Island), run only on a visible Home with the app active, stop under Reduce Motion, and be measured on a physical iPhone in Phase 21.
 
+### Animation layer audit (polish pass, 26 October 2026)
+
+What the current export can already move independently, and what needs more export work:
+
+| Element | Status | What exists | What is missing |
+| --- | --- | --- | --- |
+| Tree canopies | **Ready (whole tree)** | 12 trees are their own `sway` part with the trunk base as pivot (blossom tree at 40%, eleven at 90%), in the current contract; the app leans them with a skew like the Island's | A canopy-only sway (trunk still) needs the trunk and canopy cut as two layers: separate mask IDs for `Tree_*_Trunk` and `Tree_*_Canopy` in `render_ambient.py`, a canopy pivot at the crown base, and a contract kind for it |
+| Flower clusters | **Not ready** | Flowers are merged per stage into a few meshes (`Flowers_Patches`, `Path_BorderFlowers`, ...); the export cuts each milestone by changed pixels, so a drift ends up inside a stage part together with leaves and shrubs, with no pivot | One object per drift (or per border section), its own mask ID, a layer per drift with a base pivot, the blooms cut apart from the leaf mound so only the flowers nod, and a new ambient kind with small limits |
+| Fountain water | **Ready in `ambientExtensions`** | `water_a/b/c` flow layers over the fountain basins and curtain, rill, cascades, stream, waterfall, with pond ripples (D93 method), owned by milestone 6 | The contract allows water only in the base: Phase 17 must let an unlock own water layers |
+| Butterflies | **Ready in `ambientExtensions`** | Three single-pose sprites rendered alone (`butterfly_1..3`, rest hidden, proposed from 30%) | A contract kind; wing flapping would need a second wing pose per butterfly (optional) |
+| Falling petals | **Ready in `ambientExtensions`** | Three small petal sprites in the blossom canopy's colour (`petal_1..3`, from 40%), drawn by the export (not rendered) | A contract kind; petals from the new pink drifts are not planned |
+
+The polish pass changed none of this: no object used by `render_ambient.py` (trees, koi, lights, water, clouds, butterflies) was renamed or moved.
+
 ## Layer export for the app (Phase 17 input)
 
 ```bash
@@ -134,8 +148,8 @@ Run `render_ambient.py` whenever the scene or a stage render changes, then `expo
 
 - `garden_base.png`: stage 0 without the two drifting clouds. The third cloud stays in the base: from 60% the waterfall falls into it.
 - `ambient`: `garden_cloud_1/2.png`, kind `cloud` (drift as on the Island).
-- `unlocks` 1-10 with the D119 names and draft VoiceOver descriptions: one part per separate object (63 layers in all with the base and clouds). Each tree that shows enough of itself is its own part with `ambient.kind = "sway"` and the trunk base as pivot (the blossom tree at 40%, eleven trees at 90%; the pine behind the blossom tree shows 161 px and stays still). Nothing is replaced (`hides` empty).
-- Checked with the app's own `manifestFromExport` and `validateManifest` (a throwaway Jest run, not committed): accepted unchanged; ten unlocks with the D119 names, version 1, 12 swaying trees, every extension file present.
+- `unlocks` 1-10 with the D119 names and draft VoiceOver descriptions: one part per separate object (51 layers in all with the base and clouds). Each tree that shows enough of itself is its own part with `ambient.kind = "sway"` and the trunk base as pivot (the blossom tree at 40%, eleven trees at 90%; the pine behind the blossom tree shows 161 px and stays still). Nothing is replaced (`hides` empty).
+- Checked with the app's own `manifestFromExport` and `validateManifest` (a throwaway Jest run, not committed, repeated after the D123 polish): accepted unchanged; ten unlocks with the D119 names, version 1, 12 swaying trees, every extension file present.
 
 **What the current app does not read yet** (`ambientExtensions`, 16 layers): the Garden motion the current contract cannot express. Phase 17 extends `manifest.ts`/`theme-export.ts` before using it (the current adapter ignores this key):
 
@@ -149,14 +163,14 @@ Run `render_ambient.py` whenever the scene or a stage render changes, then `expo
 
 The milestones for butterflies and petals are proposals for Phase 17; every ambient value rests at 0 so the still stack is the approved picture, and all motion follows D90 (Home visible, app active, off under Reduce Motion, Phase 21 measurement on a physical iPhone).
 
-**Checks** (`export_layers.py` output, 26 October 2026):
+**Checks** (`export_layers.py` output, 26 October 2026, after the D123 polish):
 
-- Rebuild against all eleven renders (base, clouds, milestone parts and the resting koi, at 2048): mean error 0.00-0.54/255 per stage (Island 0.2-0.5). The largest single pixels (up to 105/255) are the thin Freestyle outline along the garden's back rim, which Freestyle redraws slightly differently in every render; the layers keep the stage 0 rim line, so it never flickers (the Island's documented known difference, up to 112/255 there).
+- Rebuild against all eleven renders (base, clouds, milestone parts and the resting koi, at 2048): mean error 0.00-0.53/255 per stage (Island 0.2-0.5). The largest single pixels (up to 105/255) are the thin Freestyle outline along the garden's back rim, which Freestyle redraws slightly differently in every render; the layers keep the stage 0 rim line, so it never flickers (the Island's documented known difference, up to 112/255 there).
 - Layer bounds (120, 96)-(1792, 1388) in the shared canvas.
-- Decoded RGBA with every contract layer loaded: **16.1 MiB at 1536** (28.5 at 2048), plus 4.8 MiB for the extension layers (20.9 MiB in all). Island: 13.7 MiB at 1536. Budget (ASSET_SPEC): about 32 MiB per world. Physical-iPhone memory and frames stay a Phase 21 requirement.
-- Files: 79 PNGs per size (about 3.6 MB at 1536).
+- Decoded RGBA with every contract layer loaded: **15.4 MiB at 1536** (27.3 at 2048), plus 4.8 MiB for the extension layers (20.2 MiB in all; before the polish 16.1 + 4.8: the larger flower patches merge into fewer, tighter parts). Island: 13.7 MiB at 1536. Budget (ASSET_SPEC): about 32 MiB per world. Physical-iPhone memory and frames stay a Phase 21 requirement.
+- Files: 67 PNGs per size (about 3.7 MB at 1536, 5.8 MB at 2048).
 - Render cost on the M4 at 256 samples: about 1-12 minutes per state (slower while the machine is busy); the ambient inputs about 8-12 minutes.
-- `milestone_report.py` over all eleven states: **PASS.** One resolution; the rock underside band unchanged from 0% to 90% (max 2/255). Visible change per step at iPhone 17 Pro size: 0.65% (10%), 0.68% (20%), then 3.8, 3.0, 2.1, 3.9, 1.1, 3.3, 11.9 and 4.6%. The first export had 0.39% and 0.38% for 10% and 20%, under the 0.4% threshold used in the Island review; the owner asked to strengthen them (see the review log).
+- `milestone_report.py` over all eleven states: **PASS.** One resolution; the rock underside band unchanged from 0% to 90% (max 2/255). Visible change per step at iPhone 17 Pro size: 1.15% (10%), 0.86% (20%), then 5.8, 2.8, 2.6, 4.2, 1.1, 3.4, 11.1 and 4.9%. History: the first export had 0.39%/0.38% for 10%/20% (strengthened to 0.65/0.68%), and the D123 polish raised them again (see the review log).
 
 ## Review log
 
@@ -196,6 +210,35 @@ The owner asked to strengthen the 10% seedlings and 20% flower bed. The plot gre
 ### 26 October 2026 — Step 4 approved
 
 The owner approved Step 4 with the strengthened 10% and 20% and declared the export ready for Phase 17. The export was re-run only to record the approval in the manifest's provenance; every PNG and review sheet came out byte-identical.
+
+### 26 October 2026 — Visual polish pass (approved, D123)
+
+The owner approved the layout, camera, terrain and progression architecture and asked for one polish pass so the Garden reads as a lush, colourful garden rather than another green island: stronger early milestones, larger readable flower patches in pink, purple, white and yellow, a better area around the greenhouse, pond, fountain and paths, and a richer completed garden, with terrain, camera, light, milestone order and the export contract unchanged.
+
+What changed (scripts only; every addition is in the stage that owns it):
+
+- New stronger palette (`plants.PALETTES`) and `flower_drift`: a domed mass of flower clumps in one leading colour with soft sub-patches of the others; points under later objects (`terrain.reserved`) and on steps are left out, and later scatter (wall shrubs, rim shrubs, wildflowers) steers around drifts (`plants.planted`).
+- 10%: marigold edging along the front and open side of the plot and five young sunflowers behind it.
+- 20%: brighter planter flowers and a two-row flower bed round its open sides with cream edging stones.
+- 30%: the ten small flower patches became eight large drifts (`layout.DRIFTS_MORE_FLOWERS`); hydrangeas larger and stronger in colour; each lavender is a clump of three; wall shrubs flower more often.
+- 50%: a lavender and white border along the flat parts of the path (not on stairs, at the stream, or where lanterns, pots and the greenhouse come later).
+- 60%: irises and pink plumes on the pond's far side, low yellow and white flowers at its front (the water stays visible), a flower ring round the fountain and clumps along the rill.
+- 80%: rose bushes along the picket fence, lavender between fence and glass, two flower pots by the door, fuller planter flowers and sunflowers behind the vegetable beds.
+- 90%: rim shrubs flower more often, in the new colours.
+- 100%: four flower drifts (`layout.DRIFTS_COMPLETED`), the 260 single meadow dots replaced by 34 wildflower groups, wisteria racemes on every third cliff vine, flowers on the three islets.
+
+Unchanged: terrain and base scatter (stage 0 is identical: the reserved ground was not changed), camera, lights, render settings, every object of the approved art and its stage, the milestone order (D119), every name `render_ambient.py`/`export_layers.py` rely on.
+
+Checks (full renders at 256 samples in `renders/preview/polish/`, 188-535 s per stage on the M4):
+
+- `verify_stages.py`: **PASS**, same rig/terrain fingerprint `61843db132018b42` on all eleven stages, add-only, nothing floating.
+- `check_framing.py` at 100%: unchanged, x 0.065-0.868, y 0.099-0.930.
+- `milestone_report.py` (`SW_MILESTONES=renders/preview/polish`): **PASS**, one resolution, underside band unchanged up to 90% (max 2/255). Visible change per step at iPhone 17 Pro size, before → after: 10% 0.65 → **1.15%**, 20% 0.68 → **0.86%**, 30% 3.80 → **5.82%**, 40% 2.95 → 2.81%, 50% 2.13 → 2.63%, 60% 3.91 → 4.15%, 70% 1.14 → 1.11%, 80% 3.26 → 3.35%, 90% 11.91 → 11.07%, 100% 4.64 → 4.90%.
+- Held back until approval: `render_ambient.py` and `export_layers.py` (rebuild check, decoded memory, adapter check). Memory was expected to rise with more flower parts; it fell instead (see below).
+
+Candidate renders were made in `renders/preview/polish/` (not committed). Review files: `renders/review/garden_polish_before_after.png` (approved top, polished bottom: 0, 30, 60, 100%), `garden_polish_0_30_60_100.png`, `garden_polish_iphone17pro.png` (0/30/60/100% at iPhone 17 Pro size), `garden_polish_early_iphone17pro.png` (0-30% polished top, approved bottom, at phone size), `garden_polish_stage10_iphone17pro_3x.png` and `garden_polish_milestones.png` (all eleven at SE size).
+
+**Approved by the owner the same day (D123), keeping art version 1** (no release has stored Garden art; a development-build Garden souvenir would now draw the polished art). The eleven 256-sample renders of the rebuilt source went to `renders/milestones/` (the same files as the candidates), then `render_ambient.py` (stage 0 without clouds 443 s, stage 6 without koi 362 s) and `export_layers.py` re-made `export/`: 51 contract layers (was 63), 15.4 MiB decoded at 1536 + 4.8 MiB extension (was 16.1 + 4.8), rebuild mean ≤ 0.53/255 (largest pixels again the back-rim Freestyle line), layer bounds unchanged, the VoiceOver drafts mention the new planting, and the app's adapter accepts it unchanged (throwaway Jest run). `milestone_report.py` on `renders/milestones/`: PASS.
 
 ## Provenance and licensing
 

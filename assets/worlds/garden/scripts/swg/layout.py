@@ -78,6 +78,26 @@ FINAL_TREES = [
     ("pine", (7.3, 6.5), 2.6, 0.85, 71),
     ("broad", (-9.3, -1.6), 2.2, 1.05, 72),
 ]
+# Flower drifts (polish pass after Step 4): large flower masses that read at phone
+# size, (center (v, u), radius, palette, seed); the palette's first colour leads.
+# Points under later objects are skipped (terrain.reserved), and later scatter
+# (wall shrubs, rim shrubs, meadow) steers around them (plants.planted).
+DRIFTS_MORE_FLOWERS = [                                        # stage 3
+    ((-7.2, 2.6), 1.35, "pink", 3101),
+    ((-7.1, -2.8), 1.3, "yellow", 3102),
+    ((7.4, -5.0), 1.45, "purple", 3103),
+    ((2.4, -8.4), 1.45, "pink", 3104),
+    ((-4.0, -8.9), 1.15, "white", 3105),
+    ((7.9, 4.6), 1.0, "yellow", 3106),
+    ((2.3, 8.3), 1.0, "white", 3107),
+    ((-2.9, 1.9), 0.8, "purple", 3108),
+]
+DRIFTS_COMPLETED = [                                           # stage 10
+    ((0.9, -7.0), 0.7, "yellow", 3202),
+    ((7.6, -0.9), 0.7, "pink", 3204),
+    ((3.3, 7.6), 0.7, "pink", 3205),
+    ((5.4, -0.4), 0.6, "white", 3206),
+]
 NOOK = dict(center=(-5.9, -3.7))                               # stage 10
 FLOATING_ISLETS = [((-13.4, -1.4, -1.0), 1.0, 141), ((12.9, -2.6, -3.2), 0.85, 142),
                    ((12.2, 6.0, 0.8), 0.75, 143)]  # (v, u, z), size, seed

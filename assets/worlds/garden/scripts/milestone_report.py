@@ -3,7 +3,7 @@
 /Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup \
     -P assets/worlds/garden/scripts/milestone_report.py -- [stage ...]
 
-Uses the renders in renders/milestones/ (default stages: every one present).
+Uses the renders in renders/milestones/ (or SW_MILESTONES; default stages: every one present).
 For each consecutive pair, at iPhone 17 Pro size, it prints the share of
 pixels that changed visibly (more than 10/255 in any channel) and the box of
 the change; a stage that changes less than MIN_CHANGE fails. It also checks
@@ -26,7 +26,8 @@ import numpy as np  # noqa: E402
 import swg  # noqa: E402,F401
 from swi import preview, rig  # noqa: E402
 
-DIR = os.path.join(os.path.dirname(HERE), "renders", "milestones")
+# SW_MILESTONES=<dir> compares candidate renders elsewhere (e.g. a review set) instead
+DIR = os.environ.get("SW_MILESTONES") or os.path.join(os.path.dirname(HERE), "renders", "milestones")
 MIN_CHANGE = 0.004
 THRESHOLD = 10 / 255.0
 # rock underside band at 17 Pro size (x0, y0, x1, y1 from the top left): below
