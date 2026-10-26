@@ -1,10 +1,9 @@
 """Stage collections. One collection per Garden state: stage n shows SWG_00
 ... SWG_nn. Nothing is replaced (ASSET_SPEC: Garden items coexist).
 
-The order below is the RECOMMENDED sequence awaiting the owner's decision
-against MVP plan v1.2 (see the Garden README, "Milestone sequence"). Only
-the collection names and builders change if the owner picks another order;
-the 100% scene is the same.
+The order follows owner decision D115: MVP plan v1.2 except 80%
+(greenhouse and vegetable beds instead of a gazebo); the 60% small fountain
+brings all the water and the pergola is part of 90%.
 
 SWG_Ambient holds ambient-only elements (butterflies). They are not part of
 any milestone and are shown only when asked for (set_stage(ambient=True)).
@@ -23,7 +22,7 @@ STAGES = [
     (3, "SWG_03_MoreFlowers", "More flowers"),
     (4, "SWG_04_DecorativeTree", "Decorative tree"),
     (5, "SWG_05_GardenPathway", "Garden pathway"),
-    (6, "SWG_06_FountainPondStream", "Small fountain, pond and stream"),
+    (6, "SWG_06_FountainPondStream", "Small fountain"),
     (7, "SWG_07_BenchDecorations", "Bench and decorations"),
     (8, "SWG_08_Greenhouse", "Greenhouse and vegetable beds"),
     (9, "SWG_09_PergolaFinalPlants", "Final plants and ornaments"),

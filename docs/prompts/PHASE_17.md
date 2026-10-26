@@ -20,7 +20,7 @@ Deliver the complete Pro Garden theme and the full confirmed personalization sco
 
 Phase 16
 
-Approved Garden art and provenance plus verified implementation of v1.2 Q03 and the D74-changed Q05 policies are required for visual and access acceptance.
+Approved Garden art and provenance plus verified implementation of v1.2 Q03 and the D74-changed Q05 policies are required for visual and access acceptance. The Garden stages follow owner decision D115 (80% greenhouse and vegetable beds; the 60% fountain brings all the water; the pergola is part of 90%); the art comes from the Garden art workstream ([GARDEN_ART](GARDEN_ART.md), D114).
 
 ## Exact scope
 

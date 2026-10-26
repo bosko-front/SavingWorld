@@ -18,7 +18,7 @@ Provide one base scene and all ten unlock outcomes, in a consistent cozy isometr
 | 5 | Bridge | Garden pathway |
 | 6 | Pond | Small fountain |
 | 7 | Additional trees | Bench and decorations |
-| 8 | Larger house and details | Gazebo |
+| 8 | Larger house and details | Greenhouse and vegetable beds (D115) |
 | 9 | Final decorations | Final plants and ornaments |
 | 10 | Completed island | Completed garden |
 
@@ -54,7 +54,7 @@ Use Reanimated first. A Skia or Lottie addition requires a measured rendering ga
 
 ## Art readiness and verification
 
-Garden art workstream (D114, [GARDEN_ART](prompts/GARDEN_ART.md)): the Garden is generated in Blender from `assets/worlds/garden/` on the Island's frozen rig and storybook pass (shared `swi` modules, imported read-only), so camera, light, horizon and shadows match the Island by construction. Status 26 October 2026: the completed Garden (100%) is submitted for owner approval; milestone renders, the layer export and the manifest follow only after approval. The Garden column of the stage table above is still v1.2; the owner is deciding between v1.2, the brief's proposed order and the recommended order (Garden README "Milestone sequence"). Separate objects for ambient motion are planned from the start (per-tree trunk and canopy, water surfaces with Flow UV, koi, butterflies, lantern glows, clouds).
+Garden art workstream (D114, [GARDEN_ART](prompts/GARDEN_ART.md)): the Garden is generated in Blender from `assets/worlds/garden/` on the Island's frozen rig and storybook pass (shared `swi` modules, imported read-only), so camera, light, horizon and shadows match the Island by construction. Status 26 October 2026: the completed Garden (100%) is submitted for owner approval; milestone renders, the layer export and the manifest follow only after approval. The Garden column of the stage table follows owner decision D115: v1.2 except 80% (greenhouse and vegetable beds instead of a gazebo); the 60% small fountain brings all the water (rill, pond, stream, bridge, waterfall) and the rose pergola belongs to 90%. Separate objects for ambient motion are planned from the start (per-tree trunk and canopy, water surfaces with Flow UV, koi, butterflies, lantern glows, clouds).
 
 Phase 09 accepts Island only after all eleven states have approved assets and correct alignment. Phase 17 does the same for Garden and confirms equivalent progression after theme switching. If art is missing, implementable independent validation/registry work may proceed, but visual acceptance stays pending and the same phase prompt remains next.
 

@@ -4,6 +4,8 @@ A parallel art workstream before Phase 17, like the Island art before Phase 09 (
 
 Every session first follows CLAUDE.md (read the v1.2 DOCX and the normalized docs), then reads `assets/worlds/garden/README.md` (current step, review log, milestone sequence) and DECISIONS D114 onward. Steps advance only on the owner's explicit approval; each step updates PROJECT_STATUS, SESSION_HANDOFF, DECISIONS, ASSET_SPEC and the Garden README.
 
+Decided since the first session: the milestone sequence (D115): v1.2 except 80% greenhouse and vegetable beds; the 60% fountain brings all the water; the pergola is part of 90%.
+
 ## Owner additions for the first session
 
 - The product authority (MVP plan v1.2) and ASSET_SPEC fix the Garden sequence as 0 empty garden, 10% first seedlings, 20% small flower bed, 30% more flowers, 40% decorative tree, 50% garden pathway, 60% small fountain, 70% bench and decorations, 80% gazebo, 90% final plants and ornaments, 100% completed garden. The proposed table below differs. Show both side by side and get an explicit owner decision before finalizing; record a change as a new DECISIONS entry and update ASSET_SPEC and PRODUCT_REQUIREMENTS together.

@@ -2,7 +2,7 @@
 
 Source art for the Pro **Garden** theme (docs/ASSET_SPEC.md, PRODUCT_REQUIREMENTS R11). This folder holds the editable Blender scene and the scripts that generate it. It is **not** read by the app: approved exports go to `assets/themes/garden/` in Phase 17, with a manifest, exactly like the Island (D76, D77).
 
-Status (26 October 2026): **Step 2 of the owner's Garden brief — the completed (100%) Garden is built and rendered for visual approval.** Not approved yet. No milestone renders, layer export, manifest or app integration exist yet (Steps 3-5 wait for approval). The milestone order is still an open owner decision (see "Milestone sequence").
+Status (26 October 2026): **Step 2 of the owner's Garden brief — the completed (100%) Garden is built and rendered for visual approval.** Not approved yet. No milestone renders, layer export, manifest or app integration exist yet (Steps 3-5 wait for approval). The milestone order is decided (owner, D115; see "Milestone sequence").
 
 ## Reuse of the Island pipeline
 
@@ -60,7 +60,7 @@ A rounder floating garden than the Island's squarish rock, on three lawn terrace
 
 One collection per Garden state; stage *n* shows `SWG_00` to `SWG_nn`. Nothing is replaced (ASSET_SPEC: Garden items coexist). `SWG_Rig` holds the shared rig; `SWG_Ambient` holds ambient-only elements (butterflies), shown only on request.
 
-The table is the **recommended** order that is currently built. It is not final: see "Milestone sequence".
+The table is the final order (owner decision D115).
 
 | Stage | Threshold | Collection | Contents |
 | --- | --- | --- | --- |
@@ -70,17 +70,17 @@ The table is the **recommended** order that is currently built. It is not final:
 | 3 | 30% | `SWG_03_MoreFlowers` | Hydrangeas (blue, lilac, pink), lavender, flower patches, flowering bushes, shrubs along the walls |
 | 4 | 40% | `SWG_04_DecorativeTree` | Pink blossom tree with fallen petals |
 | 5 | 50% | `SWG_05_GardenPathway` | Flagstone path and two flights of stone stairs |
-| 6 | 60% | `SWG_06_FountainPondStream` | Stone fountain, rill with two cascades, lily pond with koi, stream, bridge, waterfall over the lip |
+| 6 | 60% | `SWG_06_FountainPondStream` | Small fountain and the water it feeds: stone fountain, rill with two cascades, lily pond with koi, stream, bridge, waterfall over the lip |
 | 7 | 70% | `SWG_07_BenchDecorations` | Pond bench, four lanterns, birdbath, potted plants |
 | 8 | 80% | `SWG_08_Greenhouse` | Greenhouse with plants and lights, vegetable beds with fence, picket fence |
 | 9 | 90% | `SWG_09_PergolaFinalPlants` | Rose pergola with bench and lantern, twelve trees, rim shrubs, wall ivy |
 | 10 | 100% | `SWG_10_CompletedGarden` | Seating nook, flowering cliff vines, meadow flowers, flower patches, three floating islets |
 
-## Milestone sequence (open owner decision)
+## Milestone sequence (decided: D115)
 
-The product authority (MVP plan v1.2 section 5, PRODUCT_REQUIREMENTS, ASSET_SPEC) fixes the Garden labels; the owner's Garden brief proposed a different order. The recommended order keeps v1.2 everywhere except one label (80%):
+The owner chose the recommended column on 26 October 2026 (DECISIONS D115): v1.2 everywhere except 80%, now in PRODUCT_REQUIREMENTS and ASSET_SPEC. The comparison that was decided on:
 
-| % | MVP plan v1.2 (current authority) | Owner's brief | Recommended (built) |
+| % | MVP plan v1.2 | Owner's brief | Recommended (chosen, D115) |
 | --- | --- | --- | --- |
 | 0 | Empty garden | Base floating terrain, grass and basic landscape | Empty garden (terraces, walls, lawn) |
 | 10 | First seedlings | First seedlings and small plants | First seedlings |
@@ -90,11 +90,11 @@ The product authority (MVP plan v1.2 section 5, PRODUCT_REQUIREMENTS, ASSET_SPEC
 | 50 | Garden pathway | Main garden pathway and small bridge | Garden pathway (stairs included) |
 | 60 | Small fountain | Pond, stream and waterfall | Small fountain **and the water it feeds** (rill, pond, stream, bridge, waterfall) |
 | 70 | Bench and decorations | Bench, lanterns and decorative details | Bench and decorations |
-| 80 | **Gazebo** | Greenhouse and vegetable beds | **Greenhouse and vegetable beds** (needs a product change) |
+| 80 | **Gazebo** | Greenhouse and vegetable beds | **Greenhouse and vegetable beds** (overrides v1.2) |
 | 90 | Final plants and ornaments | Flower-covered pergola and additional decorations | Final plants and ornaments (rose pergola, trees, shrubs, ivy) |
 | 100 | Completed garden | Completed garden with final flowers and finishing details | Completed garden |
 
-Why: the fountain is the source of all the water, so "small fountain" at 60% can bring the pond, stream and waterfall with it (the owner's 60%) without renaming; the bridge waits for its stream (so 50% never shows a bridge over dry lawn); the greenhouse is the garden's hero building and lands where the Island's larger house lands (80%); the pergola is a planted ornament and fits "final plants and ornaments". Until the owner decides, the product documents keep v1.2 and nothing here is final. A changed sequence becomes a new DECISIONS entry with ASSET_SPEC and PRODUCT_REQUIREMENTS updated together.
+Why: the fountain is the source of all the water, so "small fountain" at 60% can bring the pond, stream and waterfall with it (the owner's 60%) without renaming; the bridge waits for its stream (so 50% never shows a bridge over dry lawn); the greenhouse is the garden's hero building and lands where the Island's larger house lands (80%); the pergola is a planted ornament and fits "final plants and ornaments". Nothing is replaced between stages (Garden items coexist), and there is no gazebo.
 
 ## Animation readiness (for Steps 4-5)
 

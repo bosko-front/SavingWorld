@@ -9,7 +9,8 @@ The previous handoff (Phase 13) is superseded; its record remains in [PHASE_13 e
 A separate session in the `claude/garden-theme-56e130` worktree ran Steps 1-2 of the owner's Garden brief ([GARDEN_ART](prompts/GARDEN_ART.md), D114). It changed no app code and nothing in Phase 15's area.
 
 - Built: `assets/worlds/garden/` (README, `scripts/swg/` on the Island's shared rig, storybook pass and shaders, `source/garden.blend` with `SWG_00`-`SWG_10` and `SWG_Ambient`), the 100% review render and a reference comparison in `renders/review/`.
-- Waiting on the owner: (1) visual approval of the completed Garden; (2) the milestone order (v1.2, the brief's proposal or the recommended order; Garden README "Milestone sequence"). v1.2 stays authoritative until then.
+- Decided (D115, owner): the Garden milestone order is v1.2 except 80% greenhouse and vegetable beds; the 60% fountain brings all the water; the pergola is part of 90%. PRODUCT_REQUIREMENTS, ASSET_SPEC, SOURCE_RECONCILIATION, docs/README, CLAUDE.md and the Phase 17 prompt/roadmap follow it.
+- Waiting on the owner: visual approval of the completed Garden.
 - Next for this workstream after approval: brief Step 3 (0%, 50% and 100% renders, consistency check). Step 4 (all eleven states, layer export, manifest) and Step 5 (Phase 17 integration) follow only on further approval.
 - Not run: milestone renders, export, any app check (none apply yet).
 
