@@ -12,6 +12,8 @@ Updated 23 October 2026 after reading the complete local [MVP plan v1.2](Saving_
 
 Owner decision D74 (23 October 2026) is a current owner instruction that overrides the matching v1.2 rules: Archive is removed, whole-goal deletion is allowed after confirmation, Free may have one goal in total in any status, and loss of Pro keeps one chosen goal usable and the others read-only. Where this file quotes those v1.2 rules, D74 wins.
 
+Owner decision D118 (26 October 2026) overrides v1.2 section 5 at one point: the Garden's 80% unlock is the greenhouse and vegetable beds instead of the gazebo. The other Garden labels stay v1.2 (the 60% small fountain brings all the water; the pergola is part of 90%).
+
 ## Product questions resolved by v1.2
 
 | ID | Final rule and authority | Affected phases |

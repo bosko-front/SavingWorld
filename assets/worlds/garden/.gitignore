@@ -1,0 +1,8 @@
+# Blender backup saves
+*.blend1
+*.blend@
+__pycache__/
+# ad-hoc preview renders (render_preview.py default output)
+renders/preview/
+# derived review copies (backdrop and phone sizes); made from the masters on demand
+renders/milestones/*_backdrop*.png
