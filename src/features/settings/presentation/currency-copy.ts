@@ -15,6 +15,20 @@ export const CURRENCY_SETTINGS_COPY = {
     'Every goal uses this one currency. You can change it in Settings while no goal has a saved transaction or a souvenir; after that it stays locked. Deleting every transaction and souvenir unlocks it again. Amounts are never converted: there is no exchange rate in Saving Worlds.',
 } as const;
 
+// Settings' currency card and its native confirmation.
+export const CURRENCY_EDITOR_COPY = {
+  title: 'Currency',
+  unreadableTitle: 'Currency can’t be read',
+  unreadableMessage: 'The saved currency doesn’t match this version of the app. Nothing was changed.',
+  notChanged: 'Currency not changed',
+  confirm: 'Change',
+  someGoal: 'A goal',
+  changeTo: (code: string) => `Change to ${code}`,
+  confirmTitle: (code: string) => `Change currency to ${code}?`,
+  changed: (code: string) => `Currency changed to ${code}`,
+  selected: (label: string) => `Selected: ${label}`,
+} as const;
+
 export function noConversionMessage(from: CurrencyMetadata, to: CurrencyMetadata, goalCount: number): string {
   const goals =
     goalCount === 0

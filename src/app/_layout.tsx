@@ -10,6 +10,7 @@ import { useReminderReconciliation, useReminderTapRouting } from '@/bootstrap/re
 import { StorageFailureScreen } from '@/bootstrap/storage-failure-screen';
 import { stackScreenOptions } from '@/shared/theme';
 import { Toaster } from '@/shared/ui/toast';
+import { SCREEN_TITLES } from '@/shared/i18n/navigation-copy';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -68,7 +69,7 @@ function AppNavigator() {
           <Stack.Screen
             name="goal-form"
             options={{
-              title: 'New goal',
+              title: SCREEN_TITLES.newGoal,
               presentation: 'formSheet',
               sheetGrabberVisible: true,
               sheetAllowedDetents: [1.0],
@@ -77,7 +78,7 @@ function AppNavigator() {
           <Stack.Screen
             name="entry-form"
             options={{
-              title: 'Add savings',
+              title: SCREEN_TITLES.addSavings,
               presentation: 'formSheet',
               sheetGrabberVisible: true,
               sheetAllowedDetents: [1.0],
@@ -87,7 +88,7 @@ function AppNavigator() {
           <Stack.Screen
             name="paywall"
             options={{
-              title: 'Saving Worlds Pro',
+              title: SCREEN_TITLES.paywall,
               presentation: 'formSheet',
               sheetGrabberVisible: true,
               sheetAllowedDetents: [1.0],
@@ -97,7 +98,7 @@ function AppNavigator() {
           <Stack.Screen
             name="theme-picker"
             options={{
-              title: 'Choose a world',
+              title: SCREEN_TITLES.themePicker,
               presentation: 'formSheet',
               sheetGrabberVisible: true,
               sheetAllowedDetents: [1.0],
@@ -106,7 +107,7 @@ function AppNavigator() {
           <Stack.Screen
             name="keep-goal"
             options={{
-              title: 'Keep one goal',
+              title: SCREEN_TITLES.keepGoal,
               presentation: 'formSheet',
               sheetGrabberVisible: true,
               sheetAllowedDetents: [1.0],

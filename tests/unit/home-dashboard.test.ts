@@ -125,7 +125,7 @@ describe('dashboard numbers match the ledger balance', () => {
     const view = plainSpaces(homeDashboard(summary(33_000, 150_000, '2026-11-21'), EUR, TODAY, 'de-DE'));
     expect(view.amounts).toMatchObject({ saved: '330,00 €', target: '1.500,00 €', remaining: '1.170,00 €', percent: 22 });
     // R = 117000, D = 30 (29 days left): weekly ceil(819000 / 30) = 27300.
-    expect(view.planCopy).toMatchObject({ kind: 'plan', date: '21. Nov. 2026', timeLeft: '29 days left', needed: { amount: '1.170,00 €', pace: '273,00 € a week' } });
+    expect(view.planCopy).toMatchObject({ kind: 'plan', date: '21 Nov 2026', timeLeft: '29 days left', needed: { amount: '1.170,00 €', pace: '273,00 € a week' } });
   });
 });
 

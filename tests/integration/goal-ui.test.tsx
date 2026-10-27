@@ -118,7 +118,7 @@ describe('onboarding', () => {
     expect(screen.getByText('How it works')).toBeOnTheScreen();
     expect(screen.getByText('You keep your money wherever you like. Saving Worlds simply tracks what you set aside.')).toBeOnTheScreen();
     expect(screen.getByTestId('onboarding-progression').props.accessibilityLabel).toBe(
-      'An island that grows from empty to complete as you record your savings.',
+      'An island that grows from empty to complete as you record your savings. Set a goal, Record savings, Watch it grow.',
     );
     expect(screen.getByTestId('onboarding-steps').props.accessibilityLabel).toBe('Step 2 of 3');
     await userEvent.press(screen.getByTestId('onboarding-record-info'));
@@ -246,7 +246,8 @@ describe('Create and Edit Goal', () => {
     expect(screen.getByTestId('goal-title')).toHaveDisplayValue('Bike');
     expect(screen.getByTestId('goal-target')).toHaveDisplayValue('300');
     expect(liveToasts()).toHaveLength(0);
-    expect(announce).not.toHaveBeenCalled();
+    // No toast: only the inline error notice is spoken (Phase 19).
+    expect(announce.mock.calls.map(([text]) => text)).toEqual(['Not saved. Couldn’t save. Nothing was changed. Try again.']);
 
     // The retry reuses the form's operation ID and succeeds once storage works again.
     await getAppDatabase().write((tx) => tx.exec('DROP TRIGGER test_fail_goal'));

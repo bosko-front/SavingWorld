@@ -2,10 +2,12 @@ import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { useFontScale } from '@/shared/layout';
 import { PACE_EXPLANATION_TITLE, type SavingsNeededCopy, type SavingsPlanCopy } from '@/shared/i18n/deadline-messages';
-import { borders, colors, radii, spacing } from '@/shared/theme';
+import { borders, colors, layout, radii, spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
 import { Icon, type IconName } from '@/shared/ui/icon';
 import { SectionHeader } from '@/shared/ui/section-header';
+
+import { SAVINGS_PLAN_COPY } from './goal-copy';
 
 // Home's savings plan (owner decision D84): two small KPI cards side by side under the milestone,
 // shown only when the goal has a deadline (it is set in Edit goal). Deadline: the date and the time
@@ -24,10 +26,10 @@ export function SavingsPlanCards({ copy }: { copy: SavingsPlanCopy }) {
   const explanation = copy.explanation;
   return (
     <View style={styles.section} testID="home-plan">
-      <SectionHeader title="Savings plan" />
+      <SectionHeader title={SAVINGS_PLAN_COPY.header} />
       <View style={[styles.cards, stacked && styles.stacked]}>
         <View style={styles.card} accessible accessibilityLabel={copy.deadlineLabel} testID="home-plan-deadline">
-          <CardLabel icon="calendar" label="Deadline" />
+          <CardLabel icon="calendar" label={SAVINGS_PLAN_COPY.deadline} />
           <AppText role="headline" testID="home-plan-date">
             {copy.date}
           </AppText>
@@ -37,13 +39,14 @@ export function SavingsPlanCards({ copy }: { copy: SavingsPlanCopy }) {
         </View>
         <View style={styles.card} testID="home-plan-needed">
           <View style={styles.labelRow}>
-            <CardLabel icon="milestone" label="Savings needed" />
+            {/* The value below speaks "Savings needed: …" itself, so the label is not read twice. */}
+            <CardLabel icon="milestone" label={SAVINGS_PLAN_COPY.needed} hidden />
             {explanation ? (
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={PACE_EXPLANATION_TITLE}
                 onPress={() => Alert.alert(PACE_EXPLANATION_TITLE, explanation)}
-                hitSlop={spacing.md}
+                style={styles.infoButton}
                 testID="home-plan-info">
                 <Icon name="info" role="footnote" tone="action" />
               </Pressable>
@@ -56,9 +59,9 @@ export function SavingsPlanCards({ copy }: { copy: SavingsPlanCopy }) {
   );
 }
 
-function CardLabel({ icon, label }: { icon: IconName; label: string }) {
+function CardLabel({ icon, label, hidden = false }: { icon: IconName; label: string; hidden?: boolean }) {
   return (
-    <View style={styles.label}>
+    <View style={styles.label} accessibilityElementsHidden={hidden} importantForAccessibility={hidden ? 'no-hide-descendants' : 'auto'}>
       <Icon name={icon} role="footnote" tone="secondary" />
       <AppText role="footnote" tone="secondary">
         {label}
@@ -70,20 +73,20 @@ function CardLabel({ icon, label }: { icon: IconName; label: string }) {
 function NeededValue({ needed }: { needed: SavingsNeededCopy }) {
   if (needed.kind === 'complete') {
     return (
-      <View style={styles.value} accessible accessibilityLabel="Savings needed: none, target reached" testID="home-plan-complete">
+      <View style={styles.value} accessible accessibilityLabel={SAVINGS_PLAN_COPY.completeLabel} testID="home-plan-complete">
         <View style={styles.label}>
           <Icon name="success" role="headline" tone="success" />
           <AppText role="headline" tone="success">
-            Target reached
+            {SAVINGS_PLAN_COPY.targetReached}
           </AppText>
         </View>
         <AppText role="footnote" tone="secondary">
-          Nothing more to save
+          {SAVINGS_PLAN_COPY.nothingMore}
         </AppText>
       </View>
     );
   }
-  const spoken = [`Savings needed ${needed.amount}`, needed.pace, needed.note].filter(Boolean).join('. ');
+  const spoken = [SAVINGS_PLAN_COPY.neededLabel(needed.amount), needed.pace, needed.note].filter(Boolean).join('. ');
   return (
     <View style={styles.value} accessible accessibilityLabel={spoken} testID="home-plan-saving">
       <AppText role="headline" testID="home-plan-amount">
@@ -129,6 +132,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: borders.hairline,
     borderColor: colors.borderSubtle,
+  },
+  // A full 44 pt target (Phase 19) whose negative margins keep the card's label row as it was.
+  infoButton: {
+    minWidth: layout.minTouchTarget,
+    minHeight: layout.minTouchTarget,
+    marginVertical: -spacing.md,
+    marginEnd: -spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   labelRow: {
     flexDirection: 'row',

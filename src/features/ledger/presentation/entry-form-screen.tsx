@@ -12,6 +12,7 @@ import type { LedgerEntryRecord } from '@/data/repositories/ledger-repository';
 import { noteCompletedQuest } from '@/features/challenges/presentation/completed-quest';
 import { unlocksStage } from '@/features/worlds/world-transition';
 import { amountMessage } from '@/shared/i18n/amount-messages';
+import { COMMON_COPY } from '@/shared/i18n/common-copy';
 import { deviceLocale, deviceSeparators, formatCivilDate } from '@/shared/i18n/locale';
 import { FormScreen } from '@/shared/layout';
 import { spacing } from '@/shared/theme';
@@ -29,7 +30,7 @@ import { readEntryContext } from '../application/ledger-queries';
 import { EntryDateField } from './entry-date-field';
 import { draftFromEntry, draftValues, newEntryDraft, type EntryDraft } from './entry-draft';
 import { EntryKindPicker } from './entry-kind-picker';
-import { committedToastTitle, KIND_LABEL, ledgerCommandMessage, type EntryFormField, type LedgerAction } from './ledger-copy';
+import { committedToastTitle, ENTRY_FORM_COPY, KIND_LABEL, ledgerCommandMessage, type EntryFormField, type LedgerAction } from './ledger-copy';
 
 // The one Add/Edit Entry form (v1.2 sections 2 and 3), shared by Home's Add savings, History's
 // corrections and the Challenges tab's Add savings (Phase 13). A deposit or withdrawal, a positive amount, a local date
@@ -78,7 +79,7 @@ function CreateEntry({ goalId, origin }: { goalId: string; origin: EntryFormOrig
   if (currency === undefined || summary === undefined) {
     return null;
   }
-  const blocked = unavailable(currency, summary?.goal ?? null, access, 'Add savings');
+  const blocked = unavailable(currency, summary?.goal ?? null, access, COMMON_COPY.addSavings);
   if (blocked || !currency || !summary) {
     return blocked;
   }
@@ -95,8 +96,8 @@ function EditEntry({ entryId }: { entryId: string }) {
   if (context.status === 'failed') {
     return (
       <FormScreen>
-        <Stack.Screen options={{ title: 'Edit entry' }} />
-        <Notice tone="error" title="Couldn’t load this entry" message="Nothing was changed. Close this form and try again." />
+        <Stack.Screen options={{ title: ENTRY_FORM_COPY.editTitle }} />
+        <Notice tone="error" title={ENTRY_FORM_COPY.loadFailedTitle} message={ENTRY_FORM_COPY.loadFailedMessage} />
       </FormScreen>
     );
   }
@@ -104,12 +105,12 @@ function EditEntry({ entryId }: { entryId: string }) {
   if (!found) {
     return (
       <FormScreen>
-        <Stack.Screen options={{ title: 'Edit entry' }} />
-        <Notice tone="info" title="Entry not found" message="This entry no longer exists. Close this form to see the current history." />
+        <Stack.Screen options={{ title: ENTRY_FORM_COPY.editTitle }} />
+        <Notice tone="info" title={ENTRY_FORM_COPY.notFoundTitle} message={ENTRY_FORM_COPY.notFoundMessage} />
       </FormScreen>
     );
   }
-  const blocked = unavailable(currency, found.goal, access, 'Edit entry');
+  const blocked = unavailable(currency, found.goal, access, ENTRY_FORM_COPY.editTitle);
   if (blocked || !currency) {
     return blocked;
   }
@@ -121,13 +122,13 @@ function EditEntry({ entryId }: { entryId: string }) {
 function unavailable(currency: CurrencyMetadata | null, goal: GoalRecord | null, access: AccessView | null, title: string) {
   let notice: { title: string; message: string } | null = null;
   if (!currency) {
-    notice = { title: 'No currency yet', message: 'Choose a currency in Settings before recording savings.' };
+    notice = { title: ENTRY_FORM_COPY.noCurrencyTitle, message: ENTRY_FORM_COPY.noCurrencyMessage };
   } else if (!goal) {
-    notice = { title: 'Goal not found', message: 'Close this form and try again.' };
+    notice = { title: ENTRY_FORM_COPY.goalNotFoundTitle, message: ENTRY_FORM_COPY.goalNotFoundMessage };
   } else if (!isOpenStatus(goal.status)) {
     notice = {
-      title: 'This goal is closed',
-      message: 'Closed goals are read-only. Reopen it from Collection to add or change entries.',
+      title: ENTRY_FORM_COPY.closedTitle,
+      message: ENTRY_FORM_COPY.closedMessage,
     };
   } else if (access && access.use(goal) !== 'usable') {
     notice = {
@@ -182,7 +183,7 @@ function EntryForm({ currency, goal, balanceMinor, entry, origin }: FormProps) {
   const showFailure = (action: LedgerAction, error: LedgerCommandError) => {
     const message = ledgerCommandMessage(action, error, { currency, balanceMinor, locale: deviceLocale() });
     setErrors(message.field ? { [message.field]: message.message } : {});
-    setFormError(message.field ? null : { title: action === 'delete' ? 'Not deleted' : 'Not saved', message: message.message });
+    setFormError(message.field ? null : { title: action === 'delete' ? ENTRY_FORM_COPY.notDeleted : COMMON_COPY.notSaved, message: message.message });
     if (message.field === 'amount') {
       amountRef.current?.focus();
     } else if (message.field === 'note') {
@@ -275,36 +276,36 @@ function EntryForm({ currency, goal, balanceMinor, entry, origin }: FormProps) {
     const kind: EntryKind = original.signedAmountMinor < 0 ? 'withdrawal' : 'deposit';
     const amount = formatMoney(Math.abs(original.signedAmountMinor), currency, { locale: deviceLocale() });
     Alert.alert(
-      'Delete this entry?',
-      `${KIND_LABEL[kind]} of ${amount} on ${formatCivilDate(original.entryDate)}. This can’t be undone, and the balance is recalculated without it.`,
+      ENTRY_FORM_COPY.deleteTitle,
+      ENTRY_FORM_COPY.deleteMessage(KIND_LABEL[kind], amount, formatCivilDate(original.entryDate)),
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => void remove() },
+        { text: COMMON_COPY.cancel, style: 'cancel' },
+        { text: ENTRY_FORM_COPY.deleteButton, style: 'destructive', onPress: () => void remove() },
       ],
     );
   };
 
   const busy = pending !== null;
-  const saveLabel = editing ? 'Save changes' : draft.kind === 'deposit' ? 'Save deposit' : 'Save withdrawal';
+  const saveLabel = editing ? ENTRY_FORM_COPY.saveChanges : draft.kind === 'deposit' ? ENTRY_FORM_COPY.saveDeposit : ENTRY_FORM_COPY.saveWithdrawal;
 
   return (
     <FormScreen testID="entry-form">
-      <Stack.Screen options={{ title: editing ? 'Edit entry' : 'Add savings' }} />
+      <Stack.Screen options={{ title: editing ? ENTRY_FORM_COPY.editTitle : COMMON_COPY.addSavings }} />
       <View style={styles.context} testID="entry-goal">
         <AppText role="headline">{goal.title}</AppText>
-        <AppText tone="secondary" testID="entry-goal-balance">{`${formatMoney(balanceMinor, currency, { locale: deviceLocale() })} saved`}</AppText>
+        <AppText tone="secondary" testID="entry-goal-balance">{ENTRY_FORM_COPY.balance(formatMoney(balanceMinor, currency, { locale: deviceLocale() }))}</AppText>
         {goal.status === 'paused' ? (
           <AppText role="footnote" tone="secondary" testID="entry-goal-paused">
-            Paused. Recording savings doesn’t resume it.
+            {ENTRY_FORM_COPY.paused}
           </AppText>
         ) : null}
       </View>
-      {formError ? <Notice tone="error" title={formError.title} message={formError.message} testID="entry-form-error" /> : null}
+      {formError ? <Notice tone="error" title={formError.title} message={formError.message} announce testID="entry-form-error" /> : null}
       <EntryKindPicker value={draft.kind} onChange={(kind) => update({ kind })} />
       <TextField
         variant="amount"
-        label="Amount"
-        accessibilityLabel={`Amount (${currency.code})`}
+        label={ENTRY_FORM_COPY.amountLabel}
+        accessibilityLabel={ENTRY_FORM_COPY.amountSpoken(currency.code)}
         suffix={currency.code}
         placeholder="0"
         value={draft.amountText}
@@ -319,8 +320,8 @@ function EntryForm({ currency, goal, balanceMinor, entry, origin }: FormProps) {
         <ListCell>
           <TextField
             variant="inset"
-            label="Note (optional)"
-            placeholder="For example “Birthday money”"
+            label={ENTRY_FORM_COPY.noteLabel}
+            placeholder={ENTRY_FORM_COPY.notePlaceholder}
             value={draft.noteText}
             onChangeText={(noteText) => update({ noteText })}
             error={errors.note}
@@ -339,10 +340,10 @@ function EntryForm({ currency, goal, balanceMinor, entry, origin }: FormProps) {
         disabled={busy && pending !== 'save'}
         testID="entry-save"
       />
-      <Button label="Cancel" variant="plain" centered onPress={() => router.back()} disabled={busy} testID="entry-cancel" />
+      <Button label={COMMON_COPY.cancel} variant="plain" centered onPress={() => router.back()} disabled={busy} testID="entry-cancel" />
       {editing ? (
         <Button
-          label="Delete entry"
+          label={ENTRY_FORM_COPY.deleteEntry}
           variant="destructive"
           onPress={confirmDelete}
           loading={pending === 'delete'}

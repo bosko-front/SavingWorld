@@ -14,6 +14,7 @@ import { EmptyState } from '@/shared/ui/empty-state';
 import { SectionHeader } from '@/shared/ui/section-header';
 import { StatusBadge } from '@/shared/ui/status-badge';
 
+import { COLLECTION_COPY } from './collection-copy';
 import { CARD_FLOAT, cardCaption, cardFloatDelay, collectionEntries, statusLabel, type CollectionEntry } from './collection-model';
 
 // Collection tab (v1.2 section 6, owner decision D74; Phase 11): a gallery of achievements (owner
@@ -44,8 +45,8 @@ export function CollectionScreen() {
               <WorldScene themeId="island" stage={0} backdrop="none" decorative />
             </View>
           }
-          title="Your gallery of worlds"
-          message="Each goal that reaches its target leaves its finished world here as a souvenir. It stays, even if you save less later."
+          title={COLLECTION_COPY.emptyTitle}
+          message={COLLECTION_COPY.emptyMessage}
           testID="collection-empty"
         />
       </Screen>
@@ -56,15 +57,15 @@ export function CollectionScreen() {
   return (
     <Screen testID="collection">
       <AppText tone="secondary" testID="collection-intro">
-        Every world tells a story of something you achieved.
+        {COLLECTION_COPY.intro}
       </AppText>
       {completed.length > 0 ? (
-        <CollectionSection title="Completed worlds" entries={completed} firstIndex={0} testID="collection-completed" />
+        <CollectionSection title={COLLECTION_COPY.completedTitle} entries={completed} firstIndex={0} testID="collection-completed" />
       ) : null}
       {open.length > 0 ? (
         <CollectionSection
-          title="Still growing"
-          caption="These worlds reached their target and their goals are still open. Finish one on Home when you’re done saving."
+          title={COLLECTION_COPY.openTitle}
+          caption={COLLECTION_COPY.openCaption}
           entries={open}
           firstIndex={completed.length}
           testID="collection-open"
@@ -179,7 +180,7 @@ function CardButton({ label, completed, compact, width, testID, children, onPres
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityHint="Shows the souvenir and the goal now."
+      accessibilityHint={COLLECTION_COPY.cardHint}
       onPress={onPress}
       style={({ pressed }) => [
         styles.card,
@@ -229,7 +230,7 @@ const styles = StyleSheet.create({
   badge: {
     position: 'absolute',
     top: spacing.sm,
-    left: spacing.sm,
+    start: spacing.sm,
   },
   pressed: {
     backgroundColor: colors.surfaceSoft,

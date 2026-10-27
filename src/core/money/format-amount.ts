@@ -42,10 +42,24 @@ export function formatMoney(minor: number | bigint, currency: CurrencyMetadata, 
     numberingSystem: 'latn',
     minimumFractionDigits: currency.exponent,
     maximumFractionDigits: currency.exponent,
-    signDisplay: options.signDisplay ?? 'auto',
   });
-  return formatter.format(Number(value) / 10 ** currency.exponent);
+  const format = (minorValue: bigint) => formatter.format(Number(minorValue) / 10 ** currency.exponent);
+  // The sign is placed here rather than through Intl's `signDisplay`, which Hermes ignores (iOS
+  // showed deposits without "+"). A positive amount takes the plus where the locale puts its minus,
+  // so "+€5.00", "+5,00 €" and "€ +5,00" follow the same pattern as the negative amount.
+  const magnitude = value < 0n ? -value : value;
+  switch (options.signDisplay ?? 'auto') {
+    case 'never':
+      return format(magnitude);
+    case 'exceptZero':
+      return value > 0n ? format(-value).replace(MINUS, '+') : format(value);
+    case 'auto':
+      return format(value);
+  }
 }
+
+// Hyphen-minus or the Unicode minus sign, whichever the locale's negative pattern uses.
+const MINUS = /[-\u2212]/;
 
 // Text that prefills an amount field when editing an entry or target. It uses the locale decimal
 // separator and no grouping, so parseAmount reads it back to the same minor units.

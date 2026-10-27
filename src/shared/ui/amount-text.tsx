@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 
+import { useFontScale } from '@/shared/layout';
 import { colors } from '@/shared/theme';
 
 import { AppText } from './app-text';
@@ -17,11 +18,18 @@ type AmountTextProps = {
   testID?: string;
 };
 
+// Above this text scale a `display` amount uses the (still scaling) large title size, so a long
+// amount at the accessibility sizes wraps between groups instead of breaking inside its digits
+// (Phase 19; the same step as the amount field and the Savings insights headline).
+const DISPLAY_STEP_DOWN_SCALE = 1.35;
+
 // Display styling for money amounts only. It never parses, rounds or calculates.
 export function AmountText({ formatted, kind = 'balance', size = 'regular', accessibilityLabel, testID }: AmountTextProps) {
+  const fontScale = useFontScale();
+  const role = size === 'regular' ? 'headline' : size === 'display' && fontScale <= DISPLAY_STEP_DOWN_SCALE ? 'display' : 'largeTitle';
   return (
     <AppText
-      role={size === 'display' ? 'display' : size === 'large' ? 'largeTitle' : 'headline'}
+      role={role}
       accessibilityLabel={accessibilityLabel}
       testID={testID}
       style={[styles.digits, kindStyles[kind]]}>

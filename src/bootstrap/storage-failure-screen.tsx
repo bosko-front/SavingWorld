@@ -1,9 +1,11 @@
+import { COMMON_COPY } from '@/shared/i18n/common-copy';
 import { Screen } from '@/shared/layout';
 import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
 import { Notice } from '@/shared/ui/notice';
 
 import type { DatabaseFailureCode } from './database-readiness';
+import { STORAGE_FAILURE_COPY, storageErrorCode } from './storage-failure-copy';
 
 type StorageFailureScreenProps = {
   code: DatabaseFailureCode;
@@ -19,19 +21,13 @@ export function StorageFailureScreen({ code, retrying, onRetry }: StorageFailure
   return (
     <Screen testID="storage-failure">
       <AppText role="title" accessibilityRole="header">
-        Your savings couldn’t be opened
+        {STORAGE_FAILURE_COPY.title}
       </AppText>
-      <AppText>
-        {newer
-          ? 'This data was saved by a newer version of Saving Worlds. Update the app to open it.'
-          : 'Saving Worlds couldn’t open the savings data stored on this iPhone.'}
-      </AppText>
-      <AppText>Nothing was changed or deleted. Your goals and entries are still on this device.</AppText>
-      {newer ? null : (
-        <AppText tone="secondary">Try again. If this keeps happening, restart your iPhone and open the app again.</AppText>
-      )}
-      <Notice tone="error" title="Data not opened" message={`Error code: SW-DB-${code.toUpperCase()}`} />
-      <Button label="Try again" onPress={onRetry} loading={retrying} />
+      <AppText>{newer ? STORAGE_FAILURE_COPY.newerSchema : STORAGE_FAILURE_COPY.cannotOpen}</AppText>
+      <AppText>{STORAGE_FAILURE_COPY.nothingDeleted}</AppText>
+      {newer ? null : <AppText tone="secondary">{STORAGE_FAILURE_COPY.retryAdvice}</AppText>}
+      <Notice tone="error" title={STORAGE_FAILURE_COPY.noticeTitle} message={storageErrorCode(code)} />
+      <Button label={COMMON_COPY.tryAgain} onPress={onRetry} loading={retrying} />
     </Screen>
   );
 }

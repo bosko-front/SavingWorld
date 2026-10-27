@@ -1,6 +1,6 @@
 import { civilDateParts, type CivilDate } from '@/core/calendar';
 import { formatMoney, type CurrencyMetadata } from '@/core/money';
-import { formatCivilDate } from '@/shared/i18n/locale';
+import { englishDateLocale, formatCivilDate } from '@/shared/i18n/locale';
 
 import { DAILY_POINTS, type SavingsStatistics } from '../domain/savings-statistics';
 
@@ -21,9 +21,13 @@ export const STATISTICS_COPY = {
   changeTitle: 'Net change',
   changeCaption: 'Deposits minus withdrawals in these 30 days, all goals.',
   dailyToggle: 'Daily balances',
-  completedTitle: 'Completed goals',
-  completedDetail: 'Their finished worlds are in Collection.',
+  dailyShowHint: 'Shows the balance at the end of each of the last 30 days.',
+  dailyHideHint: 'Hides the balance of each day.',
+  // Owner-approved V07 (D135): the count is still goals with status completed (R19).
+  completedTitle: 'Finished worlds',
+  completedDetail: 'Your completed worlds live in Collection.',
   completedNone: 'Finish a goal to keep its world in Collection.',
+  completedHint: 'Opens Collection.',
   emptyTitle: 'All your worlds, together',
   emptyMessage: 'Create a goal and record what you save. Every goal’s savings add up here, at a glance.',
   emptyButton: 'Create a goal',
@@ -69,7 +73,7 @@ export function statisticsView(statistics: SavingsStatistics, currency: Currency
   // Intl's signDisplay, which Hermes on iOS ignores (seen on the simulator).
   const signedMoney = (minor: bigint) => (minor > 0n ? `+${money(minor)}` : minor < 0n ? `-${money(-minor)}` : money(0n));
   const date = (value: CivilDate) => formatCivilDate(value, locale);
-  const monthName = new Intl.DateTimeFormat(locale, { timeZone: 'UTC', month: 'long' }).format(monthDate(statistics.month.start));
+  const monthName = new Intl.DateTimeFormat(englishDateLocale(locale), { timeZone: 'UTC', month: 'long' }).format(monthDate(statistics.month.start));
   const deposits = money(statistics.month.depositsMinor);
   const withdrawals = money(statistics.month.withdrawalsMinor);
   const first = statistics.daily[0];
@@ -100,7 +104,7 @@ export function statisticsView(statistics: SavingsStatistics, currency: Currency
 // The chart's points and axes. Each point is a recorded end-of-day balance; nothing between days is
 // drawn as a slope. Numbers become floats only for drawing (Number of an exact bigint up to 10^15).
 export function chartView(statistics: SavingsStatistics, money: (minor: bigint) => string, locale: string): ChartView {
-  const short = new Intl.DateTimeFormat(locale, { timeZone: 'UTC', month: 'short', day: 'numeric' });
+  const short = new Intl.DateTimeFormat(englishDateLocale(locale), { timeZone: 'UTC', month: 'short', day: 'numeric' });
   const full = (value: CivilDate) => formatCivilDate(value, locale);
   const shortDate = (value: CivilDate) => short.format(utcDate(value));
   const balances = statistics.daily.map((point) => point.balanceMinor);

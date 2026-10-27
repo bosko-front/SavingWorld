@@ -1,4 +1,5 @@
-import { StyleSheet, View } from 'react-native';
+import { useEffect } from 'react';
+import { AccessibilityInfo, StyleSheet, View } from 'react-native';
 
 import { borders, colors, radii, spacing } from '@/shared/theme';
 
@@ -19,19 +20,28 @@ type NoticeProps = {
   // States the outcome in words ("Couldn't save"), so meaning never depends on color.
   title: string;
   message?: string;
+  // Speaks the notice once when it appears or its text changes (Phase 19). iOS does not read an
+  // `alert` element by itself, so a form's error after a submit sets this; focus stays where it is.
+  announce?: boolean;
   testID?: string;
 };
 
 // Inline feedback for errors, confirmations and information inside a screen or form.
-export function Notice({ tone, title, message, testID }: NoticeProps) {
+export function Notice({ tone, title, message, announce = false, testID }: NoticeProps) {
   const toneColors = noticeColors[tone];
+  const spoken = message ? `${title}. ${message}` : title;
+  useEffect(() => {
+    if (announce) {
+      AccessibilityInfo.announceForAccessibilityWithOptions(spoken, { queue: true });
+    }
+  }, [announce, spoken]);
   return (
     <View
       testID={testID}
       accessible
       accessibilityRole={tone === 'error' ? 'alert' : 'text'}
-      accessibilityLabel={message ? `${title}. ${message}` : title}
-      style={[styles.container, { backgroundColor: toneColors.surface, borderLeftColor: toneColors.accent }]}>
+      accessibilityLabel={spoken}
+      style={[styles.container, { backgroundColor: toneColors.surface, borderStartColor: toneColors.accent }]}>
       <View style={styles.titleRow}>
         <Icon name={tone} role="headline" tone={toneColors.titleTone} />
         <AppText role="headline" tone={toneColors.titleTone} style={styles.title}>
@@ -49,7 +59,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
     borderRadius: radii.md,
-    borderLeftWidth: borders.emphasis * 2,
+    borderStartWidth: borders.emphasis * 2,
   },
   titleRow: {
     flexDirection: 'row',

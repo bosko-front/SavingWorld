@@ -1,6 +1,6 @@
 import { Link, useIsFocused } from 'expo-router';
-import { useEffect, useReducer, useRef, useState } from 'react';
-import { AccessibilityInfo, Alert, Pressable, StyleSheet, View } from 'react-native';
+import { useEffect, useReducer, useRef, useState, type Ref } from 'react';
+import { AccessibilityInfo, Alert, I18nManager, Pressable, StyleSheet, View, type HostInstance } from 'react-native';
 
 import { accessView, appClock, challengeCommandDeps, refreshAppData, useAccessView, useAppDataStore, useCommittedRead } from '@/bootstrap/app-data';
 import { formatMoney, type CurrencyMetadata } from '@/core/money';
@@ -13,10 +13,12 @@ import { READ_ONLY_COPY } from '@/features/billing/presentation/billing-copy';
 import { stageName, themeManifestAt } from '@/features/worlds/registry';
 import { worldCompleteCopy, worldNoun } from '@/features/worlds/world-copy';
 import { WorldScene, worldArtAspect } from '@/features/worlds/world-scene';
+import { COMMON_COPY } from '@/shared/i18n/common-copy';
 import { deviceLocale, formatCivilDate } from '@/shared/i18n/locale';
 import { Screen } from '@/shared/layout';
 import { borders, colors, layout, radii, spacing } from '@/shared/theme';
 import { AmbientSparkles, type SparkleSpot } from '@/shared/ui/ambient-float';
+import { useAccessibilityFocusOnChange } from '@/shared/ui/accessibility-focus';
 import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
@@ -34,9 +36,14 @@ import type { AttemptView, ChallengeBoard } from '../domain/challenge-rules';
 
 import {
   ACTION_FAILED,
+  CHALLENGES_SCREEN_COPY,
   challengeActionMessage,
+  chooseCaption,
   completedQuestCopy,
+  goalRowLabel,
+  goalSavedCopy,
   historyRowCopy,
+  pastQuestsLabel,
   QUEST_RULES,
   QUEST_TILES,
   type ChallengeAction,
@@ -87,8 +94,8 @@ export function ChallengesScreen() {
 function LoadFailed() {
   return (
     <Screen testID="challenges-load-failed">
-      <Notice tone="error" title="Couldn’t load your quests" message="Nothing was changed. Try again." />
-      <Button label="Try again" onPress={() => void refreshAppData()} testID="challenges-retry" />
+      <Notice tone="error" title={CHALLENGES_SCREEN_COPY.loadFailedTitle} message={COMMON_COPY.nothingChangedTryAgain} />
+      <Button label={COMMON_COPY.tryAgain} onPress={() => void refreshAppData()} testID="challenges-retry" />
     </Screen>
   );
 }
@@ -108,11 +115,11 @@ function NoOpenGoal({ goals, souvenirs, canCreate }: NoOpenGoalProps) {
             <WorldScene themeId="island" stage={0} backdrop="none" decorative />
           </View>
         }
-        title="Quests grow with a goal"
-        message="Create a goal, and three small quests help its world grow."
+        title={CHALLENGES_SCREEN_COPY.emptyTitle}
+        message={CHALLENGES_SCREEN_COPY.emptyMessage}
         testID="challenges-empty">
         <Link href="/goal-form" asChild>
-          <Button label="Create a goal" testID="challenges-new-goal" />
+          <Button label={COMMON_COPY.createGoal} testID="challenges-new-goal" />
         </Link>
       </EmptyState>
     );
@@ -128,20 +135,20 @@ function NoOpenGoal({ goals, souvenirs, canCreate }: NoOpenGoalProps) {
           <WorldScene themeId={finished?.themeId ?? 'island'} stage={finished ? MILESTONE_COUNT : 0} manifest={manifest} backdrop="none" decorative />
         </View>
       }
-      title="Your world is finished"
+      title={CHALLENGES_SCREEN_COPY.finishedTitle}
       message={
         canCreate
-          ? 'Quests are for worlds that are still growing. Start a new goal, or reopen a finished one in Collection.'
-          : 'Quests are for worlds that are still growing. Reopen your goal in Collection to keep saving.'
+          ? CHALLENGES_SCREEN_COPY.finishedMessageCreate
+          : CHALLENGES_SCREEN_COPY.finishedMessageReopen
       }
       testID="challenges-closed">
       {canCreate ? (
         <Link href="/goal-form" asChild>
-          <Button label="Create a goal" testID="challenges-new-goal" />
+          <Button label={COMMON_COPY.createGoal} testID="challenges-new-goal" />
         </Link>
       ) : (
         <Link href="/collection" asChild>
-          <Button label="Open Collection" testID="challenges-open-collection" />
+          <Button label={CHALLENGES_SCREEN_COPY.openCollection} testID="challenges-open-collection" />
         </Link>
       )}
     </EmptyState>
@@ -158,7 +165,7 @@ function GoalQuests({ summary, currency }: GoalQuestsProps) {
     amount: (minor) => formatMoney(minor, currency, { locale }),
     date: (date) => formatCivilDate(date, locale),
   };
-  const world: QuestWorld = { noun: worldNoun(goal.themeId), stageName: (stage) => stageName(goal.themeId, stage) };
+  const world: QuestWorld = { themeId: goal.themeId, noun: worldNoun(goal.themeId), stageName: (stage) => stageName(goal.themeId, stage) };
   const celebrating = useCelebration(goal.id, board.status === 'ready' ? board.value : null, world, format);
   // After a lost Pro entitlement a goal not kept in use starts no quest and adds no savings (Phase 16);
   // its past quests stay. The quests themselves are identical in Free and Pro.
@@ -173,7 +180,7 @@ function GoalQuests({ summary, currency }: GoalQuestsProps) {
   if (!board.value) {
     return (
       <Screen testID="challenges">
-        <Notice tone="info" title="Goal not found" message="Go to Home and choose a goal." />
+        <Notice tone="info" title={CHALLENGES_SCREEN_COPY.goalNotFoundTitle} message={CHALLENGES_SCREEN_COPY.goalNotFoundMessage} />
       </Screen>
     );
   }
@@ -184,7 +191,7 @@ function GoalQuests({ summary, currency }: GoalQuestsProps) {
     <Screen testID="challenges">
       {complete ? <CompleteWorld summary={summary} /> : <GoalHeader summary={summary} format={format} />}
       {goal.status === 'paused' ? (
-        <Notice tone="info" title="This goal is paused" message="Quests still count your savings. Resume it on Home." testID="challenges-paused" />
+        <Notice tone="info" title={CHALLENGES_SCREEN_COPY.pausedTitle} message={CHALLENGES_SCREEN_COPY.pausedMessage} testID="challenges-paused" />
       ) : null}
       {use !== 'usable' ? (
         <Notice
@@ -204,9 +211,9 @@ function GoalQuests({ summary, currency }: GoalQuestsProps) {
 // The goal the quests belong to: its world as it is now, its name and saved amount.
 function GoalHeader({ summary, format }: { summary: GoalSummary; format: QuestFormatters }) {
   const { goal } = summary;
-  const saved = `${format.amount(summary.balanceMinor)} of ${format.amount(goal.targetMinor)}`;
+  const saved = goalSavedCopy(format.amount(summary.balanceMinor), format.amount(goal.targetMinor));
   return (
-    <View style={styles.goalRow} accessible accessibilityLabel={`${goal.title}. ${saved} saved.`} testID="challenges-goal">
+    <View style={styles.goalRow} accessible accessibilityLabel={goalRowLabel(goal.title, saved)} testID="challenges-goal">
       <View style={[styles.goalWorld, { aspectRatio: worldArtAspect(goal.themeId) }]}>
         <WorldScene themeId={goal.themeId} stage={stageFor(summary.balanceMinor, goal.targetMinor)} decorative />
       </View>
@@ -245,11 +252,11 @@ function CompleteWorld({ summary }: { summary: GoalSummary }) {
           {copy.title}
         </AppText>
         <AppText tone="secondary" style={styles.centered}>
-          Every quest for this goal is done. Finish it on Home when you’re ready.
+          {CHALLENGES_SCREEN_COPY.completeDetail}
         </AppText>
       </View>
       <Link href="/" asChild>
-        <Button label="Go to Home" testID="challenges-go-home" />
+        <Button label={CHALLENGES_SCREEN_COPY.goHome} testID="challenges-go-home" />
       </Link>
     </View>
   );
@@ -292,11 +299,11 @@ function useCelebration(goalId: string, board: ChallengeBoard | null, world: Que
 }
 
 // A section heading with the info button that opens the full quest rules (D105).
-function QuestHeading({ title, caption }: { title: string; caption: string }) {
+function QuestHeading({ title, caption, titleRef }: { title: string; caption: string; titleRef?: Ref<HostInstance> }) {
   return (
     <View style={styles.headingRow}>
       <View style={styles.headingText}>
-        <AppText role="headline" accessibilityRole="header">
+        <AppText role="headline" accessibilityRole="header" ref={titleRef}>
           {title}
         </AppText>
         <AppText role="footnote" tone="secondary">
@@ -358,7 +365,7 @@ function QuestBoard({ board, summary, world, format }: QuestBoardProps) {
     operations.current.delete(key);
     setChosen(null);
     // Calm in-place confirmation, announced to VoiceOver; no haptic for Start or Skip.
-    showToast({ tone: 'info', title: action === 'start' ? 'Quest started' : 'Quest skipped' });
+    showToast({ tone: 'info', title: action === 'start' ? CHALLENGES_SCREEN_COPY.started : CHALLENGES_SCREEN_COPY.skipped });
   };
 
   const start = (ruleId: ChallengeRuleId) =>
@@ -368,15 +375,19 @@ function QuestBoard({ board, summary, world, format }: QuestBoardProps) {
     if (inFlight.current) {
       return;
     }
-    Alert.alert('Skip this quest?', 'It moves to Past quests, and you can choose another one right away.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(CHALLENGES_SCREEN_COPY.skipTitle, CHALLENGES_SCREEN_COPY.skipMessage, [
+      { text: COMMON_COPY.cancel, style: 'cancel' },
       {
-        text: 'Skip',
+        text: CHALLENGES_SCREEN_COPY.skip,
         onPress: () =>
           void run('skip', `skip:${attempt.id}`, attempt.ruleId, (id) => skipChallenge(challengeCommandDeps(), { operationId: id, attemptId: attempt.id })),
       },
     ]);
   };
+
+  // After Start (or Skip, or a quest that ends) the cards are replaced, so VoiceOver moves to the
+  // new section's heading instead of staying on a removed card (Phase 19).
+  const headingRef = useAccessibilityFocusOnChange(board.current?.id ?? null);
 
   const choose = (ruleId: ChallengeRuleId) => {
     if (ruleId !== selected) {
@@ -389,13 +400,13 @@ function QuestBoard({ board, summary, world, format }: QuestBoardProps) {
     const current = board.current;
     return (
       <View style={styles.section}>
-        <QuestHeading title="Your quest" caption="Finish or skip it to choose another." />
+        <QuestHeading title={CHALLENGES_SCREEN_COPY.currentTitle} caption={CHALLENGES_SCREEN_COPY.currentCaption} titleRef={headingRef} />
         <CurrentQuestCard attempt={current} world={world} format={format} />
         <Link href={{ pathname: '/entry-form', params: { goalId: goal.id, from: 'challenges' } }} asChild>
-          <Button label="Add savings" icon="add" disabled={pending !== null} testID="challenges-add-savings" />
+          <Button label={COMMON_COPY.addSavings} icon="add" disabled={pending !== null} testID="challenges-add-savings" />
         </Link>
         <Button
-          label="Skip this quest"
+          label={CHALLENGES_SCREEN_COPY.skipQuest}
           variant="plain"
           centered
           onPress={() => confirmSkip(current)}
@@ -409,7 +420,7 @@ function QuestBoard({ board, summary, world, format }: QuestBoardProps) {
 
   return (
     <View style={styles.section}>
-      <QuestHeading title="Choose a quest" caption={`Pick one to help your ${world.noun} grow.`} />
+      <QuestHeading title={CHALLENGES_SCREEN_COPY.chooseTitle} caption={chooseCaption(world.noun)} titleRef={headingRef} />
       <View style={styles.offers} accessibilityRole="radiogroup" testID="quest-offers">
         {board.offers.map((offer) => (
           <OfferCard
@@ -446,13 +457,13 @@ function PastQuests({ history, world, format }: { history: AttemptView[]; world:
       <Pressable
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}
-        accessibilityLabel={`Past quests, ${history.length}`}
-        accessibilityHint={open ? 'Hides your past quests.' : 'Shows your past quests.'}
+        accessibilityLabel={pastQuestsLabel(history.length)}
+        accessibilityHint={open ? CHALLENGES_SCREEN_COPY.pastQuestsHideHint : CHALLENGES_SCREEN_COPY.pastQuestsShowHint}
         onPress={() => setOpen((value) => !value)}
         style={({ pressed }) => [styles.historyToggle, pressed && styles.pressed]}
         testID="quest-history-toggle">
         <AppText role="headline" style={styles.headingText}>
-          Past quests
+          {CHALLENGES_SCREEN_COPY.pastQuests}
         </AppText>
         <AppText tone="secondary">{String(history.length)}</AppText>
         <View style={open ? styles.chevronOpen : undefined}>
@@ -547,9 +558,11 @@ const styles = StyleSheet.create({
     minHeight: layout.minTouchTarget,
     paddingTop: spacing.sm,
   },
+  // SF Symbols mirror chevron.right in right-to-left layouts, so it turns the other way there.
   chevronOpen: {
-    transform: [{ rotate: '90deg' }],
+    transform: [{ rotate: I18nManager.isRTL ? '-90deg' : '90deg' }],
   },
+
   pressed: {
     opacity: 0.7,
   },

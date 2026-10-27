@@ -3,6 +3,7 @@ import { Stack } from 'expo-router/stack';
 
 import { stackScreenOptions } from '@/shared/theme';
 import { HeaderIconButton } from '@/shared/ui/header-button';
+import { SCREEN_TITLES } from '@/shared/i18n/navigation-copy';
 
 export const unstable_settings = {
   anchor: 'index',
@@ -19,7 +20,7 @@ export default function HomeStackLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: SCREEN_TITLES.home,
           headerTitle: '',
           headerLargeTitleEnabled: false,
           headerTransparent: true,
@@ -27,17 +28,18 @@ export default function HomeStackLayout() {
           headerRight: () => <SettingsButton />,
         }}
       />
-      <Stack.Screen name="details" options={{ title: 'Details', headerLargeTitleEnabled: false }} />
-      <Stack.Screen name="settings" options={{ title: 'Settings', headerLargeTitleEnabled: false }} />
-      <Stack.Screen name="history" options={{ title: 'History', headerLargeTitleEnabled: false }} />
+      <Stack.Screen name="settings" options={{ title: SCREEN_TITLES.settings, headerLargeTitleEnabled: false }} />
+      <Stack.Screen name="history" options={{ title: SCREEN_TITLES.history, headerLargeTitleEnabled: false }} />
       {/* Phase 18: the one Pro Statistics screen ("your savings at a glance", D97). */}
       <Stack.Screen
         name="statistics"
-        options={{ title: 'Savings insights', headerLargeTitleEnabled: false, headerBackButtonDisplayMode: 'minimal' }}
+        options={{ title: SCREEN_TITLES.statistics, headerLargeTitleEnabled: false, headerBackButtonDisplayMode: 'minimal' }}
       />
       {/* Development/test-only gallery and layout lab. Unreachable in release builds (__DEV__ false).
           The native database runner is a root route (src/app/dev-db.tsx). */}
       <Stack.Protected guard={__DEV__}>
+        {/* The layout lab's pushed sample screen (Phase 03). */}
+        <Stack.Screen name="details" options={{ title: 'Details', headerLargeTitleEnabled: false }} />
         <Stack.Screen name="dev-gallery" options={{ title: 'Component gallery', headerLargeTitleEnabled: false }} />
         <Stack.Screen name="dev-layout" options={{ title: 'Layout lab', headerLargeTitleEnabled: false }} />
         <Stack.Screen name="dev-home" options={{ title: 'Home directions', headerLargeTitleEnabled: false }} />
@@ -56,7 +58,7 @@ export default function HomeStackLayout() {
 function SettingsButton() {
   return (
     <Link href="/settings" asChild>
-      <HeaderIconButton icon="settings" accessibilityLabel="Settings" testID="home-settings" />
+      <HeaderIconButton icon="settings" accessibilityLabel={SCREEN_TITLES.settings} testID="home-settings" />
     </Link>
   );
 }

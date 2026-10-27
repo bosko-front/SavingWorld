@@ -17,7 +17,7 @@ import type { AttemptView, UnavailableReason } from '@/features/challenges/domai
 // world; neutral history; never "failed", never new money).
 
 const names: Partial<Record<Stage, string>> = { 1: 'First tree', 6: 'Pond', 9: 'Final decorations' };
-const island: QuestWorld = { noun: 'island', stageName: (stage) => names[stage] ?? null };
+const island: QuestWorld = { themeId: 'island', noun: 'island', stageName: (stage) => names[stage] ?? null };
 // A civil date from its text, for fixtures.
 const day = (text: string) => text as CivilDate;
 const format: QuestFormatters = { amount: (minor) => `€${(minor / 100).toFixed(2)}`, date: (date) => date };

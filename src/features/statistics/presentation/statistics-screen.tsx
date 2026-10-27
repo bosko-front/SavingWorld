@@ -1,9 +1,10 @@
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, I18nManager, Pressable, StyleSheet, View } from 'react-native';
 
 import { accessView, refreshAppData, useAppDataStore, useCommittedRead } from '@/bootstrap/app-data';
 import { canOpenStatistics } from '@/core/access';
+import { COMMON_COPY } from '@/shared/i18n/common-copy';
 import { deviceLocale } from '@/shared/i18n/locale';
 import { Screen, useFontScale } from '@/shared/layout';
 import { borders, colors, layout, radii, spacing } from '@/shared/theme';
@@ -52,8 +53,8 @@ export function StatisticsScreen() {
       <Screen>
         <Notice
           tone="error"
-          title="Your currency can’t be read"
-          message="The saved currency doesn’t match this version of the app. Nothing was changed. Update Saving Worlds to continue."
+          title={COMMON_COPY.currencyUnreadableTitle}
+          message={COMMON_COPY.currencyUnreadableMessage}
         />
       </Screen>
     );
@@ -133,7 +134,7 @@ export function StatisticsGlance({ view }: { view: StatisticsView }) {
           chevron
           onPress={() => router.navigate('/collection')}
           accessibilityLabel={view.completed.spoken}
-          accessibilityHint="Opens Collection."
+          accessibilityHint={STATISTICS_COPY.completedHint}
           testID="statistics-completed-row"
         />
       </ListGroup>
@@ -201,7 +202,7 @@ function DailyBalances({ days }: { days: StatisticsView['days'] }) {
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}
         accessibilityLabel={STATISTICS_COPY.dailyToggle}
-        accessibilityHint={open ? 'Hides the balance of each day.' : 'Shows the balance at the end of each of the last 30 days.'}
+        accessibilityHint={open ? STATISTICS_COPY.dailyHideHint : STATISTICS_COPY.dailyShowHint}
         onPress={() => setOpen((value) => !value)}
         style={({ pressed }) => [styles.toggle, pressed && styles.pressed]}
         testID="statistics-daily-toggle">
@@ -323,7 +324,8 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   chevronOpen: {
-    transform: [{ rotate: '90deg' }],
+    // SF Symbols mirror chevron.right in right-to-left layouts, so it turns the other way there.
+    transform: [{ rotate: I18nManager.isRTL ? '-90deg' : '90deg' }],
   },
   pressed: {
     opacity: 0.6,

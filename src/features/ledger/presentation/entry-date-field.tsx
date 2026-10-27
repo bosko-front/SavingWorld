@@ -10,6 +10,8 @@ import { Icon } from '@/shared/ui/icon';
 import { IconTile } from '@/shared/ui/icon-tile';
 import { ListCell } from '@/shared/ui/list-row';
 
+import { ENTRY_FIELD_COPY } from './ledger-copy';
+
 type EntryDateFieldProps = {
   value: CivilDate;
   onChange: (value: CivilDate) => void;
@@ -29,14 +31,14 @@ export function EntryDateField({ value, onChange, today, error }: EntryDateField
       <View style={styles.row}>
         <IconTile name="calendar" color="red" />
         <View style={styles.text}>
-          <AppText accessibilityElementsHidden>Date</AppText>
+          <AppText accessibilityElementsHidden>{ENTRY_FIELD_COPY.date}</AppText>
           <AppText role="footnote" tone="secondary" testID="entry-date-summary">
-            {isToday ? 'Today' : 'Counts in date order'}
+            {isToday ? ENTRY_FIELD_COPY.today : ENTRY_FIELD_COPY.dateOrder}
           </AppText>
         </View>
         <Host matchContents colorScheme="light" seedColor={colors.actionPrimary} testID="entry-date-picker">
           <DatePicker
-            title="Date"
+            title={ENTRY_FIELD_COPY.date}
             selection={civilDateToLocalDate(value)}
             range={{ end: civilDateToLocalDate(today) }}
             displayedComponents={['date']}
@@ -49,7 +51,7 @@ export function EntryDateField({ value, onChange, today, error }: EntryDateField
         </Host>
       </View>
       {error ? (
-        <View style={styles.errorRow} accessible accessibilityRole="alert" accessibilityLabel={`Error: ${error}`} testID="entry-date-error">
+        <View style={styles.errorRow} accessible accessibilityRole="alert" accessibilityLabel={ENTRY_FIELD_COPY.errorLabel(error)} testID="entry-date-error">
           <Icon name="error" role="footnote" tone="error" />
           <AppText role="footnote" tone="error" style={styles.errorText}>
             {error}

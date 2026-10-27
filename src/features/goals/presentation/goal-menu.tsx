@@ -6,7 +6,7 @@ import type { GoalSummary } from '@/data/repositories/goal-repository';
 import { colors, spacing } from '@/shared/theme';
 import { ICON_SYMBOLS } from '@/shared/ui/icon';
 
-import { DELETE_COPY, LIFECYCLE_COPY } from './goal-copy';
+import { GOAL_MENU_COPY, LIFECYCLE_COPY } from './goal-copy';
 import type { useGoalAction } from './use-goal-action';
 
 type GoalMenuProps = {
@@ -39,7 +39,6 @@ export function GoalMenu({ summary, funded, use, busy, run, onDelete, statistics
   const { goal } = summary;
   const paused = goal.status === 'paused';
   const lifecycle = paused ? 'resume' : 'pause';
-  const entries = summary.entryCount === 1 ? '1 entry' : `${summary.entryCount} entries`;
 
   const editable = use === 'usable';
   const statusChanges = use !== 'read_only';
@@ -48,27 +47,27 @@ export function GoalMenu({ summary, funded, use, busy, run, onDelete, statistics
     // The padding modifier gives the SwiftUI menu button a 44 pt touch area around its glyph.
     <Host matchContents colorScheme="light" testID="home-goal-menu">
       <Menu
-        label="Goal options"
+        label={GOAL_MENU_COPY.label}
         systemImage={ICON_SYMBOLS.more}
         modifiers={[labelStyle('iconOnly'), imageScale('large'), padding({ all: spacing.sm }), tint(colors.actionPrimary), disabled(busy)]}>
         <Button
-          label={summary.entryCount === 0 ? 'History' : `History (${entries})`}
+          label={GOAL_MENU_COPY.history(summary.entryCount)}
           systemImage={ICON_SYMBOLS.history}
           onPress={() => router.push({ pathname: '/history', params: { goalId: goal.id } })}
         />
         {statistics ? (
-          <Button label="Savings insights" systemImage={ICON_SYMBOLS.statistics} onPress={() => router.push('/statistics')} />
+          <Button label={GOAL_MENU_COPY.statistics} systemImage={ICON_SYMBOLS.statistics} onPress={() => router.push('/statistics')} />
         ) : null}
         {editable ? (
           <Button
-            label="Edit goal"
+            label={GOAL_MENU_COPY.edit}
             systemImage={ICON_SYMBOLS.edit}
             onPress={() => router.push({ pathname: '/goal-form', params: { goalId: goal.id } })}
           />
         ) : null}
         {statusChanges ? (
           <Button
-            label="Change world"
+            label={GOAL_MENU_COPY.changeWorld}
             systemImage={ICON_SYMBOLS.switchWorld}
             onPress={() => router.push({ pathname: '/theme-picker', params: { goalId: goal.id } })}
           />
@@ -80,9 +79,9 @@ export function GoalMenu({ summary, funded, use, busy, run, onDelete, statistics
           <Button label={LIFECYCLE_COPY.finish.label} systemImage={ICON_SYMBOLS.finish} onPress={() => void run('finish', goal)} />
         ) : null}
         <Divider />
-        <Button label="New goal" systemImage={ICON_SYMBOLS.add} onPress={() => router.push('/goal-form')} />
+        <Button label={GOAL_MENU_COPY.newGoal} systemImage={ICON_SYMBOLS.add} onPress={() => router.push('/goal-form')} />
         <Divider />
-        <Button label={`${DELETE_COPY.label}…`} systemImage={ICON_SYMBOLS.delete} role="destructive" onPress={onDelete} />
+        <Button label={GOAL_MENU_COPY.delete} systemImage={ICON_SYMBOLS.delete} role="destructive" onPress={onDelete} />
       </Menu>
     </Host>
   );

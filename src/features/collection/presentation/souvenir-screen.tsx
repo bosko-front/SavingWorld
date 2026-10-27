@@ -11,6 +11,7 @@ import { useDeleteGoal } from '@/features/goals/presentation/use-delete-goal';
 import { useGoalAction } from '@/features/goals/presentation/use-goal-action';
 import { themeManifestAt } from '@/features/worlds/registry';
 import { WorldScene, worldArtAspect } from '@/features/worlds/world-scene';
+import { SCREEN_TITLES } from '@/shared/i18n/navigation-copy';
 import { AdaptiveGoalLayout, Screen } from '@/shared/layout';
 import { colors, spacing } from '@/shared/theme';
 import { AmbientSparkles, type SparkleSpot } from '@/shared/ui/ambient-float';
@@ -21,6 +22,7 @@ import { ListGroup, ListRow } from '@/shared/ui/list-row';
 import { Notice } from '@/shared/ui/notice';
 import { StatusBadge } from '@/shared/ui/status-badge';
 
+import { reopenHint, savedSentence, SOUVENIR_COPY } from './collection-copy';
 import { collectionEntries, souvenirDetail } from './collection-model';
 
 // One goal in Collection (Phase 11; summary simplified by the owner, D112): the finished world as it
@@ -54,8 +56,8 @@ export function SouvenirScreen({ goalId }: { goalId: string }) {
   if (!entry) {
     return (
       <Screen testID="souvenir">
-        <Stack.Screen options={{ title: 'Souvenir' }} />
-        <Notice tone="info" title="Not in Collection" message="This goal was deleted or hasn’t reached its target yet." />
+        <Stack.Screen options={{ title: SCREEN_TITLES.souvenir }} />
+        <Notice tone="info" title={SOUVENIR_COPY.notFoundTitle} message={SOUVENIR_COPY.notFoundMessage} />
       </Screen>
     );
   }
@@ -73,7 +75,7 @@ export function SouvenirScreen({ goalId }: { goalId: string }) {
         style={styles.hero}
         accessible
         // Each part is one sentence; the friendly line already ends with its own period.
-        accessibilityLabel={[detail.openStatus?.label, detail.headline, detail.keepLine, `Saved ${detail.saved}`]
+        accessibilityLabel={[detail.openStatus?.label, detail.headline, detail.keepLine, savedSentence(detail.saved)]
           .filter((part): part is string => Boolean(part))
           .map((part) => part.replace(/\.$/, ''))
           .join('. ')}
@@ -94,20 +96,20 @@ export function SouvenirScreen({ goalId }: { goalId: string }) {
         ) : null}
         <View style={styles.amount}>
           <AmountText formatted={detail.saved} size="display" testID="souvenir-saved" />
-          <AppText tone="secondary">saved</AppText>
+          <AppText tone="secondary">{SOUVENIR_COPY.saved}</AppText>
         </View>
       </View>
 
       <ListGroup testID="souvenir-facts">
-        {detail.earnedOn ? <ListRow icon="souvenir" iconColor="honey" title="Earned" value={detail.earnedOn} testID="souvenir-earned" /> : null}
+        {detail.earnedOn ? <ListRow icon="souvenir" iconColor="honey" title={SOUVENIR_COPY.earned} value={detail.earnedOn} testID="souvenir-earned" /> : null}
         {detail.targetThen ? (
-          <ListRow icon="finish" title="Target when completed" value={detail.targetThen} testID="souvenir-target-then" />
+          <ListRow icon="finish" title={SOUVENIR_COPY.targetThen} value={detail.targetThen} testID="souvenir-target-then" />
         ) : null}
         {detail.targetNow ? (
           <ListRow
             icon="milestone"
             iconColor="neutral"
-            title={detail.targetThen ? 'Target now' : 'Target'}
+            title={detail.targetThen ? SOUVENIR_COPY.targetNow : SOUVENIR_COPY.target}
             value={detail.targetNow}
             testID="souvenir-target-now"
           />
@@ -120,11 +122,11 @@ export function SouvenirScreen({ goalId }: { goalId: string }) {
             title={LIFECYCLE_COPY.reopen.label}
             icon="reopen"
             // After a lost Pro entitlement only the goal kept in use can reopen (Phase 16, D74).
-            detail={reopenable ? 'Edit it or record savings again.' : 'Read-only until Pro returns.'}
+            detail={reopenable ? SOUVENIR_COPY.reopenDetail : SOUVENIR_COPY.readOnlyDetail}
             onPress={() => void action.run('reopen', goal)}
             loading={action.pending?.goalId === goal.id}
             disabled={busy || !reopenable}
-            accessibilityHint={`Makes ${goal.title} an open goal again.`}
+            accessibilityHint={reopenHint(goal.title)}
             testID={`reopen-${goal.id}`}
           />
           <ListRow
@@ -134,7 +136,7 @@ export function SouvenirScreen({ goalId }: { goalId: string }) {
             onPress={() => confirmDelete(goal)}
             loading={deleting === goal.id}
             disabled={busy}
-            accessibilityHint="Asks before deleting the goal, its history and this souvenir."
+            accessibilityHint={SOUVENIR_COPY.deleteHint}
             testID={`delete-${goal.id}`}
           />
         </ListGroup>

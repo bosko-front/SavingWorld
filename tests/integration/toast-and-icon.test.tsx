@@ -119,6 +119,8 @@ describe('Icon', () => {
       switchWorld: 'arrow.triangle.2.circlepath',
       statistics: 'chart.line.uptrend.xyaxis',
       restore: 'arrow.clockwise',
+      privacy: 'hand.raised',
+      support: 'questionmark.circle',
     });
   });
 

@@ -13,10 +13,10 @@ import { PaywallScreen } from '@/features/billing/presentation/paywall-screen';
 import { READ_ONLY_COPY } from '@/features/billing/presentation/billing-copy';
 import { ThemeCards } from '@/features/worlds/presentation/theme-cards';
 import { THEME_PICKER_COPY, themeName } from '@/features/worlds/presentation/theme-copy';
+import { COMMON_COPY } from '@/shared/i18n/common-copy';
 import { deviceSeparators } from '@/shared/i18n/locale';
 import { FormScreen } from '@/shared/layout';
 import { spacing } from '@/shared/theme';
-import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
 import { haptics } from '@/shared/ui/haptics';
 import { ListGroup, ListRow } from '@/shared/ui/list-row';
@@ -29,7 +29,7 @@ import { createGoal, editGoal } from '../application/goal-commands';
 import { selectGoal } from '../application/goal-selection';
 
 import { DeadlineField } from './deadline-field';
-import { amountMessage, goalCommandMessage, type GoalFormField } from './goal-copy';
+import { amountMessage, GOAL_FORM_COPY, goalCommandMessage, type GoalFormField } from './goal-copy';
 
 // Create/Edit Goal (v1.2 sections 2 and 6): name, positive target, optional deadline and the
 // available world. The currency is read-only information from the global setting, never a field.
@@ -68,7 +68,7 @@ export function GoalFormScreen({ goalId }: { goalId: string | null }) {
   if (!currency) {
     return (
       <FormScreen>
-        <Notice tone="error" title="No currency yet" message="Choose a currency in Settings before creating a goal." />
+        <Notice tone="error" title={GOAL_FORM_COPY.noCurrencyTitle} message={GOAL_FORM_COPY.noCurrencyMessage} />
       </FormScreen>
     );
   }
@@ -83,7 +83,7 @@ export function GoalFormScreen({ goalId }: { goalId: string | null }) {
     const locked = access.use(goal) === 'theme_locked';
     return (
       <FormScreen>
-        <Stack.Screen options={{ title: 'Edit goal' }} />
+        <Stack.Screen options={{ title: GOAL_FORM_COPY.editTitle }} />
         <Notice
           tone="info"
           title={READ_ONLY_COPY.badge}
@@ -103,11 +103,11 @@ export function GoalFormScreen({ goalId }: { goalId: string | null }) {
   if (goalId !== null && (!goal || !isOpenStatus(goal.status))) {
     return (
       <FormScreen>
-        <Stack.Screen options={{ title: 'Edit goal' }} />
+        <Stack.Screen options={{ title: GOAL_FORM_COPY.editTitle }} />
         <Notice
           tone="info"
-          title={goal ? 'This goal is closed' : 'Goal not found'}
-          message={goal ? 'Closed goals are read-only. Reopen it from Collection to make changes.' : 'Close this form and try again.'}
+          title={goal ? GOAL_FORM_COPY.closedTitle : GOAL_FORM_COPY.notFoundTitle}
+          message={goal ? GOAL_FORM_COPY.closedMessage : GOAL_FORM_COPY.notFoundMessage}
         />
       </FormScreen>
     );
@@ -184,18 +184,18 @@ function GoalForm({ currency, goal, access, unlocked }: GoalFormProps) {
     }
     await refreshAppData();
     router.back();
-    showToast({ tone: 'success', title: editing ? 'Goal saved' : 'Goal created' });
+    showToast({ tone: 'success', title: editing ? GOAL_FORM_COPY.saved : GOAL_FORM_COPY.created });
     haptics.success();
   };
 
   return (
     <FormScreen testID="goal-form">
-      <Stack.Screen options={{ title: editing ? 'Edit goal' : 'New goal' }} />
-      {unlocked ? <Notice tone="success" title="Pro is unlocked" message="Name your next goal and its world starts growing." testID="goal-form-unlocked" /> : null}
-      {formError ? <Notice tone="error" title="Not saved" message={formError} testID="goal-form-error" /> : null}
+      <Stack.Screen options={{ title: editing ? GOAL_FORM_COPY.editTitle : GOAL_FORM_COPY.newTitle }} />
+      {unlocked ? <Notice tone="success" title={GOAL_FORM_COPY.unlockedTitle} message={GOAL_FORM_COPY.unlockedMessage} announce testID="goal-form-unlocked" /> : null}
+      {formError ? <Notice tone="error" title={COMMON_COPY.notSaved} message={formError} announce testID="goal-form-error" /> : null}
       <TextField
-        label="Goal name"
-        placeholder="For example “Summer trip”"
+        label={GOAL_FORM_COPY.nameLabel}
+        placeholder={GOAL_FORM_COPY.namePlaceholder}
         value={title}
         onChangeText={setTitle}
         error={errors.title}
@@ -207,14 +207,14 @@ function GoalForm({ currency, goal, access, unlocked }: GoalFormProps) {
       />
       <TextField
         variant="amount"
-        label="Target"
-        accessibilityLabel={`Target amount (${currency.code})`}
+        label={GOAL_FORM_COPY.targetLabel}
+        accessibilityLabel={GOAL_FORM_COPY.targetSpoken(currency.code)}
         suffix={currency.code}
         placeholder="0"
         value={targetText}
         onChangeText={setTargetText}
         error={errors.target}
-        hint={`Every goal uses ${currency.code} – ${currency.name}, set in Settings.`}
+        hint={GOAL_FORM_COPY.targetHint(currency.code, currency.name)}
         keyboardType={currency.exponent === 0 ? 'number-pad' : 'decimal-pad'}
         inputRef={targetRef}
         testID="goal-target"
@@ -259,13 +259,11 @@ function GoalForm({ currency, goal, access, unlocked }: GoalFormProps) {
           />
         </View>
       )}
-      {errors.theme ? (
-        <AppText role="footnote" tone="error">
-          {errors.theme}
-        </AppText>
-      ) : null}
-      <Button label={editing ? 'Save changes' : 'Create goal'} onPress={() => void save()} loading={saving} testID="goal-save" />
-      <Button label="Cancel" variant="plain" centered onPress={() => router.back()} disabled={saving} testID="goal-cancel" />
+      {/* The world choice has no text field to carry its error, so it is an inline error notice,
+          spoken when it appears (Phase 19). */}
+      {errors.theme ? <Notice tone="error" title={errors.theme} announce testID="goal-theme-error" /> : null}
+      <Button label={editing ? GOAL_FORM_COPY.saveChanges : GOAL_FORM_COPY.create} onPress={() => void save()} loading={saving} testID="goal-save" />
+      <Button label={COMMON_COPY.cancel} variant="plain" centered onPress={() => router.back()} disabled={saving} testID="goal-cancel" />
     </FormScreen>
   );
 }

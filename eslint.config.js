@@ -27,6 +27,38 @@ const styleGuardrails = [
   },
 ];
 
+// English catalog (Phase 19, docs/UI_UX_GUIDELINES.md "Accessibility and localization"): visible
+// text and spoken names live in the features' *-copy.ts modules and src/shared/i18n, never inline
+// in a component. Applied to .tsx files outside the development-only tools.
+const TEXT_PROPS =
+  '/^(label|title|message|detail|caption|placeholder|hint|value|text|accessibilityLabel|accessibilityHint|accessibilityValue|infoTitle|infoMessage|description)$/';
+const WORDS = '/[A-Za-z]{2}/';
+const CATALOG_MESSAGE = 'Put visible text and spoken names in the feature copy module (*-copy.ts) or src/shared/i18n (English catalog).';
+// A string written as text, or as either branch of a short condition, directly in a JSX child or a
+// text prop. Arguments of a function call (copy helpers) and testIDs are not text.
+function inlineText(context) {
+  return [
+    `${context} > Literal[value=${WORDS}]`,
+    `${context} > TemplateLiteral > TemplateElement[value.raw=${WORDS}]`,
+    `${context} > ConditionalExpression > Literal[value=${WORDS}]`,
+    `${context} > ConditionalExpression > TemplateLiteral > TemplateElement[value.raw=${WORDS}]`,
+    `${context} > LogicalExpression > Literal[value=${WORDS}]`,
+    `${context} > ObjectExpression > Property[key.name='text'] > Literal[value=${WORDS}]`,
+    `${context} > ObjectExpression > Property[key.name='text'] > TemplateLiteral > TemplateElement[value.raw=${WORDS}]`,
+  ];
+}
+const catalogGuardrails = [
+  `JSXText[value=${WORDS}]`,
+  `JSXAttribute[name.name=${TEXT_PROPS}] > Literal[value=${WORDS}]`,
+  ...inlineText(`JSXAttribute[name.name=${TEXT_PROPS}] > JSXExpressionContainer`),
+  ...inlineText('JSXElement > JSXExpressionContainer'),
+  `CallExpression[callee.name='showToast'] Property[key.name=/^(title|message)$/] > Literal[value=${WORDS}]`,
+  `CallExpression[callee.name='showToast'] Property[key.name=/^(title|message)$/] > TemplateLiteral > TemplateElement[value.raw=${WORDS}]`,
+  `CallExpression[callee.object.name='Alert'] > Literal[value=${WORDS}]`,
+  `CallExpression[callee.object.name='Alert'] > TemplateLiteral > TemplateElement[value.raw=${WORDS}]`,
+  `CallExpression[callee.object.name='Alert'] Property[key.name='text'] > Literal[value=${WORDS}]`,
+].map((selector) => ({ selector, message: CATALOG_MESSAGE }));
+
 // Imports restricted across src/**. Window geometry and the native adaptive container belong to the
 // shared layout layer (docs/ADAPTIVE_LAYOUT.md); `layoutOwner` relaxes only those two entries.
 // SQLite belongs to the data layer (docs/ARCHITECTURE.md): only src/data/db talks to expo-sqlite.
@@ -133,6 +165,12 @@ module.exports = defineConfig([
       'no-restricted-syntax': ['error', ...styleGuardrails],
       'no-restricted-imports': restrictedImports({ layoutOwner: false }),
     },
+  },
+  {
+    files: ['src/**/*.tsx'],
+    // Development-only tools and the layout lab's sample screens are not part of the product.
+    ignores: ['src/dev/**', 'src/app/dev-*.tsx', 'src/app/**/dev-*.tsx', 'src/app/sample-form.tsx', 'src/app/(tabs)/(home)/details.tsx'],
+    rules: { 'no-restricted-syntax': ['error', ...styleGuardrails, ...catalogGuardrails] },
   },
   {
     // The layout layer reads live window metrics and owns the native arrangement adapter; the

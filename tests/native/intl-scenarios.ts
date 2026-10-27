@@ -25,6 +25,8 @@ export const INTL_SCENARIOS: Scenario[] = [
         kwd: formatMoney(1_250, code('KWD'), { locale: 'en-US' }),
         iqd: formatMoney(1_250_000, code('IQD'), { locale: 'en-US' }),
         eurSigned: formatMoney(-500, code('EUR'), { locale: 'en-US', signDisplay: 'exceptZero' }),
+        // Phase 19: Hermes ignores Intl signDisplay, so formatMoney places the plus itself.
+        eurPlus: formatMoney(500, code('EUR'), { locale: 'en-US', signDisplay: 'exceptZero' }),
       };
       equal(digits(samples.eurMax), '999999999999', 'EUR 9,999,999,999.99 digits');
       equal(decimals(samples.eurMax), 2, 'EUR decimals');
@@ -34,6 +36,7 @@ export const INTL_SCENARIOS: Scenario[] = [
       equal([digits(samples.kwd), decimals(samples.kwd)], ['1250', 3], 'KWD three decimals');
       equal([digits(samples.iqd), decimals(samples.iqd)], ['1250000', 3], 'IQD uses the registry exponent 3');
       equal(samples.eurSigned.includes('-') || samples.eurSigned.includes('−'), true, 'explicit minus sign');
+      equal(samples.eurPlus, '+€5.00', 'explicit plus sign on a deposit');
 
       const engineLocale = new Intl.NumberFormat().resolvedOptions().locale;
       const separators = separatorsForLocale(engineLocale);

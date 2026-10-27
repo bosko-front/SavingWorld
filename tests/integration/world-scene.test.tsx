@@ -175,7 +175,11 @@ describe('WorldScene', () => {
     await measure(400, 300);
     expect(shownLayers()).toEqual([]);
     expect(screen.getByTestId('world-scene-fallback')).toHaveTextContent(/Your world can’t be shown right now/);
-    expect(screen.getByTestId('world-scene')).toHaveAccessibleName('Island world can’t be shown, 3 of 10 milestones unlocked');
+    // The region is not one image in the fallback, so VoiceOver reaches the message and Try again.
+    expect(screen.getByTestId('world-scene-fallback-message')).toHaveAccessibleName(
+      'Island world can’t be shown, 3 of 10 milestones unlocked. Your world can’t be shown right now. Your savings are safe and up to date.',
+    );
+    expect(screen.getByTestId('world-scene')).not.toHaveProp('accessible', true);
     // Nothing to retry: the bundled data itself is wrong.
     expect(screen.queryByTestId('world-scene-retry')).toBeNull();
   });

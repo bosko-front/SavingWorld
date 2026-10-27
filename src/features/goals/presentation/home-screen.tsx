@@ -16,6 +16,7 @@ import { useWorldMotion, type WorldMotion } from '@/features/worlds/use-world-mo
 import { worldNoun } from '@/features/worlds/world-copy';
 import { WorldScene, worldArtAspect } from '@/features/worlds/world-scene';
 import { WORLD_MOTION } from '@/features/worlds/world-transition';
+import { COMMON_COPY } from '@/shared/i18n/common-copy';
 import { AdaptiveGoalLayout, Screen } from '@/shared/layout';
 import { colors, radii, spacing } from '@/shared/theme';
 import { AmountText } from '@/shared/ui/amount-text';
@@ -36,6 +37,7 @@ import { StatusBadge } from '@/shared/ui/status-badge';
 import { selectGoal } from '../application/goal-selection';
 
 import { SavingsPlanCards } from './savings-plan-cards';
+import { GOAL_STATUS_LABEL, HOME_COPY } from './goal-copy';
 import { GoalMenu } from './goal-menu';
 import { useDeleteGoal } from './use-delete-goal';
 import { homeDashboard, type HomeDashboard, type NextMilestone } from './home-dashboard';
@@ -68,8 +70,8 @@ export function HomeScreen() {
       <Screen>
         <Notice
           tone="error"
-          title="Your currency can’t be read"
-          message="The saved currency doesn’t match this version of the app. Nothing was changed. Update Saving Worlds to continue."
+          title={COMMON_COPY.currencyUnreadableTitle}
+          message={COMMON_COPY.currencyUnreadableMessage}
         />
       </Screen>
     );
@@ -208,8 +210,8 @@ function LoadFailed() {
   };
   return (
     <Screen testID="home-load-failed">
-      <Notice tone="error" title="Couldn’t load your goals" message="Nothing was changed. Try again." />
-      <Button label="Try again" loading={retrying} onPress={() => void retry()} testID="home-retry" />
+      <Notice tone="error" title={HOME_COPY.loadFailedTitle} message={COMMON_COPY.nothingChangedTryAgain} />
+      <Button label={COMMON_COPY.tryAgain} loading={retrying} onPress={() => void retry()} testID="home-retry" />
     </Screen>
   );
 }
@@ -224,10 +226,10 @@ type EmptyHomeProps = { completedCount: number; canCreate: boolean; finishedWorl
 
 function EmptyHome({ completedCount, canCreate, finishedWorld }: EmptyHomeProps) {
   const finished = !canCreate && completedCount > 0;
-  const title = finished ? 'Your world is finished' : completedCount > 0 ? 'Start a new goal' : 'Start your first goal';
+  const title = finished ? HOME_COPY.finishedTitle : completedCount > 0 ? HOME_COPY.newGoalTitle : HOME_COPY.firstGoalTitle;
   const message = finished
-    ? `You reached your goal. Your finished ${worldNoun(finishedWorld?.themeId ?? 'island')} is kept in Collection.`
-    : 'Name something you are saving for and set a target. Each amount you record grows a small world.';
+    ? HOME_COPY.finishedMessage(worldNoun(finishedWorld?.themeId ?? 'island'))
+    : HOME_COPY.firstGoalMessage;
   return (
     <EmptyState
       icon="milestone"
@@ -253,7 +255,7 @@ function EmptyHome({ completedCount, canCreate, finishedWorld }: EmptyHomeProps)
       <View style={styles.emptyActions}>
         {canCreate ? (
           <Link href="/goal-form" asChild>
-            <Button label="Create a goal" testID="home-new-goal" />
+            <Button label={COMMON_COPY.createGoal} testID="home-new-goal" />
           </Link>
         ) : (
           // Free's one goal is finished: the goal form opens the "Build another world" paywall entry
@@ -265,8 +267,8 @@ function EmptyHome({ completedCount, canCreate, finishedWorld }: EmptyHomeProps)
         {completedCount > 0 ? (
           <AppText role="footnote" tone="secondary" style={styles.centered} testID="home-closed-hint">
             {canCreate
-              ? `Your finished ${completedCount === 1 ? 'goal is' : 'goals are'} in Collection.`
-              : 'Unlock Pro to build another world, or delete your finished goal in Collection to start over.'}
+              ? HOME_COPY.finishedInCollection(completedCount)
+              : HOME_COPY.finishedAtLimit}
           </AppText>
         ) : null}
       </View>
@@ -299,7 +301,7 @@ function GoalNumbers({ summary, dashboard, motion, busy, use, needsKeptChoice, m
   const { goal } = summary;
   const { amounts } = dashboard;
   const paused = goal.status === 'paused';
-  const progressDetail = amounts.over ? `${amounts.over} over target` : `${amounts.remaining} to go`;
+  const progressDetail = amounts.over ? HOME_COPY.overTarget(amounts.over) : HOME_COPY.toGo(amounts.remaining);
   const count = { enabled: motion.countUp, durationMs: WORLD_MOTION.countMs, resetKey: goal.id };
   const savedMinor = useCountUp(motion.balanceMinor, count);
   const shownPercent = progressPercent(motion.balanceMinor, motion.targetMinor);
@@ -310,14 +312,14 @@ function GoalNumbers({ summary, dashboard, motion, busy, use, needsKeptChoice, m
         <AppText role="title" accessibilityRole="header" style={styles.title} testID="home-goal-title">
           {goal.title}
         </AppText>
-        {paused ? <StatusBadge label="Paused" tone="info" icon="pause" testID="home-paused" /> : null}
-        {amounts.funded ? <StatusBadge label="Target reached" tone="success" icon="success" testID="home-funded" /> : null}
+        {paused ? <StatusBadge label={GOAL_STATUS_LABEL.paused} tone="info" icon="pause" testID="home-paused" /> : null}
+        {amounts.funded ? <StatusBadge label={HOME_COPY.targetReached} tone="success" icon="success" testID="home-funded" /> : null}
         {use !== 'usable' ? <StatusBadge label={READ_ONLY_COPY.badge} tone="neutral" icon="lock" testID="home-read-only" /> : null}
         <View style={styles.menu}>{menu}</View>
       </View>
-      <View style={styles.amount} accessible accessibilityLabel={`Saved ${amounts.saved} of ${amounts.target}`} testID="home-amount">
+      <View style={styles.amount} accessible accessibilityLabel={HOME_COPY.savedOfTargetLabel(amounts.saved, amounts.target)} testID="home-amount">
         <AmountText formatted={dashboard.format(savedMinor)} size="display" testID="home-saved" />
-        <AppText tone="secondary" testID="home-target">{`saved of ${amounts.target}`}</AppText>
+        <AppText tone="secondary" testID="home-target">{HOME_COPY.savedOfTarget(amounts.target)}</AppText>
       </View>
       <View style={styles.progress}>
         <ProgressBar
@@ -344,7 +346,7 @@ function GoalNumbers({ summary, dashboard, motion, busy, use, needsKeptChoice, m
         <KeptGoalChoice />
       ) : use === 'usable' ? (
         <Link href={{ pathname: '/entry-form', params: { goalId: goal.id } }} asChild>
-          <Button label="Add savings" icon="add" disabled={busy} testID="home-add-savings" />
+          <Button label={COMMON_COPY.addSavings} icon="add" disabled={busy} testID="home-add-savings" />
         </Link>
       ) : (
         <ReadOnlyNote use={use} goalId={goal.id} />
@@ -400,8 +402,8 @@ function ReadOnlyNote({ use, goalId }: { use: GoalUse; goalId: string }) {
 // name comes from the theme manifest; a theme without art falls back to the percentage. At 100% or
 // more the same card says the world is complete, in the theme's words (D83).
 function MilestoneCallout({ next }: { next: NextMilestone }) {
-  const title = next.kind === 'complete' ? next.title : next.name ? `Next: ${next.name}` : `Next milestone: ${next.percent}%`;
-  const detail = next.kind === 'complete' ? next.detail : `${next.toNext} more to reach ${next.percent}%`;
+  const title = next.kind === 'complete' ? next.title : next.name ? HOME_COPY.nextNamed(next.name) : HOME_COPY.nextPercent(next.percent);
+  const detail = next.kind === 'complete' ? next.detail : HOME_COPY.toNext(next.toNext, next.percent);
   return (
     <View style={styles.milestone} accessible accessibilityLabel={`${/[.!?]$/.test(title) ? title : `${title}.`} ${detail}`} testID="home-next-milestone">
       <Icon name="milestone" role="headline" tone="accent" filled />
@@ -428,11 +430,11 @@ function GoalSwitcher({ open, selectedId, access }: { open: GoalSummary[]; selec
   };
   return (
     <View style={styles.switcher} testID="home-switcher">
-      <SectionHeader title="Open goals" />
+      <SectionHeader title={HOME_COPY.openGoals} />
       <ListGroup>
         {open.map(({ goal }) =>
           goal.id === selectedId ? (
-            <ListRow key={goal.id} title={goal.title} value="Shown" accessibilityLabel={`${goal.title}, shown on Home`} />
+            <ListRow key={goal.id} title={goal.title} value={HOME_COPY.shown} accessibilityLabel={HOME_COPY.shownLabel(goal.title)} />
           ) : (
             <ListRow
               key={goal.id}
@@ -440,7 +442,7 @@ function GoalSwitcher({ open, selectedId, access }: { open: GoalSummary[]; selec
               detail={access.use(goal) === 'usable' ? undefined : READ_ONLY_COPY.badge}
               chevron
               onPress={() => void choose(goal.id)}
-              accessibilityLabel={access.use(goal) === 'usable' ? `Show ${goal.title}` : `Show ${goal.title}, ${READ_ONLY_COPY.badge}`}
+              accessibilityLabel={access.use(goal) === 'usable' ? HOME_COPY.showLabel(goal.title) : HOME_COPY.showReadOnlyLabel(goal.title, READ_ONLY_COPY.badge)}
             />
           ),
         )}
@@ -467,7 +469,7 @@ const styles = StyleSheet.create({
   },
   // The ⋯ menu sits at the trailing end of the title row.
   menu: {
-    marginLeft: 'auto',
+    marginStart: 'auto',
   },
   amount: {
     gap: spacing.xs / 2,

@@ -2,7 +2,11 @@ import { useEffect, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
+import type { Stage, ThemeId } from '@/core/progression';
 import type { ChallengeRuleId } from '@/data/repositories/challenge-attempt-repository';
+import { MilestonePreviewTile } from '@/features/worlds/presentation/milestone-preview-tile';
+import { milestonePreview } from '@/features/worlds/themes/milestone-previews';
+import { milestonePreviewLabel } from '@/features/worlds/world-copy';
 import { WORLD_MOTION } from '@/features/worlds/world-transition';
 import { borders, colors, elevation, motion, radii, spacing } from '@/shared/theme';
 import { AmbientSparkles, type SparkleSpot } from '@/shared/ui/ambient-float';
@@ -20,10 +24,15 @@ import {
   completedQuestCopy,
   currentQuestCopy,
   offerCopy,
+  offerLabel,
+  ofTarget,
+  QUEST_CARD_COPY,
   QUEST_TAGLINES,
   QUEST_TILES,
   QUEST_TITLES,
+  startQuestLabel,
   unavailableCopy,
+  unavailableQuestLabel,
   type QuestFormatters,
   type QuestWorld,
 } from './challenge-copy';
@@ -44,12 +53,24 @@ export function questTint(ruleId: ChallengeRuleId): string {
 
 type QuestCopyProps = { world: QuestWorld; format: QuestFormatters };
 
+type QuestIdentityProps = {
+  ruleId: ChallengeRuleId;
+  trailing?: ReactNode;
+  // Next milestone: the goal's theme and the stage the quest unlocks, shown as a small picture of
+  // that stage's main object in place of the generic tile (D136).
+  preview?: { themeId: ThemeId; stage: Stage; spoken: boolean } | null;
+};
+
 // The quest's tile, name and tagline, the head of every card.
-function QuestIdentity({ ruleId, trailing }: { ruleId: ChallengeRuleId; trailing?: ReactNode }) {
+function QuestIdentity({ ruleId, trailing, preview }: QuestIdentityProps) {
   const tile = QUEST_TILES[ruleId];
   return (
     <View style={styles.identity}>
-      <IconTile name={tile.icon} color={tile.color} role="headline" />
+      {preview ? (
+        <MilestonePreviewTile themeId={preview.themeId} stage={preview.stage} accessible={preview.spoken} testID={`quest-preview-${ruleId}`} />
+      ) : (
+        <IconTile name={tile.icon} color={tile.color} role="headline" />
+      )}
       <View style={styles.identityText}>
         <AppText role="label">{QUEST_TITLES[ruleId]}</AppText>
         <AppText role="footnote" tone="secondary">
@@ -78,7 +99,7 @@ export function OfferCard({ offer, selected, onSelect, onStart, starting, world,
       <View
         style={[styles.card, styles.restingCard]}
         accessible
-        accessibilityLabel={`${QUEST_TITLES[ruleId]}, not available now. ${reason}`}
+        accessibilityLabel={unavailableQuestLabel(QUEST_TITLES[ruleId], reason)}
         testID={`quest-offer-${ruleId}`}>
         <View style={styles.identity}>
           <IconTile name={QUEST_TILES[ruleId].icon} color="neutral" />
@@ -95,17 +116,21 @@ export function OfferCard({ offer, selected, onSelect, onStart, starting, world,
     );
   }
   const copy = offerCopy(availability.preview, world, format);
+  const previewStage = availability.preview.ruleId === 'next_milestone' ? availability.preview.milestoneStage : null;
+  // The radio is one VoiceOver element, so the picture's description joins its label.
+  const previewObject = previewStage === null ? null : (milestonePreview(world.themeId, previewStage)?.object ?? null);
   return (
     <View style={[styles.card, selected && styles.selectedCard]} testID={`quest-offer-${ruleId}`}>
       <Pressable
         accessibilityRole="radio"
         accessibilityState={{ checked: selected }}
-        accessibilityLabel={`${copy.title}. ${copy.headline}. ${copy.detail}`}
+        accessibilityLabel={offerLabel(copy, previewObject === null ? null : milestonePreviewLabel(previewObject))}
         onPress={() => onSelect(ruleId)}
         style={({ pressed }) => [styles.choice, pressed && !selected && styles.pressed]}
         testID={`quest-offer-${ruleId}-choice`}>
         <QuestIdentity
           ruleId={ruleId}
+          preview={previewStage === null ? null : { themeId: world.themeId, stage: previewStage, spoken: false }}
           trailing={selected ? <Icon name="success" role="title" tone="action" filled /> : <View style={styles.radio} />}
         />
         <AppText role="headline">{copy.headline}</AppText>
@@ -117,7 +142,7 @@ export function OfferCard({ offer, selected, onSelect, onStart, starting, world,
       </Pressable>
       {selected ? (
         <View style={styles.cardAction}>
-          <Button label={`Start ${QUEST_TITLES[ruleId]}`} onPress={() => onStart(ruleId)} loading={starting} testID="challenges-start" />
+          <Button label={startQuestLabel(QUEST_TITLES[ruleId])} onPress={() => onStart(ruleId)} loading={starting} testID="challenges-start" />
         </View>
       ) : null}
     </View>
@@ -132,7 +157,10 @@ export function CurrentQuestCard({ attempt, world, format }: QuestCopyProps & { 
   return (
     <View style={[styles.card, styles.currentCard]} testID="quest-current">
       <View style={[styles.band, { backgroundColor: questTint(attempt.ruleId) }]}>
-        <QuestIdentity ruleId={attempt.ruleId} trailing={<StatusBadge label="In progress" tone="info" icon="resume" testID="quest-current-badge" />} />
+        <QuestIdentity
+          ruleId={attempt.ruleId}
+          preview={attempt.ruleId === 'next_milestone' && attempt.milestoneStage !== null ? { themeId: world.themeId, stage: attempt.milestoneStage, spoken: true } : null}
+          trailing={<StatusBadge label={QUEST_CARD_COPY.inProgress} tone="info" icon="resume" testID="quest-current-badge" />} />
       </View>
       <View style={styles.currentBody}>
         <AppText role="title" accessibilityRole="header" testID="quest-current-headline">
@@ -144,13 +172,13 @@ export function CurrentQuestCard({ attempt, world, format }: QuestCopyProps & { 
               <AppText role="title" style={styles.tabular}>
                 {progress.saved}
               </AppText>
-              <AppText tone="secondary">{`of ${progress.target}`}</AppText>
+              <AppText tone="secondary">{ofTarget(progress.target)}</AppText>
             </View>
             <ProgressBar
               fraction={progress.fraction}
               percent={progress.percent}
               milestones={1}
-              accessibilityLabel="Quest progress"
+              accessibilityLabel={QUEST_CARD_COPY.progressLabel}
               // A saved entry glides the fill to its new position with Home's timing (D106): a short
               // pause while the entry sheet closes, then the count duration. Another quest, or
               // Reduce Motion, jumps.

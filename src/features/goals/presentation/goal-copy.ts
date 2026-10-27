@@ -2,6 +2,7 @@ import type { AmountParseError, CurrencyMetadata, NumberSeparators } from '@/cor
 import { amountMessage as sharedAmountMessage } from '@/shared/i18n/amount-messages';
 
 import type { GoalRecord } from '@/data/repositories/goal-repository';
+import { entryCountText } from '@/features/ledger/presentation/ledger-copy';
 
 import type { ChangeThemeError, CreateGoalError, DeleteGoalError, EditGoalError, LifecycleError } from '../application/goal-commands';
 import type { LifecycleAction } from '../domain/goal-lifecycle';
@@ -156,3 +157,108 @@ export function deleteMessage(error: DeleteGoalError): string {
       return 'Couldn’t delete. Nothing was changed. Try again.';
   }
 }
+
+const EDIT_GOAL = 'Edit goal';
+const NEW_GOAL = 'New goal';
+const GOAL_NOT_FOUND = 'Goal not found';
+const TARGET_REACHED = 'Target reached';
+
+// A goal's status in a list (Keep goal) and on Home's badge.
+export const GOAL_STATUS_LABEL: Record<GoalRecord['status'], string> = { active: 'Active', paused: 'Paused', completed: 'Finished' };
+
+// Home: the load failure, the empty state, the goal summary, the next milestone and the goal switcher.
+export const HOME_COPY = {
+  loadFailedTitle: 'Couldn’t load your goals',
+  finishedTitle: 'Your world is finished',
+  newGoalTitle: 'Start a new goal',
+  firstGoalTitle: 'Start your first goal',
+  finishedMessage: (world: string) => `You reached your goal. Your finished ${world} is kept in Collection.`,
+  firstGoalMessage: 'Name something you are saving for and set a target. Each amount you record grows a small world.',
+  finishedInCollection: (count: number) => `Your finished ${count === 1 ? 'goal is' : 'goals are'} in Collection.`,
+  finishedAtLimit: 'Unlock Pro to build another world, or delete your finished goal in Collection to start over.',
+  targetReached: TARGET_REACHED,
+  savedOfTargetLabel: (saved: string, target: string) => `Saved ${saved} of ${target}`,
+  savedOfTarget: (target: string) => `saved of ${target}`,
+  overTarget: (over: string) => `${over} over target`,
+  toGo: (remaining: string) => `${remaining} to go`,
+  nextNamed: (name: string) => `Next: ${name}`,
+  nextPercent: (percent: number) => `Next milestone: ${percent}%`,
+  toNext: (amount: string, percent: number) => `${amount} more to reach ${percent}%`,
+  openGoals: 'Open goals',
+  shown: 'Shown',
+  shownLabel: (title: string) => `${title}, shown on Home`,
+  showLabel: (title: string) => `Show ${title}`,
+  showReadOnlyLabel: (title: string, badge: string) => `Show ${title}, ${badge}`,
+} as const;
+
+// Home's ⋯ goal options menu.
+export const GOAL_MENU_COPY = {
+  label: 'Goal options',
+  history: (entryCount: number) => (entryCount === 0 ? 'History' : `History (${entryCountText(entryCount)})`),
+  statistics: 'Savings insights',
+  edit: EDIT_GOAL,
+  changeWorld: 'Change world',
+  newGoal: NEW_GOAL,
+  delete: `${DELETE_COPY.label}…`,
+} as const;
+
+// The optional deadline row of the goal form.
+export const DEADLINE_COPY = {
+  add: 'Add a deadline',
+  addDetail: 'Optional. Gives a weekly and monthly estimate.',
+  label: 'Deadline',
+  passed: (date: string) => `Passed on ${date}. Keep it, pick a new date or remove it.`,
+  saveBy: (date: string) => `Save by ${date}`,
+  errorLabel: (message: string) => `Error: ${message}`,
+  remove: 'Remove deadline',
+} as const;
+
+// Home's savings plan cards (D84).
+export const SAVINGS_PLAN_COPY = {
+  header: 'Savings plan',
+  deadline: 'Deadline',
+  needed: 'Savings needed',
+  completeLabel: 'Savings needed: none, target reached',
+  targetReached: TARGET_REACHED,
+  nothingMore: 'Nothing more to save',
+  neededLabel: (amount: string) => `Savings needed ${amount}`,
+} as const;
+
+// The goal form (create and edit) and the states in which it can't be used.
+export const GOAL_FORM_COPY = {
+  editTitle: EDIT_GOAL,
+  newTitle: NEW_GOAL,
+  noCurrencyTitle: 'No currency yet',
+  noCurrencyMessage: 'Choose a currency in Settings before creating a goal.',
+  closedTitle: 'This goal is closed',
+  closedMessage: 'Closed goals are read-only. Reopen it from Collection to make changes.',
+  notFoundTitle: GOAL_NOT_FOUND,
+  notFoundMessage: 'Close this form and try again.',
+  saved: 'Goal saved',
+  created: 'Goal created',
+  unlockedTitle: 'Pro is unlocked',
+  unlockedMessage: 'Name your next goal and its world starts growing.',
+  nameLabel: 'Goal name',
+  namePlaceholder: 'For example “Summer trip”',
+  targetLabel: 'Target',
+  targetSpoken: (code: string) => `Target amount (${code})`,
+  targetHint: (code: string, name: string) => `Every goal uses ${code} – ${name}, set in Settings.`,
+  saveChanges: 'Save changes',
+  create: 'Create goal',
+} as const;
+
+// The Keep goal list (D74): one row per goal.
+export const KEEP_GOAL_ROW_COPY = {
+  saved: (balance: string, target: string) => `${balance} of ${target} saved`,
+  hint: 'Keeps this goal in use',
+} as const;
+
+// The world picker screen when the goal's world can't be changed, and a refused change.
+export const THEME_PICKER_SCREEN_COPY = {
+  unavailableTitle: 'This world can’t be changed now',
+  notFoundTitle: GOAL_NOT_FOUND,
+  notFoundMessage: 'Close this screen and try again.',
+  readOnlyMessage: 'Without Pro this goal is read-only. Its world is kept just as it is.',
+  closedMessage: 'Closed goals keep their world. Reopen the goal from Collection to change it.',
+  notChanged: 'World not changed',
+} as const;

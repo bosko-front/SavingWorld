@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { StyleSheet, Text, type StyleProp, type TextProps, type TextStyle } from 'react-native';
+import type { ReactNode, Ref } from 'react';
+import { StyleSheet, Text, type HostInstance, type StyleProp, type TextProps, type TextStyle } from 'react-native';
 
 import { colors, typography, type TextRole } from '@/shared/theme';
 
@@ -11,6 +11,8 @@ type AppTextProps = Pick<
 > & {
   role?: TextRole;
   tone?: TextTone;
+  // For moving VoiceOver to a heading that replaced other content (useAccessibilityFocusOnChange).
+  ref?: Ref<HostInstance>;
   // Layout or a token-derived color only (alignment, margins, flex). Typography comes from `role`.
   style?: StyleProp<TextStyle>;
   children: ReactNode;

@@ -47,6 +47,9 @@ export const ICON_SYMBOLS = {
   switchWorld: 'arrow.triangle.2.circlepath',
   statistics: 'chart.line.uptrend.xyaxis',
   restore: 'arrow.clockwise',
+  // Phase 19 (D137): Settings › About links to the public Privacy Policy and Support pages.
+  privacy: 'hand.raised',
+  support: 'questionmark.circle',
 } as const satisfies Record<string, SFSymbol>;
 
 export type IconName = keyof typeof ICON_SYMBOLS;
@@ -77,6 +80,8 @@ export const FILLED_SYMBOLS: Partial<Record<IconName, SFSymbol>> = {
   goals: 'square.stack.3d.up.fill',
   statistics: 'chart.line.uptrend.xyaxis',
   lock: 'lock.fill',
+  privacy: 'hand.raised.fill',
+  support: 'questionmark',
 };
 
 type IconProps = {

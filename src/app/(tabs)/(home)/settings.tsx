@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { Linking, StyleSheet, View } from 'react-native';
 
 import { readBuildInfo } from '@/bootstrap/read-build-info';
 import { PRO_SETTINGS_COPY } from '@/features/billing/presentation/billing-copy';
@@ -6,6 +6,9 @@ import { ProSettings } from '@/features/billing/presentation/pro-settings';
 import { ReminderSettings } from '@/features/reminders/presentation/reminder-settings';
 import { REMINDER_COPY } from '@/features/reminders/presentation/reminder-copy';
 import { CurrencySettings } from '@/features/settings/presentation/currency-settings';
+import { LocalDataSettings } from '@/features/settings/presentation/local-data-settings';
+import { LOCAL_DATA_COPY, PUBLIC_PAGES, SETTINGS_COPY } from '@/features/settings/presentation/settings-copy';
+import { COMMON_COPY } from '@/shared/i18n/common-copy';
 import { Screen } from '@/shared/layout';
 import { spacing } from '@/shared/theme';
 import { ListGroup, ListRow } from '@/shared/ui/list-row';
@@ -13,7 +16,8 @@ import { SectionHeader } from '@/shared/ui/section-header';
 
 // Settings (owner polish D110): calm grouped cards in the shared look. Preferences (the one global
 // currency, Phase 06), Reminders (the weekly reminder, Phase 14), Pro (status and Restore Purchases,
-// Phase 16) and About (app name and version).
+// Phase 16), Your data (local storage and no in-app backup, Phase 19) and About (app name and
+// version, and the public Privacy Policy and Support pages, D137).
 // The native navigation title names the screen. Delivery diagnostics and development tools live in
 // a development-only module that release bundles leave out.
 export default function SettingsScreen() {
@@ -21,7 +25,7 @@ export default function SettingsScreen() {
   return (
     <Screen>
       <View style={styles.section}>
-        <SectionHeader title="Preferences" />
+        <SectionHeader title={SETTINGS_COPY.preferences} />
         <CurrencySettings />
       </View>
       <View style={styles.section}>
@@ -33,10 +37,32 @@ export default function SettingsScreen() {
         <ProSettings />
       </View>
       <View style={styles.section}>
-        <SectionHeader title="About" />
+        <SectionHeader title={LOCAL_DATA_COPY.section} />
+        <LocalDataSettings />
+      </View>
+      <View style={styles.section}>
+        <SectionHeader title={SETTINGS_COPY.about} />
         <ListGroup testID="settings-about">
-          <ListRow icon="milestone" title="Saving Worlds" detail="Record real savings and watch small worlds grow." />
-          <ListRow icon="device" iconColor="blue" title="Version" value={version ?? 'Not available'} testID="settings-version" />
+          <ListRow icon="milestone" title={SETTINGS_COPY.appName} detail={SETTINGS_COPY.appDetail} />
+          <ListRow icon="device" iconColor="blue" title={SETTINGS_COPY.version} value={version ?? COMMON_COPY.notAvailable} testID="settings-version" />
+          <ListRow
+            icon="privacy"
+            iconColor="neutral"
+            title={SETTINGS_COPY.privacyPolicy}
+            chevron
+            accessibilityHint={SETTINGS_COPY.opensInSafari}
+            onPress={() => void Linking.openURL(PUBLIC_PAGES.privacyPolicy)}
+            testID="settings-privacy"
+          />
+          <ListRow
+            icon="support"
+            iconColor="neutral"
+            title={SETTINGS_COPY.support}
+            chevron
+            accessibilityHint={SETTINGS_COPY.opensInSafari}
+            onPress={() => void Linking.openURL(PUBLIC_PAGES.support)}
+            testID="settings-support"
+          />
         </ListGroup>
       </View>
       {__DEV__ ? <DevelopmentSection /> : null}

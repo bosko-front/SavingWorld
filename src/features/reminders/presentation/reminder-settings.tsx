@@ -82,6 +82,8 @@ export function ReminderSettings() {
           <Switch
             value={enabled}
             onValueChange={(next) => void change(next)}
+            // Busy while the choice is saved and iOS answers; VoiceOver hears it as dimmed (Phase 19).
+            disabled={pending !== null}
             trackColor={{ true: colors.actionPrimary }}
             accessibilityLabel={`${REMINDER_COPY.title}, ${detail}`}
             testID="reminder-switch"

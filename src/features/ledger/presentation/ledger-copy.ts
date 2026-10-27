@@ -120,3 +120,67 @@ export function ledgerCommandMessage(action: LedgerAction, error: LedgerCommandE
       return plain(null, action === 'delete' ? ENTRY_DELETE_FAILED : ENTRY_SAVE_FAILED);
   }
 }
+
+// "1 entry" / "3 entries" (History's goal card, Home's History menu item).
+export function entryCountText(count: number): string {
+  return count === 1 ? '1 entry' : `${count} entries`;
+}
+
+const GOAL_NOT_FOUND = 'Goal not found';
+const THIS_GOAL_IS_CLOSED = 'This goal is closed';
+
+// The shared Add/Edit Entry form and the states in which it can't be used.
+export const ENTRY_FORM_COPY = {
+  editTitle: 'Edit entry',
+  loadFailedTitle: 'Couldn’t load this entry',
+  loadFailedMessage: 'Nothing was changed. Close this form and try again.',
+  notFoundTitle: 'Entry not found',
+  notFoundMessage: 'This entry no longer exists. Close this form to see the current history.',
+  noCurrencyTitle: 'No currency yet',
+  noCurrencyMessage: 'Choose a currency in Settings before recording savings.',
+  goalNotFoundTitle: GOAL_NOT_FOUND,
+  goalNotFoundMessage: 'Close this form and try again.',
+  closedTitle: THIS_GOAL_IS_CLOSED,
+  closedMessage: 'Closed goals are read-only. Reopen it from Collection to add or change entries.',
+  notDeleted: 'Not deleted',
+  deleteTitle: 'Delete this entry?',
+  deleteMessage: (kind: string, amount: string, date: string) =>
+    `${kind} of ${amount} on ${date}. This can’t be undone, and the balance is recalculated without it.`,
+  deleteButton: 'Delete',
+  saveChanges: 'Save changes',
+  saveDeposit: 'Save deposit',
+  saveWithdrawal: 'Save withdrawal',
+  balance: (amount: string) => `${amount} saved`,
+  paused: 'Paused. Recording savings doesn’t resume it.',
+  amountLabel: 'Amount',
+  amountSpoken: (code: string) => `Amount (${code})`,
+  noteLabel: 'Note (optional)',
+  notePlaceholder: 'For example “Birthday money”',
+  deleteEntry: 'Delete entry',
+} as const;
+
+// The entry form's date row and its deposit/withdrawal control.
+export const ENTRY_FIELD_COPY = {
+  date: 'Date',
+  today: 'Today',
+  dateOrder: 'Counts in date order',
+  errorLabel: (message: string) => `Error: ${message}`,
+  kind: 'Entry type',
+} as const;
+
+// History: one goal's current entries.
+export const HISTORY_COPY = {
+  title: 'History',
+  loadFailedTitle: 'Couldn’t load the history',
+  notFoundTitle: GOAL_NOT_FOUND,
+  notFoundMessage: 'Go back and choose a goal.',
+  balance: (amount: string) => `Saved: ${amount}`,
+  tapHint: ' · Tap an entry to correct or delete it.',
+  closedTitle: THIS_GOAL_IS_CLOSED,
+  closedMessage: 'Its history is read-only. Reopen it from Collection to add or change entries.',
+  emptyTitle: 'Ready to grow',
+  emptyMessage: (world: string) =>
+    `Your ${world} is waiting for its first savings. Each deposit and withdrawal you record is listed here, newest first.`,
+  rowLabel: (kind: string, amount: string, date: string, note: string | null) => `${kind}, ${amount}, ${date}${note ? `, note: ${note}` : ''}`,
+  rowHint: 'Opens this entry to correct or delete it.',
+} as const;

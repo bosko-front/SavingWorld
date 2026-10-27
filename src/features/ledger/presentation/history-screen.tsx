@@ -9,6 +9,7 @@ import { READ_ONLY_COPY } from '@/features/billing/presentation/billing-copy';
 import type { LedgerEntryRecord } from '@/data/repositories/ledger-repository';
 import { worldNoun } from '@/features/worlds/world-copy';
 import { WorldScene, worldArtAspect } from '@/features/worlds/world-scene';
+import { COMMON_COPY } from '@/shared/i18n/common-copy';
 import { deviceLocale, formatCivilDate } from '@/shared/i18n/locale';
 import { Screen } from '@/shared/layout';
 import { colors, layout, spacing } from '@/shared/theme';
@@ -23,7 +24,7 @@ import { Notice } from '@/shared/ui/notice';
 
 import { newestFirst, readGoalLedger } from '../application/ledger-queries';
 
-import { KIND_LABEL } from './ledger-copy';
+import { entryCountText, HISTORY_COPY, KIND_LABEL } from './ledger-copy';
 
 // Current transaction History for one goal (v1.2 section 6): the saved entries as they are now,
 // newest first, each opening the shared form to correct or delete it. There is no change log, no
@@ -46,15 +47,15 @@ export function HistoryScreen({ goalId }: { goalId: string }) {
   if (ledger.status === 'failed') {
     return (
       <Screen>
-        <Notice tone="error" title="Couldn’t load the history" message="Nothing was changed. Try again." />
-        <Button label="Try again" onPress={() => void refreshAppData()} />
+        <Notice tone="error" title={HISTORY_COPY.loadFailedTitle} message={COMMON_COPY.nothingChangedTryAgain} />
+        <Button label={COMMON_COPY.tryAgain} onPress={() => void refreshAppData()} />
       </Screen>
     );
   }
   if (!ledger.value || !currency) {
     return (
       <Screen>
-        <Notice tone="info" title="Goal not found" message="Go back and choose a goal." />
+        <Notice tone="info" title={HISTORY_COPY.notFoundTitle} message={HISTORY_COPY.notFoundMessage} />
       </Screen>
     );
   }
@@ -69,27 +70,27 @@ export function HistoryScreen({ goalId }: { goalId: string }) {
 
   return (
     <Screen testID="history">
-      <Stack.Screen options={{ title: 'History' }} />
+      <Stack.Screen options={{ title: HISTORY_COPY.title }} />
       <Card variant="soft">
         <AppText role="headline" accessibilityRole="header">
           {goal.title}
         </AppText>
-        <AppText tone="secondary" testID="history-balance">{`Saved: ${formatMoney(balanceMinor, currency, { locale })}`}</AppText>
+        <AppText tone="secondary" testID="history-balance">{HISTORY_COPY.balance(formatMoney(balanceMinor, currency, { locale }))}</AppText>
         <AppText role="footnote" tone="secondary">
-          {entries.length === 1 ? '1 entry' : `${entries.length} entries`}
-          {open ? ' · Tap an entry to correct or delete it.' : ''}
+          {entryCountText(entries.length)}
+          {open ? HISTORY_COPY.tapHint : ''}
         </AppText>
       </Card>
       {/* The screen's one primary action, above the entries (D81: no floating button). */}
       {open ? (
         <Link href={{ pathname: '/entry-form', params: { goalId: goal.id } }} asChild>
-          <Button label="Add savings" icon="add" testID="history-add" />
+          <Button label={COMMON_COPY.addSavings} icon="add" testID="history-add" />
         </Link>
       ) : closed ? (
         <Notice
           tone="info"
-          title="This goal is closed"
-          message="Its history is read-only. Reopen it from Collection to add or change entries."
+          title={HISTORY_COPY.closedTitle}
+          message={HISTORY_COPY.closedMessage}
           testID="history-closed"
         />
       ) : (
@@ -110,8 +111,8 @@ export function HistoryScreen({ goalId }: { goalId: string }) {
               <WorldScene themeId={goal.themeId} stage={0} backdrop="none" decorative />
             </View>
           }
-          title="Ready to grow"
-          message={`Your ${worldNoun(goal.themeId)} is waiting for its first savings. Each deposit and withdrawal you record is listed here, newest first.`}
+          title={HISTORY_COPY.emptyTitle}
+          message={HISTORY_COPY.emptyMessage(worldNoun(goal.themeId))}
           testID="history-empty"
         />
       ) : (
@@ -132,7 +133,7 @@ function HistoryRow({ entry, currency, locale, editable }: HistoryRowProps) {
   // The sign and the word always accompany the money color.
   const amount = formatMoney(entry.signedAmountMinor, currency, { locale, signDisplay: 'exceptZero' });
   const date = formatCivilDate(entry.entryDate, locale);
-  const label = `${KIND_LABEL[kind]}, ${amount}, ${date}${entry.note ? `, note: ${entry.note}` : ''}`;
+  const label = HISTORY_COPY.rowLabel(KIND_LABEL[kind], amount, date, entry.note);
 
   const content = (
     <>
@@ -178,7 +179,7 @@ function RowButton({ label, testID, children, onPress }: RowButtonProps) {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityHint="Opens this entry to correct or delete it."
+      accessibilityHint={HISTORY_COPY.rowHint}
       onPress={onPress}
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
       testID={testID}>

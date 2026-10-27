@@ -7,6 +7,8 @@ import { supportedCurrencies } from '@/core/money';
 import { colors, spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
 
+import { CURRENCY_EDITOR_COPY } from './currency-copy';
+
 type CurrencyPickerProps = {
   value: string;
   onChange: (code: string) => void;
@@ -25,10 +27,10 @@ export function CurrencyPicker({ value, onChange, testID }: CurrencyPickerProps)
   return (
     <View style={styles.container}>
       <AppText role="label" accessibilityElementsHidden>
-        Currency
+        {CURRENCY_EDITOR_COPY.title}
       </AppText>
       <Host matchContents style={styles.host} colorScheme="light" seedColor={colors.actionPrimary} testID={testID}>
-        <Picker label="Currency" selection={value} onSelectionChange={onChange} modifiers={[pickerStyle('menu')]}>
+        <Picker label={CURRENCY_EDITOR_COPY.title} selection={value} onSelectionChange={onChange} modifiers={[pickerStyle('menu')]}>
           {options.map((currency) => (
             <Text key={currency.code} modifiers={[tag(currency.code)]}>
               {currencyLabel(currency.code, currency.name)}

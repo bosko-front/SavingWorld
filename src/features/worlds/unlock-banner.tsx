@@ -4,28 +4,32 @@ import Animated, { FadeInDown, FadeOut } from 'react-native-reanimated';
 import { colors, elevation, motion, radii, spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
 import { Icon } from '@/shared/ui/icon';
+import { useReduceMotion } from '@/shared/ui/motion-preferences';
 
 import type { UnlockBanner as UnlockBannerState } from './use-world-motion';
+import { UNLOCK_BANNER_COPY } from './world-copy';
 
 // "New milestone unlocked!" (owner direction D73): part of the world, shown at the bottom of the
 // scene while the new object appears, never a toast (D40 keeps celebrations out of toasts). It names
 // the stage from the theme manifest; several thresholds in one deposit give one message ("2
-// milestones unlocked!"). It slides up gently (Reanimated skips that under Reduce Motion), leaves
+// milestones unlocked!"). It slides up gently (not under Reduce Motion, read live from the OS setting), leaves
 // after a few seconds and a tap dismisses it. VoiceOver hears it once from the announcement and can
 // still focus it while it is shown.
 export function UnlockBanner({ banner, onDismiss }: { banner: UnlockBannerState; onDismiss: () => void }) {
+  // Reanimated's own Reduce Motion check reads the setting once at launch; this follows a change.
+  const reduceMotion = useReduceMotion();
   return (
     <Animated.View
       key={banner.key}
-      entering={FadeInDown.duration(motion.slow)}
-      exiting={FadeOut.duration(motion.standard)}
+      entering={reduceMotion ? undefined : FadeInDown.duration(motion.slow)}
+      exiting={reduceMotion ? undefined : FadeOut.duration(motion.standard)}
       style={styles.position}
       pointerEvents="box-none">
       <Pressable
         onPress={onDismiss}
-        accessibilityRole="text"
+        accessibilityRole="button"
         accessibilityLabel={`${banner.title} ${banner.detail}`}
-        accessibilityHint="Double-tap to dismiss."
+        accessibilityHint={UNLOCK_BANNER_COPY.dismissHint}
         style={styles.card}
         testID="unlock-banner">
         <Icon name="unlocked" role="headline" tone="accent" filled />

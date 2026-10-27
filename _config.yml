@@ -1,0 +1,25 @@
+# GitHub Pages (only if the owner enables Pages for this repository): publish just the public
+# Privacy Policy and Support pages, never the development documents or source.
+# PRIVACY.md -> https://bosko-front.github.io/SavingWorld/PRIVACY.html
+# SUPPORT.md -> https://bosko-front.github.io/SavingWorld/SUPPORT.html
+title: Saving Worlds
+description: Privacy Policy and Support for the Saving Worlds iPhone app.
+exclude:
+  - CLAUDE.md
+  - app.config.ts
+  - assets
+  - docs
+  - eas.json
+  - eslint.config.js
+  - expo-env.d.ts
+  - ios
+  - native-tests
+  - node_modules
+  - package.json
+  - package-lock.json
+  - plugins
+  - scripts
+  - src
+  - storekit
+  - tests
+  - tsconfig.json

@@ -12,6 +12,8 @@ import { Icon } from '@/shared/ui/icon';
 import { IconTile } from '@/shared/ui/icon-tile';
 import { ListCell, ListRow } from '@/shared/ui/list-row';
 
+import { DEADLINE_COPY } from './goal-copy';
+
 type DeadlineFieldProps = {
   value: CivilDate | null;
   onChange: (value: CivilDate | null) => void;
@@ -30,10 +32,10 @@ export function DeadlineField({ value, onChange, today, savedDeadline, error }: 
   if (value === null) {
     return (
       <ListRow
-        title="Add a deadline"
+        title={DEADLINE_COPY.add}
         icon="calendar"
         iconColor="red"
-        detail="Optional. Gives a weekly and monthly estimate."
+        detail={DEADLINE_COPY.addDetail}
         onPress={() => onChange(today)}
         testID="deadline-add"
       />
@@ -46,14 +48,14 @@ export function DeadlineField({ value, onChange, today, savedDeadline, error }: 
       <View style={styles.row}>
         <IconTile name="calendar" color="red" />
         <View style={styles.text}>
-          <AppText accessibilityElementsHidden>Deadline</AppText>
+          <AppText accessibilityElementsHidden>{DEADLINE_COPY.label}</AppText>
           <AppText role="footnote" tone={passed ? 'primary' : 'secondary'} testID="deadline-summary">
-            {passed ? `Passed on ${formatCivilDate(value)}. Keep it, pick a new date or remove it.` : `Save by ${formatCivilDate(value)}`}
+            {passed ? DEADLINE_COPY.passed(formatCivilDate(value)) : DEADLINE_COPY.saveBy(formatCivilDate(value))}
           </AppText>
         </View>
         <Host matchContents colorScheme="light" seedColor={colors.actionPrimary} testID="deadline-picker">
           <DatePicker
-            title="Deadline"
+            title={DEADLINE_COPY.label}
             selection={civilDateToLocalDate(value)}
             range={{ start: civilDateToLocalDate(earliest) }}
             displayedComponents={['date']}
@@ -65,14 +67,14 @@ export function DeadlineField({ value, onChange, today, savedDeadline, error }: 
         </Host>
       </View>
       {error ? (
-        <View style={styles.errorRow} accessible accessibilityRole="alert" accessibilityLabel={`Error: ${error}`}>
+        <View style={styles.errorRow} accessible accessibilityRole="alert" accessibilityLabel={DEADLINE_COPY.errorLabel(error)}>
           <Icon name="error" role="footnote" tone="error" />
           <AppText role="footnote" tone="error" style={styles.errorText}>
             {error}
           </AppText>
         </View>
       ) : null}
-      <Button label="Remove deadline" variant="plain" onPress={() => onChange(null)} testID="deadline-remove" />
+      <Button label={DEADLINE_COPY.remove} variant="plain" onPress={() => onChange(null)} testID="deadline-remove" />
     </ListCell>
   );
 }

@@ -206,7 +206,9 @@ describe('Add savings from Home', () => {
     expect(screen).toHavePathname('/entry-form');
     expect(screen.getByTestId('entry-form-error')).toHaveTextContent(/Couldn’t save. Nothing was changed. Try again./);
     expect(screen.getByTestId('entry-amount')).toHaveDisplayValue('40');
-    expect(toastsShown()).toEqual([]);
+    // No toast: only the inline error notice is spoken (Phase 19).
+    expect(toastsShown()).toEqual(['Not saved. Couldn’t save. Nothing was changed. Try again.']);
+    announce.mockClear();
     expect(hapticTypes()).toEqual([]);
 
     await getAppDatabase().write((tx) => tx.exec('DROP TRIGGER test_fail_entry'));
@@ -355,7 +357,9 @@ describe('History, corrections and confirmed deletion', () => {
     await userEvent.press(screen.getByTestId('entry-delete'));
     expect(await screen.findByTestId('entry-form-error')).toHaveTextContent(/Deleting this entry would take the balance below zero/);
     expect(hapticTypes()).toEqual(['warning']);
-    expect(toastsShown()).toEqual([]);
+    // No toast: only the inline error notice is spoken (Phase 19).
+    expect(toastsShown()).toEqual(['Not deleted. Deleting this entry would take the balance below zero. Change or delete a withdrawal first.']);
+    announce.mockClear();
     await userEvent.press(screen.getByTestId('entry-cancel'));
 
     await userEvent.press(screen.getByTestId(`history-row-${withdrawal}`));
@@ -389,7 +393,9 @@ describe('History, corrections and confirmed deletion', () => {
     expect(screen.getByTestId('entry-amount')).toHaveDisplayValue('99');
     expect((await entriesOf(goalId))[0]?.signedAmountMinor).toBe(1_100);
     expect(hapticTypes()).toEqual([]);
-    expect(toastsShown()).toEqual([]);
+    // No toast: only the inline error notice is spoken (Phase 19).
+    expect(toastsShown()).toEqual(['Not saved. This entry changed after you opened it. Close this form and open it again.']);
+    announce.mockClear();
   });
 
   it('shows an empty state with Add savings', async () => {

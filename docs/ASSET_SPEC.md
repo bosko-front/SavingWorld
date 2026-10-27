@@ -24,6 +24,10 @@ Provide one base scene and all ten unlock outcomes, in a consistent cozy isometr
 
 Later stages usually retain previous elements. Island stage 8 replaces the small house. The stage 10 composition must visibly finish the scene without adding an eleventh milestone. Garden's stage-specific items coexist unless approved art specifies a replacement. No manual placement UI, decoration editor, color picker or destination-dependent art.
 
+## Milestone object previews (D136)
+
+The Next milestone quest shows one small still picture of each unlock's main object. These pictures are derived from the approved 2048 export, never drawn separately. `assets/worlds/milestone-previews.json` lists, per theme and milestone, the layers and the canvas crop. `scripts/make_milestone_previews.py` (run with Blender's Python) writes `assets/themes/<theme>/previews/<theme>_preview_NN.png`: 192 px at most, transparent, 8-bit RGBA. Rerun it after any re-export and check the review sheet. `tests/unit/milestone-previews.test.ts` checks that every unlock has a preview, that its layers belong to that unlock, and the PNG size and format.
+
 ## Planned manifest contract
 
 Each manifest declares `themeId`, integer `version`, localized name/description keys, base logical canvas size, aspect ratio, accessible stage descriptions, preview asset, base layers and exactly ten unlock entries. Each unlock has milestone index 1-10, threshold 10%-100%, stable layer IDs and explicit add/remove/replacement sets. Layers declare a static module reference, logical x/y/width/height, anchor and z-order. Pure validation checks duplicates, missing layers, ordering and unknown references.

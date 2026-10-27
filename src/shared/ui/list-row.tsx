@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: borders.hairline,
-    marginLeft: spacing.lg,
+    marginStart: spacing.lg,
     backgroundColor: colors.borderSubtle,
   },
   row: {

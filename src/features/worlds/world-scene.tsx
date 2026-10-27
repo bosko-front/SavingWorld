@@ -3,8 +3,9 @@ import { Component, useEffect, useLayoutEffect, useMemo, useRef, useState, type 
 import { StyleSheet, View, type ViewStyle } from 'react-native';
 import Animated, { cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 
-import { MILESTONE_COUNT, type Stage, type ThemeId } from '@/core/progression';
+import { type Stage, type ThemeId } from '@/core/progression';
 import { fitAspect, useFontScale, useMeasuredSize, useSceneInsets } from '@/shared/layout';
+import { COMMON_COPY } from '@/shared/i18n/common-copy';
 import { colors, radii, spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
@@ -22,6 +23,7 @@ import {
   type ThemeManifest,
 } from './manifest';
 import { themeManifest } from './registry';
+import { SCENE_FALLBACK_COPY, sceneFallbackLabel, sceneLabel } from './world-copy';
 import { layerMotion, WORLD_MOTION, type LayerEntrance, type LayerExit, type LayerMotion, type SceneReveal } from './world-transition';
 
 // The world region of Home (DESIGN_SYSTEM "Visual direction", owner direction D73: the world is the
@@ -40,8 +42,6 @@ export const WORLD_SCENE_ASPECT = 4 / 3;
 // Behind the transparent art: a soft sky gradient (Home's choice, owner decision D79), the cream of
 // the approved previews, or nothing (an illustration on the screen background).
 export type SceneBackdrop = 'cream' | 'sky' | 'none';
-
-const THEME_NAMES: Record<ThemeId, string> = { island: 'Island', garden: 'Garden' };
 
 // Empty canvas kept around the art, in canvas units (D78). The renders leave sky around the island;
 // framing every stage's art with this margin draws the world as large as its space allows.
@@ -132,8 +132,6 @@ export function WorldScene({
   // Remounts the art (and clears a load failure) on Try again.
   const [attempt, setAttempt] = useState(0);
   const [failed, setFailed] = useState(false);
-  const name = THEME_NAMES[themeId];
-  const unlocked = `${stage} of ${MILESTONE_COUNT} milestones unlocked`;
   const showArt = result.ok && !failed;
   const retry = () => {
     setFailed(false);
@@ -145,12 +143,14 @@ export function WorldScene({
       style={[styles.region, fill && backdropStyle(backdrop), fill && { paddingTop: insets.top, paddingRight: insets.right, paddingBottom: insets.bottom, paddingLeft: insets.left }]}
       testID="world-scene-region">
       <View style={styles.area} onLayout={onAreaLayout} testID="world-scene-area">
+        {/* One labelled image while the art is drawn. In the fallback the region is not one element,
+            so VoiceOver reaches its message (named like the scene) and Try again inside it. */}
         <View
-          accessible={!decorative}
+          accessible={!decorative && showArt}
           accessibilityElementsHidden={decorative}
           importantForAccessibility={decorative ? 'no-hide-descendants' : 'auto'}
-          accessibilityRole="image"
-          accessibilityLabel={showArt ? `${name} world, ${unlocked}` : `${name} world can’t be shown, ${unlocked}`}
+          accessibilityRole={showArt ? 'image' : undefined}
+          accessibilityLabel={showArt ? sceneLabel(themeId, stage, true) : undefined}
           accessibilityValue={showArt ? { text: sceneDescription(result.manifest, stage) } : undefined}
           style={[styles.scene, fill ? null : [styles.framed, backdropStyle(backdrop)], { width: box.width, height: box.height }]}
           testID="world-scene">
@@ -173,7 +173,7 @@ export function WorldScene({
               </SceneErrorBoundary>
             </ThemeFade>
           ) : null}
-          {showArt ? null : <SceneFallback canRetry={result.ok} onRetry={retry} decorative={decorative} />}
+          {showArt ? null : <SceneFallback label={sceneLabel(themeId, stage, false)} canRetry={result.ok} onRetry={retry} decorative={decorative} />}
         </View>
         {outgoing && outgoingBox && outgoingBox.width > 0 && showArt ? (
           <OutgoingScene
@@ -631,22 +631,30 @@ function backdropStyle(backdrop: SceneBackdrop): ViewStyle | null {
   }
 }
 
-function SceneFallback({ canRetry, onRetry, decorative }: { canRetry: boolean; onRetry: () => void; decorative: boolean }) {
+type SceneFallbackProps = { label: string; canRetry: boolean; onRetry: () => void; decorative: boolean };
+
+function SceneFallback({ label, canRetry, onRetry, decorative }: SceneFallbackProps) {
   const compact = useFontScale() > COMPACT_TEXT_SCALE;
   if (decorative) {
     return null;
   }
   return (
     <View style={styles.fallback} testID="world-scene-fallback">
-      <AppText role={compact ? 'footnote' : 'headline'} style={styles.centered}>
-        Your world can’t be shown right now
-      </AppText>
-      {compact ? null : (
-        <AppText role="footnote" tone="secondary" style={styles.centered}>
-          Your savings are safe and up to date.
+      <View
+        accessible
+        accessibilityLabel={sceneFallbackLabel(label)}
+        style={styles.fallbackText}
+        testID="world-scene-fallback-message">
+        <AppText role={compact ? 'footnote' : 'headline'} style={styles.centered}>
+          {SCENE_FALLBACK_COPY.title}
         </AppText>
-      )}
-      {canRetry ? <Button label="Try again" variant="plain" centered onPress={onRetry} testID="world-scene-retry" /> : null}
+        {compact ? null : (
+          <AppText role="footnote" tone="secondary" style={styles.centered}>
+            {SCENE_FALLBACK_COPY.message}
+          </AppText>
+        )}
+      </View>
+      {canRetry ? <Button label={COMMON_COPY.tryAgain} variant="plain" centered onPress={onRetry} testID="world-scene-retry" /> : null}
     </View>
   );
 }
@@ -679,7 +687,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // The art is placed from the manifest's left-to-right coordinates; a right-to-left layout must
+  // not mirror the world (Phase 19 RTL readiness).
   area: {
+    direction: 'ltr',
     flex: 1,
     alignSelf: 'stretch',
     alignItems: 'center',
@@ -714,6 +725,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.xs,
     padding: spacing.md,
+  },
+  fallbackText: {
+    alignItems: 'center',
+    gap: spacing.xs,
   },
   centered: {
     textAlign: 'center',

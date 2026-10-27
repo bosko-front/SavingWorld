@@ -1,5 +1,5 @@
-import { useRef, useState, type ReactNode } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useRef, useState, type ReactNode, type Ref } from 'react';
+import { StyleSheet, View, type HostInstance } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { appClock, currencyCommandDeps, refreshAppData } from '@/bootstrap/app-data';
@@ -7,9 +7,11 @@ import { getCurrency } from '@/core/money';
 import { MILESTONE_COUNT } from '@/core/progression';
 import { randomUuid } from '@/data/ids';
 import { WorldScene, worldArtAspect } from '@/features/worlds/world-scene';
+import { COMMON_COPY } from '@/shared/i18n/common-copy';
 import { deviceCurrencyCode } from '@/shared/i18n/locale';
 import { FormScreen, TopBleed, useFontScale } from '@/shared/layout';
 import { colors, motion, radii, spacing } from '@/shared/theme';
+import { useAccessibilityFocusOnChange } from '@/shared/ui/accessibility-focus';
 import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
@@ -19,8 +21,11 @@ import { Notice } from '@/shared/ui/notice';
 
 import { setGlobalCurrency } from '../application/currency-commands';
 
-import { CURRENCY_SETTINGS_COPY, currencyErrorMessage } from './currency-copy';
+import { CURRENCY_EDITOR_COPY, CURRENCY_SETTINGS_COPY, currencyErrorMessage } from './currency-copy';
 import { currencyLabel, CurrencyPicker } from './currency-picker';
+import { howPictureLabel, ONBOARDING_COPY } from './onboarding-copy';
+
+export { ONBOARDING_COPY };
 
 const FALLBACK_CURRENCY = 'EUR';
 
@@ -29,23 +34,6 @@ function initialCurrency(): string {
   return code && getCurrency(code) ? code : FALLBACK_CURRENCY;
 }
 
-export const ONBOARDING_COPY = {
-  welcomeTitle: 'Welcome to Saving Worlds',
-  welcomeSubtitle: 'Turn your savings goals into little worlds that grow with every step.',
-  next: 'Next',
-  howTitle: 'How it works',
-  howBody: 'You keep your money wherever you like. Saving Worlds simply tracks what you set aside.',
-  howSteps: ['Set a goal', 'Record savings', 'Watch it grow'],
-  howPicture: 'An island that grows from empty to complete as you record your savings.',
-  recordLine: 'A record, not a bank account.',
-  recordTitle: 'A record, not a bank account',
-  recordMessage:
-    'Saving Worlds never holds, moves or checks your money. You record what you set aside yourself, and your records stay on this iPhone.',
-  currencyTitle: 'Choose your currency',
-  currencyLine: 'Every goal uses it. You can change it until your first savings entry.',
-  getStarted: 'Get Started',
-  back: 'Back',
-} as const;
 
 const STEP_COUNT = 3;
 
@@ -75,6 +63,8 @@ const STACK_TEXT_SCALE = 1.35;
 // visible without scrolling and move into the content only at large text sizes.
 export function OnboardingScreen() {
   const [step, setStep] = useState(0);
+  // VoiceOver moves to the new step's title after Next or Back (Phase 19).
+  const titleRef = useAccessibilityFocusOnChange(step);
   const [code, setCode] = useState(initialCurrency);
   const [operationId] = useState(randomUuid);
   const [saving, setSaving] = useState(false);
@@ -133,17 +123,17 @@ export function OnboardingScreen() {
   return (
     <FormScreen footer={footer} bleed={step === 0 ? <WelcomeSky /> : undefined} testID="onboarding">
       <StepEntrance step={step}>
-        {step === 0 ? <WelcomeText /> : step === 1 ? <HowItWorks /> : null}
+        {step === 0 ? <WelcomeText titleRef={titleRef} /> : step === 1 ? <HowItWorks titleRef={titleRef} /> : null}
         {step === 2 ? (
           <View style={styles.step} testID="onboarding-step-currency">
-            <AppText role="largeTitle" accessibilityRole="header">
+            <AppText role="largeTitle" accessibilityRole="header" ref={titleRef}>
               {ONBOARDING_COPY.currencyTitle}
             </AppText>
             <Card>
               <CurrencyPicker value={code} onChange={setCode} testID="onboarding-currency" />
               {selected ? (
                 <AppText role="footnote" tone="secondary" testID="onboarding-selected">
-                  {`Selected: ${currencyLabel(selected.code, selected.name)}`}
+                  {CURRENCY_EDITOR_COPY.selected(currencyLabel(selected.code, selected.name))}
                 </AppText>
               ) : null}
             </Card>
@@ -153,7 +143,7 @@ export function OnboardingScreen() {
               infoMessage={CURRENCY_SETTINGS_COPY.infoMessage}
               testID="onboarding-currency-rule"
             />
-            {error ? <Notice tone="error" title="Not saved" message={error} /> : null}
+            {error ? <Notice tone="error" title={COMMON_COPY.notSaved} message={error} announce /> : null}
           </View>
         ) : null}
       </StepEntrance>
@@ -182,11 +172,11 @@ function WelcomeSky() {
   );
 }
 
-function WelcomeText() {
+function WelcomeText({ titleRef }: { titleRef: Ref<HostInstance> }) {
   return (
     <View style={styles.step} testID="onboarding-step-welcome">
       <View style={styles.text}>
-        <AppText role="largeTitle" accessibilityRole="header" style={styles.centered}>
+        <AppText role="largeTitle" accessibilityRole="header" style={styles.centered} ref={titleRef}>
           {ONBOARDING_COPY.welcomeTitle}
         </AppText>
         <AppText tone="secondary" style={styles.centered}>
@@ -200,11 +190,11 @@ function WelcomeText() {
 // Three small Islands from the bundled art (empty, halfway, complete) show the idea of growing as you
 // record savings. One spoken description for the strip; the money disclosure is one line with the
 // full text behind its info button.
-function HowItWorks() {
+function HowItWorks({ titleRef }: { titleRef: Ref<HostInstance> }) {
   const stacked = useFontScale() > STACK_TEXT_SCALE;
   return (
     <View style={styles.step} testID="onboarding-step-how">
-      <AppText role="largeTitle" accessibilityRole="header">
+      <AppText role="largeTitle" accessibilityRole="header" ref={titleRef}>
         {ONBOARDING_COPY.howTitle}
       </AppText>
       <AppText>{ONBOARDING_COPY.howBody}</AppText>
@@ -212,7 +202,7 @@ function HowItWorks() {
         style={[styles.strip, stacked && styles.stripStacked]}
         accessible
         accessibilityRole="image"
-        accessibilityLabel={ONBOARDING_COPY.howPicture}
+        accessibilityLabel={howPictureLabel()}
         testID="onboarding-progression">
         {HOW_STAGES.map((stage, index) => (
           <View key={stage} style={[styles.stripItem, stacked && styles.stripItemStacked]}>
@@ -248,7 +238,7 @@ function StepEntrance({ step, children }: { step: number; children: ReactNode })
 
 function StepDots({ step }: { step: number }) {
   return (
-    <View style={styles.dots} accessible accessibilityLabel={`Step ${step + 1} of ${STEP_COUNT}`} testID="onboarding-steps">
+    <View style={styles.dots} accessible accessibilityLabel={ONBOARDING_COPY.stepOf(step + 1, STEP_COUNT)} testID="onboarding-steps">
       {Array.from({ length: STEP_COUNT }, (_, index) => (
         <View key={index} style={[styles.dot, index === step && styles.dotCurrent]} />
       ))}

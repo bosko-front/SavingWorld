@@ -1,0 +1,30 @@
+{
+  "about": "Small still previews of each milestone's main object for the Next milestone quest (Phase 19, D136). Each preview composites the listed layers of the approved 2048 export at their canvas positions, crops the canvas rectangle [x0, y0, x1, y1], trims the transparent margin and fits it in a 192 px square (64 pt at 3x). Built by scripts/make_milestone_previews.py; never edit the PNGs by hand. `object` is the spoken name of the preview.",
+  "size": 192,
+  "themes": {
+    "island": {
+      "1": { "object": "a leafy tree", "layers": ["first_tree_1"], "crop": [796, 44, 1116, 324] },
+      "2": { "object": "a stone path with steps", "layers": ["path_1"], "crop": [456, 428, 1056, 892] },
+      "3": { "object": "flowering bushes", "layers": ["flowers_bushes_6"], "crop": [392, 664, 728, 888] },
+      "4": { "object": "a small wooden cabin", "layers": ["small_house_1"], "crop": [776, 244, 1176, 488] },
+      "5": { "object": "an arched wooden bridge", "layers": ["bridge_1"], "crop": [584, 736, 996, 912] },
+      "6": { "object": "a pond with lily pads", "layers": ["pond_1"], "crop": [800, 748, 1308, 1044] },
+      "7": { "object": "a pine tree", "layers": ["more_trees_6"], "crop": [1308, 348, 1484, 592] },
+      "8": { "object": "a cottage with a red roof", "layers": ["larger_house_1"], "crop": [776, 152, 1165, 545] },
+      "9": { "object": "a wooden bench", "layers": ["final_decorations_2"], "crop": [838, 550, 970, 652] },
+      "10": { "object": "a dock with a rowing boat", "layers": ["completed_island_6"], "crop": [1000, 830, 1240, 996] }
+    },
+    "garden": {
+      "1": { "object": "rows of seedlings and sunflowers", "layers": ["first_seedlings_1"], "crop": [568, 512, 924, 724] },
+      "2": { "object": "a raised flower bed", "layers": ["small_flower_bed_1"], "crop": [880, 536, 1168, 728] },
+      "3": { "object": "a patch of pink flowers", "layers": ["more_flowers_3"], "crop": [455, 500, 685, 650] },
+      "4": { "object": "a pink blossom tree", "layers": ["decorative_tree_1"], "crop": [1196, 180, 1484, 476] },
+      "5": { "object": "a paved path with stairs", "layers": ["garden_pathway_1"], "crop": [756, 428, 1024, 780] },
+      "6": { "object": "a small fountain", "layers": ["small_fountain_1"], "crop": [1100, 340, 1320, 510] },
+      "7": { "object": "a bench and a birdbath", "layers": ["bench_decorations_3"], "crop": [1216, 744, 1400, 932] },
+      "8": { "object": "a glass greenhouse", "layers": ["greenhouse_2"], "crop": [790, 188, 1130, 530] },
+      "9": { "object": "a rose-covered pergola", "layers": ["final_plants_9"], "crop": [1235, 460, 1510, 720] },
+      "10": { "object": "a small floating islet with a pine", "layers": ["completed_garden_12"], "crop": [1630, 405, 1745, 600] }
+    }
+  }
+}

@@ -157,7 +157,7 @@ describe('the four views', () => {
     await fireEvent(plot, 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 180 } } });
     await fireEvent(screen.getByTestId('statistics-line-plot'), 'responderGrant', { nativeEvent: { locationX: 0 } });
     expect(screen.getByTestId('statistics-line-readout', { includeHiddenElements: true })).toHaveTextContent(/Sep 27, 2026.*€120\.00/);
-    expect(label('statistics-completed-row')).toBe('Completed goals, 1');
+    expect(label('statistics-completed-row')).toBe('Finished worlds, 1');
 
     // The text alternative: every day, newest first, closed at first.
     expect(screen.queryByTestId('statistics-daily')).toBeNull();
@@ -195,11 +195,11 @@ describe('the four views', () => {
 
     // Reopen keeps Bike's souvenir but it is no longer completed; Finish counts it again.
     await committed(() => lifecycle(bike, reopenGoal));
-    await waitFor(() => expect(label('statistics-completed-row')).toBe('Completed goals, 0'));
+    await waitFor(() => expect(label('statistics-completed-row')).toBe('Finished worlds, 0'));
     expect(screen.getByTestId('statistics-completed-row')).toHaveTextContent(/Finish a goal to keep its world in Collection\./);
     expect(label('statistics-total')).toBe('Saved across all your goals: €260.00');
     await committed(() => lifecycle(bike, finishGoal));
-    await waitFor(() => expect(label('statistics-completed-row')).toBe('Completed goals, 1'));
+    await waitFor(() => expect(label('statistics-completed-row')).toBe('Finished worlds, 1'));
   });
 
   it('moves to a new day and a new month when the civil date changes', async () => {

@@ -89,7 +89,7 @@ function ToastCard({ tone, title, message }: ToastOptions) {
   const style = toastColors[tone];
   return (
     <Animated.View
-      style={[styles.card, { opacity: fade ?? 1, backgroundColor: style.surface, borderLeftColor: style.accent }]}
+      style={[styles.card, { opacity: fade ?? 1, backgroundColor: style.surface, borderStartColor: style.accent }]}
       accessible
       accessibilityRole="text"
       accessibilityLabel={message ? `${title}. ${message}` : title}>
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     minHeight: layout.minTouchTarget,
     borderRadius: radii.md,
-    borderLeftWidth: borders.emphasis * 2,
+    borderStartWidth: borders.emphasis * 2,
     ...elevation.card,
   },
   text: {

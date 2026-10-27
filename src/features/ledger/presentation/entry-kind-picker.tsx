@@ -5,7 +5,7 @@ import { StyleSheet } from 'react-native';
 import type { EntryKind } from '@/core/money';
 import { colors } from '@/shared/theme';
 
-import { KIND_LABEL } from './ledger-copy';
+import { ENTRY_FIELD_COPY, KIND_LABEL } from './ledger-copy';
 
 const KINDS: readonly EntryKind[] = ['deposit', 'withdrawal'];
 // SwiftUI clamps a flexible frame to the width it is offered, so any large value means "fill".
@@ -20,7 +20,7 @@ export function EntryKindPicker({ value, onChange }: { value: EntryKind; onChang
   return (
     <Host matchContents={{ vertical: true }} style={styles.host} colorScheme="light" seedColor={colors.actionPrimary} testID="entry-kind">
       <Picker
-        label="Entry type"
+        label={ENTRY_FIELD_COPY.kind}
         selection={value}
         onSelectionChange={(selection) => onChange(selection === 'withdrawal' ? 'withdrawal' : 'deposit')}
         // A segmented picker sizes to its words; the flexible frame lets it fill the host's width.

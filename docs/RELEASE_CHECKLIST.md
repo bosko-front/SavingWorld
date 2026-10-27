@@ -76,7 +76,7 @@ Product authority is [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx). Q01-Q06 
 - [ ] Inspect the built archive's privacy manifests, required-reason API declarations and third-party SDK behavior; declare only accurate approved reasons.
 - [ ] Privacy-label answers reflect actual collected/transmitted data, including SDK defaults. Do not assume “no data collected” solely because there is no custom backend.
 - [ ] No tracking/ads SDK is included by default; any change has a separately reviewed product/privacy impact.
-- [ ] Public privacy policy and support URLs work; policy accurately covers local financial records, Apple purchases and any diagnostics.
+- [ ] Public privacy policy and support URLs work; policy accurately covers local financial records, Apple purchases and any diagnostics. Phase 19 (D134) shows no privacy/support link in the app until Q09 gives real destinations. D137: `PRIVACY.md`/`SUPPORT.md` are written (support email and publisher placeholders still to fill), with GitHub Pages recommended; push, Pages and App Store Connect are pending the owner; Settings "Your data" already explains local records, purchases and updates.
 - [ ] App description, screenshots, age-rating/content answers and IAP metadata match shipped behavior. No price or all-future-themes promise was invented.
 - [ ] Review notes explain no app account, manual-only tracking, offline data, how to test Pro/restore and both themes, and how to reach paid screens.
 - [ ] Signed distribution build installs and the installed build passes core smoke/purchase tests. TestFlight/build identifiers and known limitations are recorded.

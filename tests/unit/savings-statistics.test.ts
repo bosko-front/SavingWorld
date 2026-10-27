@@ -157,7 +157,7 @@ describe('statistics view', () => {
     expect(v.days).toHaveLength(30);
     expect(v.days[0]).toEqual({ date: '2026-10-26', label: 'Oct 26, 2026', amount: '€975.00' });
     expect(v.days[29]).toEqual({ date: '2026-09-27', label: 'Sep 27, 2026', amount: '€120.00' });
-    expect(v.completed).toEqual({ count: '2', detail: STATISTICS_COPY.completedDetail, spoken: 'Completed goals, 2' });
+    expect(v.completed).toEqual({ count: '2', detail: STATISTICS_COPY.completedDetail, spoken: 'Finished worlds, 2' });
   });
 
   it('gives the chart every recorded day, zero-based axes and date labels', () => {

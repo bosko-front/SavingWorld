@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View, type GestureResponderEvent } from 'react-native';
 import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop } from 'react-native-svg';
 
+import { CHART_COPY } from '@/shared/i18n/chart-copy';
 import { useFontScale, useMeasuredSize } from '@/shared/layout';
 import { borders, colors, radii, spacing, typography } from '@/shared/theme';
 
@@ -33,6 +34,8 @@ type StepChartProps = {
   xLabels: readonly ChartAxisLabel[];
   // What the chart shows, for VoiceOver; the selected point is its value.
   accessibilityLabel: string;
+  // How to move between days with VoiceOver; the English default suits a daily chart.
+  accessibilityHint?: string;
   testID?: string;
 };
 
@@ -52,7 +55,7 @@ const COMPACT_TEXT_SCALE = 1.35;
 // selection haptic per change), and VoiceOver adjusts it with a swipe up or down. The stroke runs from
 // the honey accent to the soft green of the progress ramp over a faint warm fill. It sizes from its own
 // measured width, so it reflows with the column, rotation and Duo. No animation.
-export function StepChart({ points, domain, gridlines, xLabels, accessibilityLabel, testID }: StepChartProps) {
+export function StepChart({ points, domain, gridlines, xLabels, accessibilityLabel, accessibilityHint = CHART_COPY.dailyHint, testID }: StepChartProps) {
   const last = points.length - 1;
   const [chosen, setChosen] = useState<number | null>(null);
   const selected = Math.min(chosen ?? last, last);
@@ -96,7 +99,7 @@ export function StepChart({ points, domain, gridlines, xLabels, accessibilityLab
         accessibilityRole="adjustable"
         accessibilityLabel={accessibilityLabel}
         accessibilityValue={{ text: point ? `${point.title}, ${point.detail}` : '' }}
-        accessibilityHint="Swipe up or down to hear each day."
+        accessibilityHint={accessibilityHint}
         accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
         onAccessibilityAction={(event) => select(selected + (event.nativeEvent.actionName === 'increment' ? 1 : -1))}
         onStartShouldSetResponder={() => true}
@@ -257,7 +260,9 @@ export function nearestIndex(x: number, xs: readonly number[]): number {
 }
 
 const styles = StyleSheet.create({
+  // Days run left to right like the SVG line, also in a right-to-left layout (Phase 19).
   container: {
+    direction: 'ltr',
     gap: spacing.xs,
   },
   readout: {

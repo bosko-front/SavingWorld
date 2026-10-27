@@ -173,7 +173,12 @@ describe('Challenges (Phase 13)', () => {
     // Next milestone names the unlock from the Island manifest; its frozen amount is in its name for
     // VoiceOver and shows when it is chosen.
     expect(screen.getByTestId('quest-offer-next_milestone')).toHaveTextContent(/Unlock the next part.*Unlock the first tree/);
-    expect(screen.getByTestId('quest-offer-next_milestone-choice')).toHaveAccessibleName('Next milestone. Unlock the first tree. Save €25.00 more · no deadline');
+    expect(screen.getByTestId('quest-offer-next_milestone-choice')).toHaveAccessibleName(
+      'Next milestone. Unlock the first tree. Save €25.00 more · no deadline. Shows a leafy tree.',
+    );
+    // D136: a still picture of the tree it unlocks replaces the generic tile; the other quests keep theirs.
+    expect(screen.getByTestId('quest-preview-next_milestone', { includeHiddenElements: true }).props.accessibilityElementsHidden).toBe(true);
+    expect(screen.queryByTestId('quest-preview-first_step')).toBeNull();
     expect(screen.queryByTestId('quest-offer-next_milestone-detail')).toBeNull();
     expect(screen.getAllByTestId('challenges-start')).toHaveLength(1);
     expect(screen.getByTestId('quest-offer-weekly_step-reason')).toHaveTextContent('Add a deadline in Edit goal to plan weekly steps.');
@@ -202,6 +207,8 @@ describe('Challenges (Phase 13)', () => {
 
     await screen.findByTestId('quest-current');
     expect(screen.getByTestId('quest-current-headline')).toHaveTextContent('Unlock the flowers and bushes');
+    // The current quest's picture is its own labelled image (D136).
+    expect(screen.getByTestId('quest-preview-next_milestone')).toHaveAccessibleName('Shows flowering bushes.');
     expect(screen.getByTestId('quest-current-progress')).toHaveAccessibleName('€0.00 of €15.00 saved, €15.00 to go');
     expect(screen.getByTestId('quest-current-bar')).toHaveAccessibilityValue({ now: 0, text: '0%' });
     expect(screen.getByTestId('quest-current-period')).toHaveTextContent('€15.00 to go · No deadline');
@@ -445,12 +452,16 @@ describe('Challenges (Phase 13)', () => {
     await waitFor(() => expect(screen.getByTestId('challenges-goal')).toHaveAccessibleName('Camera. €67.00 of €400.00 saved.'));
     expect(screen.getByTestId('quest-current-progress')).toHaveAccessibleName('€7.00 of €15.00 saved, €8.00 to go');
     expect(screen.getByTestId('quest-current-headline')).toHaveTextContent('Unlock the flowers and bushes');
+    // The current quest's picture is its own labelled image (D136).
+    expect(screen.getByTestId('quest-preview-next_milestone')).toHaveAccessibleName('Shows flowering bushes.');
 
     // Reopening the app: a fresh app tree and snapshot read the same progress from the database.
     useAppDataStore.setState({ state: { status: 'idle' } });
     await openChallenges();
     expect(screen.getByTestId('quest-current-progress')).toHaveAccessibleName('€7.00 of €15.00 saved, €8.00 to go');
     expect(screen.getByTestId('quest-current-headline')).toHaveTextContent('Unlock the flowers and bushes');
+    // The current quest's picture is its own labelled image (D136).
+    expect(screen.getByTestId('quest-preview-next_milestone')).toHaveAccessibleName('Shows flowering bushes.');
     expect((await entriesOf(goalId)).map((entry) => entry.signedAmountMinor)).toEqual([6_000, 1_200, -500]);
   });
 

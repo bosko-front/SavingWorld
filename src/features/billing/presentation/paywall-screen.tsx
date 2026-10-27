@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
-import { useState, type ReactNode } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { useState, type ReactNode, type Ref } from 'react';
+import { ActivityIndicator, StyleSheet, View, type HostInstance } from 'react-native';
 
 import { accessView, useAppDataStore, type AppData } from '@/bootstrap/app-data';
 import { MILESTONE_COUNT, stageFor, type Stage, type ThemeId } from '@/core/progression';
@@ -9,6 +9,7 @@ import { themeManifestAt } from '@/features/worlds/registry';
 import { WorldScene, worldArtAspect } from '@/features/worlds/world-scene';
 import { FormScreen } from '@/shared/layout';
 import { colors, radii, spacing } from '@/shared/theme';
+import { useAccessibilityFocusOnChange } from '@/shared/ui/accessibility-focus';
 import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';
 import { IconTile } from '@/shared/ui/icon-tile';
@@ -43,11 +44,14 @@ type PaywallProps = { entry: PaywallEntry; onClose: () => void };
 export function PaywallScreen({ entry, onClose }: PaywallProps) {
   const data = useAppDataStore((store) => (store.state.status === 'ready' ? store.state.data : null));
   const [explored, setExplored] = useState(entry !== 'another_world');
+  const pro = data ? accessView(data).capabilities.level === 'pro' : false;
+  // Explore Pro replaces the intro, and a purchase replaces the offer: VoiceOver moves to the new
+  // headline instead of staying on a button that is gone (Phase 19).
+  const headlineRef = useAccessibilityFocusOnChange(`${explored}-${pro}`);
   if (!data) {
     return null;
   }
   const hero = <HeroWorld {...heroWorld(data)} />;
-  const pro = accessView(data).capabilities.level === 'pro';
   if (!explored) {
     return (
       <FormScreen testID="paywall">
@@ -57,7 +61,7 @@ export function PaywallScreen({ entry, onClose }: PaywallProps) {
       </FormScreen>
     );
   }
-  return <Offer hero={hero} pro={pro} onClose={onClose} />;
+  return <Offer hero={hero} pro={pro} onClose={onClose} headlineRef={headlineRef} />;
 }
 
 // One native title; the content headline says the rest (DESIGN_SYSTEM, never repeated).
@@ -117,7 +121,7 @@ function AnotherWorldIntro({ onExplore, onClose }: { onExplore: () => void; onCl
   );
 }
 
-function Offer({ hero, pro, onClose }: { hero: ReactNode; pro: boolean; onClose: () => void }) {
+function Offer({ hero, pro, onClose, headlineRef }: { hero: ReactNode; pro: boolean; onClose: () => void; headlineRef: Ref<HostInstance> }) {
   const { product, reload } = useProProduct();
   const actions = usePurchaseActions();
   const productLine = productMessage(product);
@@ -131,7 +135,8 @@ function Offer({ hero, pro, onClose }: { hero: ReactNode; pro: boolean; onClose:
     <View style={styles.purchase} testID="paywall-purchase">
       {productLine ? (
         <View style={styles.productLine} testID="paywall-product-state">
-          {product.kind === 'loading' ? <ActivityIndicator color={colors.textSecondary} /> : null}
+          {/* The line says the product is loading; the spinner is not read again. */}
+          {product.kind === 'loading' ? <ActivityIndicator color={colors.textSecondary} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" /> : null}
           <AppText role="footnote" tone="secondary" style={styles.flexText}>
             {productLine}
           </AppText>
@@ -171,7 +176,7 @@ function Offer({ hero, pro, onClose }: { hero: ReactNode; pro: boolean; onClose:
       {hero}
       <View style={styles.block} testID="paywall-offer">
         <View style={styles.text}>
-          <AppText role="title" accessibilityRole="header" style={styles.centered}>
+          <AppText role="title" accessibilityRole="header" style={styles.centered} ref={headlineRef}>
             {pro ? PAYWALL_COPY.activeTitle : PAYWALL_COPY.headline}
           </AppText>
           <AppText tone="secondary" style={styles.centered}>
@@ -258,6 +263,7 @@ const styles = StyleSheet.create({
   },
   productLine: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,

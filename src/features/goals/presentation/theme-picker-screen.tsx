@@ -9,6 +9,7 @@ import { randomUuid } from '@/data/ids';
 import { isOpenStatus, type GoalRecord } from '@/data/repositories/goal-repository';
 import { ThemeCards } from '@/features/worlds/presentation/theme-cards';
 import { THEME_PICKER_COPY } from '@/features/worlds/presentation/theme-copy';
+import { COMMON_COPY } from '@/shared/i18n/common-copy';
 import { FormScreen } from '@/shared/layout';
 import { spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
@@ -19,7 +20,7 @@ import { showToast } from '@/shared/ui/toast';
 
 import { changeGoalTheme } from '../application/goal-commands';
 
-import { themeChangeMessage } from './goal-copy';
+import { THEME_PICKER_SCREEN_COPY, themeChangeMessage } from './goal-copy';
 
 // Choose the world an open goal grows (Phase 17; v1.2 section 4, R20; owner decisions D75, D97,
 // D122). Both worlds are picture cards at the goal's current stage, so the person sees their own
@@ -47,13 +48,13 @@ export function ThemePickerScreen({ goalId }: { goalId: string | null }) {
         <Stack.Screen options={{ title: THEME_PICKER_COPY.screenTitle }} />
         <Notice
           tone="info"
-          title={goal ? 'This world can’t be changed now' : 'Goal not found'}
+          title={goal ? THEME_PICKER_SCREEN_COPY.unavailableTitle : THEME_PICKER_SCREEN_COPY.notFoundTitle}
           message={
             !goal
-              ? 'Close this screen and try again.'
+              ? THEME_PICKER_SCREEN_COPY.notFoundMessage
               : isOpenStatus(goal.status)
-                ? 'Without Pro this goal is read-only. Its world is kept just as it is.'
-                : 'Closed goals keep their world. Reopen the goal from Collection to change it.'
+                ? THEME_PICKER_SCREEN_COPY.readOnlyMessage
+                : THEME_PICKER_SCREEN_COPY.closedMessage
           }
           testID="theme-picker-unavailable"
         />
@@ -105,7 +106,7 @@ export function ThemePickerScreen({ goalId }: { goalId: string | null }) {
     <FormScreen testID="theme-picker">
       <Stack.Screen options={{ title: THEME_PICKER_COPY.screenTitle }} />
       <View style={styles.context}>
-        <AppText role="label" numberOfLines={2}>
+        <AppText role="label">
           {goal.title}
         </AppText>
         <AppText role="footnote" tone="secondary">
@@ -113,7 +114,7 @@ export function ThemePickerScreen({ goalId }: { goalId: string | null }) {
         </AppText>
       </View>
       {locked ? <Notice tone="info" title={THEME_PICKER_COPY.lockedTitle} message={THEME_PICKER_COPY.lockedMessage} testID="theme-picker-locked" /> : null}
-      {error ? <Notice tone="error" title="World not changed" message={error} testID="theme-picker-error" /> : null}
+      {error ? <Notice tone="error" title={THEME_PICKER_SCREEN_COPY.notChanged} message={error} announce testID="theme-picker-error" /> : null}
       <ThemeCards
         selected={goal.themeId}
         stage={stageFor(summary.balanceMinor, goal.targetMinor)}
@@ -123,7 +124,7 @@ export function ThemePickerScreen({ goalId }: { goalId: string | null }) {
         busy={saving}
         pictureHeight={150}
       />
-      <Button label="Done" variant="plain" centered onPress={() => router.back()} disabled={saving} testID="theme-picker-done" />
+      <Button label={COMMON_COPY.done} variant="plain" centered onPress={() => router.back()} disabled={saving} testID="theme-picker-done" />
     </FormScreen>
   );
 }

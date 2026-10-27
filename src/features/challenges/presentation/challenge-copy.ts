@@ -1,5 +1,5 @@
 import type { CivilDate } from '@/core/calendar';
-import { progressPercent, type Stage } from '@/core/progression';
+import { progressPercent, type Stage, type ThemeId } from '@/core/progression';
 import type { AttemptResult, ChallengeRuleId } from '@/data/repositories/challenge-attempt-repository';
 import type { IconName } from '@/shared/ui/icon';
 import type { TileColor } from '@/shared/ui/icon-tile';
@@ -23,6 +23,8 @@ export type QuestFormatters = {
 // The person's world: its noun ("island") and the name of an unlock from the theme manifest
 // ("Pond"), null for a theme without art.
 export type QuestWorld = {
+  // The goal's theme: the Next milestone quest shows that theme's picture of what it unlocks (D136).
+  themeId: ThemeId;
   noun: string;
   stageName: (stage: Stage) => string | null;
 };
@@ -82,6 +84,13 @@ export type OfferCopy = {
 };
 
 // A quest that can start now: what it asks and what starting would fix.
+// The spoken radio of an available quest: "{quest}. {headline}. {detail}." and, for Next milestone,
+// the picture's description ("Shows a pond with lily pads.").
+export function offerLabel(copy: OfferCopy, picture: string | null): string {
+  const label = `${copy.title}. ${copy.headline}. ${copy.detail}`;
+  return picture === null ? label : `${label}. ${picture}`;
+}
+
 export function offerCopy(preview: AttemptPreview, world: QuestWorld, format: QuestFormatters): OfferCopy {
   const title = QUEST_TITLES[preview.ruleId];
   switch (preview.ruleId) {
@@ -253,4 +262,74 @@ export function challengeActionMessage(action: ChallengeAction, error: Challenge
     default:
       return action === 'start' ? 'Nothing was started. Try again.' : 'Nothing was changed. Try again.';
   }
+}
+
+// The Challenges screen's own lines: load failure, empty and finished states, headings, the Skip
+// confirmation and the Start/Skip toasts.
+export const CHALLENGES_SCREEN_COPY = {
+  loadFailedTitle: 'Couldn’t load your quests',
+  emptyTitle: 'Quests grow with a goal',
+  emptyMessage: 'Create a goal, and three small quests help its world grow.',
+  finishedTitle: 'Your world is finished',
+  finishedMessageCreate: 'Quests are for worlds that are still growing. Start a new goal, or reopen a finished one in Collection.',
+  finishedMessageReopen: 'Quests are for worlds that are still growing. Reopen your goal in Collection to keep saving.',
+  openCollection: 'Open Collection',
+  goalNotFoundTitle: 'Goal not found',
+  goalNotFoundMessage: 'Go to Home and choose a goal.',
+  pausedTitle: 'This goal is paused',
+  pausedMessage: 'Quests still count your savings. Resume it on Home.',
+  completeDetail: 'Every quest for this goal is done. Finish it on Home when you’re ready.',
+  goHome: 'Go to Home',
+  started: 'Quest started',
+  skipped: 'Quest skipped',
+  skipTitle: 'Skip this quest?',
+  skipMessage: 'It moves to Past quests, and you can choose another one right away.',
+  skip: 'Skip',
+  skipQuest: 'Skip this quest',
+  currentTitle: 'Your quest',
+  currentCaption: 'Finish or skip it to choose another.',
+  chooseTitle: 'Choose a quest',
+  pastQuests: 'Past quests',
+  pastQuestsShowHint: 'Shows your past quests.',
+  pastQuestsHideHint: 'Hides your past quests.',
+} as const;
+
+// "Pick one to help your island grow."
+export function chooseCaption(noun: string): string {
+  return `Pick one to help your ${noun} grow.`;
+}
+
+// The past-quests toggle's spoken name with its count.
+export function pastQuestsLabel(count: number): string {
+  return `Past quests, ${count}`;
+}
+
+// The goal row over the quests: "€40.00 of €100.00" and its spoken name.
+export function goalSavedCopy(saved: string, target: string): string {
+  return `${saved} of ${target}`;
+}
+
+export function goalRowLabel(title: string, saved: string): string {
+  return `${title}. ${saved} saved.`;
+}
+
+// The quest cards' own lines.
+export const QUEST_CARD_COPY = {
+  inProgress: 'In progress',
+  progressLabel: 'Quest progress',
+} as const;
+
+// A quest that can't start now, spoken with its reason.
+export function unavailableQuestLabel(title: string, reason: string): string {
+  return `${title}, not available now. ${reason}`;
+}
+
+// The chosen card's button: "Start First step".
+export function startQuestLabel(title: string): string {
+  return `Start ${title}`;
+}
+
+// The small target under the counted amount: "of €100.00".
+export function ofTarget(target: string): string {
+  return `of ${target}`;
 }
