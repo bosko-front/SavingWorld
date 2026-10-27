@@ -14,6 +14,12 @@ The previous handoff (Phase 19, VERIFIED COMPLETE by D138) is superseded; its re
 - Tests: `delivery-config.test.ts` checks the icon/mark paths, template files gone, size, RGB, no `tRNS`, sRGB, mark ≥ @3x; the launch color guard stays.
 - Docs: DECISIONS D139; DESIGN_SYSTEM Icons; RELEASE_CHECKLIST; PROJECT_STATUS; SOURCE_RECONCILIATION (Q09 line); CLAUDE.md fact line; evidence PHASE_19_5 with screenshots 01-14.
 
+## Owner follow-ups the same day (D140, D141)
+
+- D140: the launch screen background is Home's sky `skyTop` `#CFE6EE` (root view stays cream). The owner's local Xcode build still showed the placeholder because `ios/` dated from 26 October; regenerated with `npx expo prebuild -p ios --clean` (CocoaPods needs `LANG=en_US.UTF-8`). Also fixed: a stray `#2d96cb` launch color and a `__pycache__` file that commit 48be676 had picked up.
+- D141: the launch screen stays until Home's world of the current stage has loaded (`src/bootstrap/launch-splash.ts`, cap 1.5 s after the database opens; onboarding/failures release at once). Jest 58 suites: 1581 passed.
+- The owner checks both in his own Xcode build. EAS build 0799fb03 predates both (cream launch, old splash timing); Phase 20's builds carry them.
+
 ## Decisions
 
 - D139 (owner): cottage close-up icon, night-blue dark sky, tinted grayscale; PNG set rather than Icon Composer `.icon`; one light launch screen with the cottage mark; approved after the simulator build.
@@ -32,7 +38,7 @@ The previous handoff (Phase 19, VERIFIED COMPLETE by D138) is superseded; its re
 2. One plain white frame with the dev client's Tools button appeared once during a Duo cold launch; the recorded sequence showed cream + mark throughout. Confirm in the Phase 20 release-mode build.
 3. Dark/tinted not shown on the iOS 18.5 simulator (its Customize sheet froze); shown on iOS 26.0.
 4. Simulator state: the iPhone 17 Pro Max iOS 26.0 home screen is left in the Tinted style (Customize → Default to undo).
-5. Git: not committed or pushed.
+5. Git: committed on `main` (48be676, 6794f37, 47ee132 plus this docs commit); not pushed.
 
 ## Exact next session
 
