@@ -100,7 +100,15 @@ describe('app icon and launch screen (Phase 19.5, DECISIONS D139)', () => {
 });
 
 describe('eas.json', () => {
-  type Profile = { channel?: string; environment?: string; developmentClient?: boolean; extends?: string };
+  type Profile = {
+    channel?: string;
+    environment?: string;
+    developmentClient?: boolean;
+    extends?: string;
+    distribution?: string;
+    runtimeVersion?: unknown;
+    ios?: { simulator?: boolean };
+  };
   const profiles = easJson.build as Record<string, Profile>;
 
   it.each([
@@ -118,6 +126,19 @@ describe('eas.json', () => {
     expect(profiles['development-simulator']?.extends).toBe('development');
     expect(profiles.preview?.developmentClient).toBeUndefined();
     expect(profiles.production?.developmentClient).toBeUndefined();
+  });
+
+  // Phase 20 (D142): the simulator copy of the release-mode preview build inherits preview's channel
+  // and environment unchanged and differs only by targeting the simulator.
+  it('preview-simulator is preview built for the simulator, nothing else', () => {
+    expect(profiles['preview-simulator']).toEqual({ extends: 'preview', ios: { simulator: true } });
+    expect(profiles.preview?.distribution).toBe('internal');
+  });
+
+  it('no profile overrides the appVersion runtime from app.config.ts', () => {
+    for (const profile of Object.values(profiles)) {
+      expect(profile.runtimeVersion).toBeUndefined();
+    }
   });
 
   it('targets the verified App Store Connect app and team, with no credentials (docs/APPLE_SETUP.md)', () => {

@@ -21,6 +21,12 @@
       "channel": "preview",
       "environment": "production"
     },
+    "preview-simulator": {
+      "extends": "preview",
+      "ios": {
+        "simulator": true
+      }
+    },
     "production": {
       "distribution": "store",
       "channel": "production",

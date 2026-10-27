@@ -1,3 +1,4 @@
+import * as buildInfo from '@/bootstrap/build-info-copy';
 import * as storageFailure from '@/bootstrap/storage-failure-copy';
 import * as billing from '@/features/billing/presentation/billing-copy';
 import * as challenges from '@/features/challenges/presentation/challenge-copy';
@@ -22,6 +23,7 @@ import * as navigation from '@/shared/i18n/navigation-copy';
 // with a typo-level problem. Strings built by functions are covered by their screens' tests.
 
 const MODULES = {
+  buildInfo,
   storageFailure,
   billing,
   challenges,

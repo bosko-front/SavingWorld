@@ -1,5 +1,7 @@
-import { Linking, StyleSheet, View } from 'react-native';
+import { Alert, Linking, StyleSheet, View } from 'react-native';
 
+import { buildInfoMessage, describeBuildInfo } from '@/bootstrap/build-info';
+import { BUILD_INFO_COPY } from '@/bootstrap/build-info-copy';
 import { readBuildInfo } from '@/bootstrap/read-build-info';
 import { PRO_SETTINGS_COPY } from '@/features/billing/presentation/billing-copy';
 import { ProSettings } from '@/features/billing/presentation/pro-settings';
@@ -18,8 +20,9 @@ import { SectionHeader } from '@/shared/ui/section-header';
 // currency, Phase 06), Reminders (the weekly reminder, Phase 14), Pro (status and Restore Purchases,
 // Phase 16), Your data (local storage and no in-app backup, Phase 19) and About (app name and
 // version, and the public Privacy Policy and Support pages, D137).
-// The native navigation title names the screen. Delivery diagnostics and development tools live in
-// a development-only module that release bundles leave out.
+// The native navigation title names the screen. Pressing and holding Version (or its VoiceOver
+// action) shows the redacted build details for support (D142); the visible About stays as approved
+// in D110. Development tools live in a development-only module that release bundles leave out.
 export default function SettingsScreen() {
   const version = readBuildInfo().appVersion;
   return (
@@ -44,7 +47,16 @@ export default function SettingsScreen() {
         <SectionHeader title={SETTINGS_COPY.about} />
         <ListGroup testID="settings-about">
           <ListRow icon="milestone" title={SETTINGS_COPY.appName} detail={SETTINGS_COPY.appDetail} />
-          <ListRow icon="device" iconColor="blue" title={SETTINGS_COPY.version} value={version ?? COMMON_COPY.notAvailable} testID="settings-version" />
+          <ListRow
+            icon="device"
+            iconColor="blue"
+            title={SETTINGS_COPY.version}
+            value={version ?? COMMON_COPY.notAvailable}
+            onLongPress={showBuildDetails}
+            longPressActionLabel={BUILD_INFO_COPY.showAction}
+            accessibilityHint={BUILD_INFO_COPY.showHint}
+            testID="settings-version"
+          />
           <ListRow
             icon="privacy"
             iconColor="neutral"
@@ -68,6 +80,11 @@ export default function SettingsScreen() {
       {__DEV__ ? <DevelopmentSection /> : null}
     </Screen>
   );
+}
+
+// Reads at the moment of the press, so it names the bundle this launch is actually running.
+function showBuildDetails() {
+  Alert.alert(BUILD_INFO_COPY.title, buildInfoMessage(describeBuildInfo(readBuildInfo())));
 }
 
 function DevelopmentSection() {

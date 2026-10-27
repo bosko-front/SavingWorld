@@ -54,6 +54,10 @@ type ListRowProps = {
   // Shows a disclosure chevron: the row navigates to another screen.
   chevron?: boolean;
   onPress?: (event: GestureResponderEvent) => void;
+  // A secondary action on press-and-hold, offered to VoiceOver as a named action
+  // (`longPressActionLabel`). Used only where the row has no tap action (Settings › Version, D142).
+  onLongPress?: () => void;
+  longPressActionLabel?: string;
   disabled?: boolean;
   // Shows a spinner at the trailing edge and ignores presses while the row's action runs.
   loading?: boolean;
@@ -77,6 +81,8 @@ export function ListRow({
   tone = 'action',
   chevron = false,
   onPress,
+  onLongPress,
+  longPressActionLabel,
   disabled = false,
   loading = false,
   accessibilityLabel,
@@ -109,6 +115,24 @@ export function ListRow({
       {chevron && !loading ? <Icon name="chevron" role="footnote" tone="secondary" weight="semibold" /> : null}
     </>
   );
+  if (!onPress && onLongPress) {
+    return (
+      <Pressable
+        accessibilityLabel={label}
+        accessibilityHint={accessibilityHint}
+        accessibilityActions={[{ name: 'longpress', label: longPressActionLabel }]}
+        onAccessibilityAction={(event) => {
+          if (event.nativeEvent.actionName === 'longpress') {
+            onLongPress();
+          }
+        }}
+        onLongPress={onLongPress}
+        testID={testID}
+        style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
+        {content}
+      </Pressable>
+    );
+  }
   if (!onPress) {
     return (
       <View style={styles.row} accessible accessibilityLabel={label} testID={testID}>

@@ -88,6 +88,28 @@ describe('Settings › Your data (R23)', () => {
     ]);
     openURL.mockRestore();
   });
+
+  it('Version shows the redacted build details on press-and-hold or the VoiceOver action, and nothing on a tap (D142)', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+    await renderRouter(APP_DIR, { initialUrl: '/settings' });
+    await waitFor(() => expect(useReminderStore.getState().status).not.toBeNull());
+    const version = screen.getByTestId('settings-version');
+    expect(version).toHaveProp('accessibilityActions', [{ name: 'longpress', label: 'Show build details' }]);
+    expect(version).toHaveProp('accessibilityHint', 'Shows the app’s version and update details for support.');
+
+    await fireEvent.press(version);
+    expect(alert).not.toHaveBeenCalled();
+
+    await fireEvent(version, 'longPress');
+    await fireEvent(version, 'accessibilityAction', { nativeEvent: { actionName: 'longpress' } });
+    expect(alert).toHaveBeenCalledTimes(2);
+    const [title, message] = alert.mock.calls[0] ?? [];
+    expect(title).toBe('Build details');
+    expect(message).toMatch(/^App version: .+\nRuntime: .+\nChannel: .+\nUpdate: .+/);
+    // Identity only: no currency, goal, amount or other savings data.
+    expect(message).not.toMatch(/€|EUR|goal|saved|entr/i);
+    alert.mockRestore();
+  });
 });
 
 function Swapping() {
