@@ -180,7 +180,11 @@ function main() {
     persisted: persistedContract(files),
   };
   const head = run('git', ['rev-parse', 'HEAD']);
-  const dirty = run('git', ['status', '--porcelain']) !== '';
+  // Untracked files under docs/ (evidence screenshots) never enter a build or update (.easignore).
+  const dirty = run('git', ['status', '--porcelain'])
+    .split('\n')
+    .filter(Boolean)
+    .some((line) => !(line.startsWith('?? ') && line.slice(3).startsWith('docs/')));
   const contracts = readContracts();
   const recorded = contracts.runtimes[runtimeVersion];
 
