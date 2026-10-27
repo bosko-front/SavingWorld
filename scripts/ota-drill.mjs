@@ -155,6 +155,14 @@ function updates() {
   db.close();
 }
 
+// `simctl terminate` can hang when the app is not running, so ask launchd first.
+function terminateIfRunning(device) {
+  const running = simctl('spawn', device, 'launchctl', 'list').includes(`UIKitApplication:${BUNDLE_ID}`);
+  if (running) {
+    simctl('terminate', device, BUNDLE_ID);
+  }
+}
+
 function seed() {
   const device = requireDevice();
   const source = option('--db');
@@ -166,11 +174,7 @@ function seed() {
   if (fs.existsSync(target) && !process.argv.includes('--replace-test-data')) {
     fail(`${target} exists; pass --replace-test-data only when it holds test data`);
   }
-  try {
-    simctl('terminate', device, BUNDLE_ID);
-  } catch {
-    // not running
-  }
+  terminateIfRunning(device);
   fs.mkdirSync(path.dirname(target), { recursive: true });
   for (const suffix of ['-wal', '-shm']) {
     fs.rmSync(target + suffix, { force: true });
