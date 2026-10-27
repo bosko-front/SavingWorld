@@ -64,14 +64,15 @@ function run(command, commandArgs, { json = false } = {}) {
   }
 }
 
-// EAS CLI pinned by package.json ("npm run eas"); read-only commands only.
+// EAS CLI pinned by package.json ("npm run eas"); read-only commands only. No stdin, so a command can
+// never wait for an answer (not every command accepts --non-interactive).
 function eas(commandArgs) {
-  return run('npx', ['--yes', 'eas-cli@25.3.0', ...commandArgs, '--json', '--non-interactive'], { json: true });
+  return run('npx', ['--yes', 'eas-cli@25.3.0', ...commandArgs, '--json'], { json: true });
 }
 
 function easOptional(commandArgs) {
   try {
-    const output = execFileSync('npx', ['--yes', 'eas-cli@25.3.0', ...commandArgs, '--json', '--non-interactive'], {
+    const output = execFileSync('npx', ['--yes', 'eas-cli@25.3.0', ...commandArgs, '--json'], {
       cwd: ROOT,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],

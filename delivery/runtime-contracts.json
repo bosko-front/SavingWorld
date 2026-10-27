@@ -1,0 +1,44 @@
+{
+  "runtimes": {
+    "1.0.0": {
+      "runtimeVersion": "1.0.0",
+      "appVersion": "1.0.0",
+      "platform": "ios",
+      "fingerprint": "c83b89a5d24660fbb150b4b77e20fdf4c969aee3",
+      "schemaVersion": 5,
+      "persisted": {
+        "sha256": "5e4b7f952c7e5294bac8c0e71d3379c95a7dcbb7420a09a1e01fbe873aafef8a",
+        "files": {
+          "src/core/money/iso-4217.ts": "2b84437a9e79edfa1e092bfe04b1373fa58fb254164d299f80cd224e4b8d58ea",
+          "src/core/money/minor-units.ts": "27fd670f56512aaf5612f97b12f1734be5984ce9227c835be4f650a23480a746",
+          "src/core/progression/theme-ids.ts": "85db51b775972f32fc08290f130c9128e3a39e18df49856b69c3646934014676",
+          "src/data/db/hash.ts": "10fc652f984511b99fe2c9d535db67d72dfa4baed1515a766ad59cb96fdb41e0",
+          "src/data/db/migration-runner.ts": "ea213681fe7a3c4ff8f9d81f9c290c4952e721a7202779de93b1510aa6518af2",
+          "src/data/db/migrations/0001-initial-ledger.ts": "6ac6900d0eda24b886e65e2c64de03b2611b364412294f3ca01f9e5916ff1f80",
+          "src/data/db/migrations/0002-goal-deletion.ts": "989dbc05a2d15200654bea7c2dff4aaf8820da522eb948d0b2fb6197f89c8de9",
+          "src/data/db/migrations/0003-collectibles.ts": "af98d8560d4725bbe277ac306c3a1205f17b8243c5a3e8787b75f4aa257c3dbc",
+          "src/data/db/migrations/0004-challenge-attempts.ts": "eeaf064ad7d5fa4ec98f161c34db981990c25bfcc39aa9082a96c12cadfa2eb0",
+          "src/data/db/migrations/0005-entitlements.ts": "7cb7022a0d8e4293ebf5c3f6ab6c709ffe6aa96d49e1105128d3494e9d2d3029",
+          "src/data/db/migrations/index.ts": "25cf24e6e28b78fcb9fc7cdd36b1be8c2071a3d6c89cb512bd735b088f941923",
+          "src/data/repositories/entitlement-repository.ts": "3d077f292ef143c37802f27108ab60cfc7f23619b6812bc0794ac33812373d37",
+          "src/data/repositories/receipt-repository.ts": "71de59a5bf694abc0a766fbed36b391277da396913a8fa7962ed835d4d116a96",
+          "src/data/repositories/row-codec.ts": "f4ddccf07d8ce289a8924b77afcca503eb5a5b169d5d42d5ee6a9d1ef07c9798",
+          "src/data/repositories/settings-repository.ts": "ffc747ea1bd6e49d2c605321570842474c4636ca53e64ab6f53ed7ed7794c4d7"
+        }
+      },
+      "sourceRevision": "692abd97d525fcc968388af0d3099f1c0d91077c",
+      "firstSharedBuild": "e86513c7-111c-4e28-b85d-ab04d36bf4a3",
+      "builds": [
+        "e86513c7-111c-4e28-b85d-ab04d36bf4a3"
+      ],
+      "history": [
+        {
+          "at": "2026-10-27T12:10:59.000Z",
+          "build": "e86513c7-111c-4e28-b85d-ab04d36bf4a3",
+          "revision": "692abd97d525fcc968388af0d3099f1c0d91077c",
+          "reason": "Phase 20: first release-mode preview builds (e86513c7 simulator, 638cba93 device) share runtime 1.0.0 with test installations"
+        }
+      ]
+    }
+  }
+}
