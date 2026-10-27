@@ -44,8 +44,9 @@ Simulators: two dedicated iPhone 17 Pro iOS 26.0 simulators created for this pha
 
 | Check | Environment | Result | Observed |
 | --- | --- | --- | --- |
-| `npm run lint`, `npm run typecheck` | Mac | PASS | see "Final checks" |
-| `npm test -- --runInBand` | Jest | PASS | see "Final checks" |
+| `npm run lint`, `npm run typecheck` | Mac, after the final edits | PASS | exit 0, exit 0 |
+| `npm test -- --runInBand` | Jest, after the final edits | PASS | 60 suites, 1615 passed, 1 env-gated skip (was 58 / 1581 at 19.5) |
+| Final gate | `node scripts/release-check.mjs --eas --publish` at b5703ba | PASS | exit 0; [record](phase-20/release-record-final.json) |
 | Release gate on each published commit | `node scripts/release-check.mjs --eas --publish` | PASS (OTA-1 6a40478, [record](phase-20/release-record-ota1.json)); **FAIL as intended** on the incompatible commit (runtime policy and fingerprint 152430203661 ≠ c83b89a5…); OTA-2 see deviation below | Both preview builds' EAS fingerprints = local |
 | Artifact inspection | e86513c7 | PASS | `Expo.plist`: URL u.expo.dev/25d3089f…, `expo-channel-name: preview`, runtime 1.0.0, CheckOnLaunch ALWAYS (= ON_LOAD), LaunchWaitMs 0. Hermes bytecode. Dev module code absent (only the known unreachable route titles, D39). ATS: `NSAllowsArbitraryLoads false`, `NSAllowsLocalNetworking true`; no Bonjour/local-network usage keys. |
 | T24 first launch, update server unreachable | B, proxy `offline` | PASS | Embedded bundle, Home €800.00 of €1,000.00, 80%, stage 8 Island; paywall's Garden preview drawn; build details "preview / 1.0.0 / Embedded bundle / Normal" ([02](phase-20/02-B-offline-first-launch-home.png), [03](phase-20/03-B-offline-paywall-garden.png), [04](phase-20/04-B-build-details-embedded.png)). Ledger e8082baab0b3 = fixture file. |
