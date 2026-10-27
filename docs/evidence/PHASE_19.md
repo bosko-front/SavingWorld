@@ -1,6 +1,6 @@
 # Phase 19 evidence: accessibility, localization and Settings review
 
-Session date: 27 October 2026. Phase state: **IN PROGRESS** (code, automated and simulator work done; the mandatory physical-iPhone VoiceOver/haptics/notification checks, the Duo matrix and the Q09 privacy/support destinations are not done). Next prompt: [PHASE_19](../prompts/PHASE_19.md) (continuation).
+Session date: 27 October 2026. Phase state: **VERIFIED COMPLETE by owner decision D138** (27 October 2026). The owner reported that VoiceOver (D135), the felt haptics, the weekly reminder on a physical iPhone and the Duo checks all work; these are owner-reported, not itemized. Earlier state, kept for history: IN PROGRESS (code, automated and simulator work done; the mandatory physical-iPhone VoiceOver/haptics/notification checks, the Duo matrix and the Q09 privacy/support destinations are not done). Next prompt: [PHASE_19_5](../prompts/PHASE_19_5.md).
 
 Baseline: `main` at fcdd83c (Phase 18), clean working tree. Changes are uncommitted. Product authority: [MVP plan v1.2](../Saving_Worlds_MVP_Plan_v1_2.docx), read in full with `textutil` this session; D74, D75 and D119 respected. Decision recorded: D134 (engineering, no product rule changed).
 
@@ -42,9 +42,9 @@ Home (D97: changes need an owner request): only the catalog move, one `marginSta
 | `deps:check` / `doctor` | — | NOT RUN | No dependency or native change. |
 | Release export | — | NOT RUN | No change to development-only tool loading; `details` now behind `__DEV__`. |
 | Physical-iPhone VoiceOver walkthroughs (D60, D63, D83, D88, D102, D107, D109, D133) | Owner's iPhone | **PASS (owner-reported, D135)** | The owner reports VoiceOver is fine everywhere ("voice over je okej svuda"). Not itemized screen by screen; no recording. In this session there was no VoiceOver in the simulator and no device. |
-| Felt haptics (D63, D88, D102, D107, D109, D133) | — | **NOT RUN** except the purchase | The owner confirms the success haptic after a purchase and wants it kept (D135). The others need a physical iPhone. |
-| Weekly reminder device checks (D109) | — | **NOT RUN** | Device development build needed. |
-| Duo matrix with forms, both themes, charts and sheets | — | **NOT RUN** | Not run this session (the simulator Duo was available; time went to the code audit). |
+| Felt haptics (D63, D88, D102, D107, D109, D133) | Owner's iPhone | **PASS (owner-reported, D138)** | Purchase haptic confirmed and kept earlier (D135); the rest reported working by the owner, not itemized. |
+| Weekly reminder device checks (D109) | Owner's iPhone | **PASS (owner-reported, D138)** | Not itemized. |
+| Duo matrix with forms, both themes, charts and sheets | Owner | **PASS (owner-reported, D138)** | Not run by Claude in this session; reported working by the owner, not itemized. |
 | Simulator Reduce Motion relaunch walk-through | — | NOT RUN | Covered by Jest gates (audit: every animation gated; see below). |
 | Privacy/support links | GitHub Pages | PASS (D137) | Both URLs live (200); Settings › About links them. |
 
@@ -128,3 +128,7 @@ Run on a physical iPhone with a device development build (Pro bought in sandbox 
 - Two queued announcements for an unlocking deposit (each heard once).
 - Owner choices: none open (D135, D136).
 - Simulator: the SE text size was set back to "large"; no app data changed (test databases are deleted by the runner).
+
+## Closure (D138)
+
+The owner reports that everything left in Phase 19 works ("ovo sve radi"): the felt haptics, the weekly reminder checks on a physical iPhone and the Duo checks. VoiceOver was accepted earlier (D135). Phase 19 is VERIFIED COMPLETE by owner decision D138. Phase 21 repeats the device checks on the release candidate with itemized evidence. App Store Connect entries (URLs, App Privacy) remain with the owner. Next prompt: [PHASE_19_5](../prompts/PHASE_19_5.md).

@@ -1,6 +1,6 @@
 # Latest session handoff
 
-Session date: 27 October 2026. Session kind: Phase 19 (accessibility, localization and Settings review), first session. Result: **Phase 19 IN PROGRESS**. The code, automated and simulator work is done; the mandatory physical-iPhone checks, the Duo matrix and the Q09 privacy/support destinations are not. Next prompt: [PHASE_19](prompts/PHASE_19.md) (continuation). Details: [PHASE_19 evidence](evidence/PHASE_19.md), decision D134.
+Session date: 27 October 2026. Session kind: Phase 19 (accessibility, localization and Settings review). Result: **Phase 19 VERIFIED COMPLETE by owner decision D138**: the code, automated and simulator work is done; the owner reports that VoiceOver (D135), the felt haptics, the weekly reminder on a physical iPhone and the Duo checks work. Next prompt: [PHASE_19_5](prompts/PHASE_19_5.md). Details: [PHASE_19 evidence](evidence/PHASE_19.md), decisions D134-D138.
 
 The previous handoff (Phase 18, VERIFIED COMPLETE by D133) is superseded; its record remains in [PHASE_18 evidence](evidence/PHASE_18.md) and DECISIONS D131-D133.
 
@@ -47,6 +47,10 @@ The previous handoff (Phase 18, VERIFIED COMPLETE by D133) is superseded; its re
 - Recommended URLs (GitHub Pages): `https://bosko-front.github.io/SavingWorld/PRIVACY.html` and `…/SUPPORT.html`. Fallback: the `github.com/…/blob/main/…` URLs.
 - Done with the owner's approval: publisher Bosko Jaksic, support email filled in, commit 031c2b3 pushed to `main`, GitHub Pages enabled and both URLs verified (200; the development docs are not published), Settings › About links added. App Store Connect is untouched: the owner enters the two URLs (and the App Privacy answers) or approves doing it.
 
+## Phase closure (D138)
+
+- The owner reports that the remaining checks work: the felt haptics, the weekly reminder on a physical iPhone and the Duo checks ("ovo sve radi"). Phase 19 is VERIFIED COMPLETE by owner decision. The incomplete-work list below is kept for history; its device items are closed by D138.
+
 ## Decisions
 
 - D134 (engineering, no product rule changed): the catalog and its guard, the "Your data" copy and placement, the shared focus and announcement behavior, sign placement, RTL readiness. Open owner choices recorded in it:
@@ -80,13 +84,7 @@ The previous handoff (Phase 18, VERIFIED COMPLETE by D133) is superseded; its re
 
 ## Exact next session
 
-In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_19.md` (continuation). Do these:
-
-1. Verify this session's changes.
-2. Run the Duo matrix on the simulator.
-3. With the owner, run the physical-iPhone checklist from `docs/evidence/PHASE_19.md`.
-4. Apply the owner's answers to the open choices.
-5. Mark the phase verified complete only when every mandatory check has evidence, or when the owner explicitly defers it by decision.
+In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_19_5.md` (owner-approved app icon and launch screen, D114). Owner actions outside the app: enter the Privacy Policy and Support URLs (D137) and the App Privacy answers in App Store Connect. Phase 21 repeats the device checks on the release candidate with itemized evidence.
 
 ## Parallel workstream: Garden art (26 October 2026)
 
