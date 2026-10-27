@@ -160,11 +160,11 @@ describe('palette source', () => {
     }
   });
 
-  it('uses palette.cream for the native launch background', () => {
+  it('uses palette.cream for the native root view and palette.skyTop for the launch screen (D140)', () => {
     const config = buildAppConfig({ config: {}, projectRoot: process.cwd(), staticConfigPath: null, packageJsonPath: null });
     expect(config.backgroundColor).toBe(palette.cream);
     const splash = config.plugins?.find((plugin) => Array.isArray(plugin) && plugin[0] === 'expo-splash-screen');
-    expect(Array.isArray(splash) ? splash[1] : undefined).toMatchObject({ backgroundColor: palette.cream });
+    expect(Array.isArray(splash) ? splash[1] : undefined).toMatchObject({ backgroundColor: palette.skyTop });
   });
 
   it('declares the single supported light appearance', () => {

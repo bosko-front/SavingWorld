@@ -106,3 +106,9 @@ Not covered on the simulators: dark/tinted on the SE iOS 18.5 (its Customize she
 - Physical-iPhone look of the icon (home screen light/dark/tinted, Spotlight, Settings, app switcher) and the cold launch: Phase 21 release candidate.
 - The Duo's single white launch frame in the development client: confirm absent in the Phase 20 release-mode preview build.
 - No Icon Composer `.icon` version; iOS 26+ applies its own glass edge to the PNG icon. Adding one later is a separate reviewed native change (new app version once runtime 1.0.0 is shared).
+
+## Follow-up the same day: sky launch color and local Xcode builds (D140)
+
+- The owner's local Xcode build still showed the placeholder icon: the project's `ios/` folder was generated on 26 October (one AppIcon entry, the Expo image). `npx expo prebuild --platform ios --clean` regenerated it; its `pod install` failed on CocoaPods 1.16.2 / Ruby 3.4 with `Unicode Normalization not appropriate for ASCII-8BIT` and passed when rerun with `LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 pod install`. New `ios/`: AppIcon any/dark/tinted, `SplashScreenBackground` 0.8118/0.9020/0.9333 = `#CFE6EE`, splash logo 120/240/360 px, StoreKit scheme kept.
+- Launch background changed to `palette.skyTop` `#CFE6EE` at the owner's choice; root view stays cream. Commit 48be676 had picked up an unrelated local edit of the launch color (`#2d96cb`) made during the session; it is replaced by this change. A committed `__pycache__` file is removed and `__pycache__/` ignored.
+- Checks: `delivery-config` + `contrast` 138/138, lint and typecheck PASS. The sky launch screen and the icon from the regenerated `ios/` are checked by the owner in his own Xcode build (not run in this session).

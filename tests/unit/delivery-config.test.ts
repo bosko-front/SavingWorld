@@ -84,10 +84,10 @@ describe('app icon and launch screen (Phase 19.5, DECISIONS D139)', () => {
     expect(png.chunks.has('sRGB') || png.chunks.has('iCCP')).toBe(true);
   });
 
-  it('shows the small transparent island mark on the cream launch screen, no animation', () => {
+  it('shows the small transparent cottage mark on the sky launch screen, no animation', () => {
     const splash = config.plugins?.find((plugin) => Array.isArray(plugin) && plugin[0] === 'expo-splash-screen');
     expect(Array.isArray(splash) ? splash[1] : undefined).toEqual({
-      backgroundColor: '#F6F4EA',
+      backgroundColor: '#CFE6EE',
       image: './assets/images/splash-mark.png',
       imageWidth: SPLASH_MARK_WIDTH,
       resizeMode: 'contain',

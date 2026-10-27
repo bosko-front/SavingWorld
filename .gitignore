@@ -55,3 +55,6 @@ coverage/
 # Xcode StoreKit test project (Phase 15): per-user state only
 native-tests/storekit/StoreKitHost.xcodeproj/xcuserdata/
 native-tests/storekit/StoreKitHost.xcodeproj/project.xcworkspace/xcuserdata/
+
+# Python bytecode from the Blender art scripts
+__pycache__/
