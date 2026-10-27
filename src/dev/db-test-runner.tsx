@@ -16,6 +16,8 @@ import { CHALLENGE_SCENARIOS } from '../../tests/native/challenge-scenarios';
 import { GOAL_SCENARIOS } from '../../tests/native/goal-scenarios';
 import { INTL_SCENARIOS } from '../../tests/native/intl-scenarios';
 import { LEDGER_SCENARIOS } from '../../tests/native/ledger-scenarios';
+import { PERFORMANCE_SCENARIOS } from '../../tests/native/performance-scenarios';
+import { RESILIENCE_SCENARIOS } from '../../tests/native/resilience-scenarios';
 import { SOUVENIR_SCENARIOS } from '../../tests/native/souvenir-scenarios';
 import { STATISTICS_SCENARIOS } from '../../tests/native/statistics-scenarios';
 import { runScenarios, type Scenario, type ScenarioContext, type ScenarioResult } from '../../tests/native/scenario-harness';
@@ -57,7 +59,7 @@ function scenariosFor(suite: DbTestSuite, runId: string, seedId: string | null, 
   if (suite === 'restart-verify') {
     return seedId ? [restartVerifyScenario(seedId)] : [];
   }
-  const all = [...DATABASE_SCENARIOS, ...GOAL_SCENARIOS, ...LEDGER_SCENARIOS, ...SOUVENIR_SCENARIOS, ...CHALLENGE_SCENARIOS, ...STATISTICS_SCENARIOS, ...INTL_SCENARIOS];
+  const all = [...DATABASE_SCENARIOS, ...GOAL_SCENARIOS, ...LEDGER_SCENARIOS, ...SOUVENIR_SCENARIOS, ...CHALLENGE_SCENARIOS, ...STATISTICS_SCENARIOS, ...RESILIENCE_SCENARIOS, ...PERFORMANCE_SCENARIOS, ...INTL_SCENARIOS];
   return linked ? [...all, restartSeedScenario(runId)] : all;
 }
 

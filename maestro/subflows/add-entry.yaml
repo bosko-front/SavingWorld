@@ -1,0 +1,20 @@
+# Opens Add savings from ${FROM_ID} and saves ${KIND} (Deposit/Withdrawal) of ${AMOUNT}, today.
+appId: com.bosko123.savingworlds
+---
+- tapOn:
+    id: ${FROM_ID}
+- extendedWaitUntil:
+    visible:
+      id: entry-amount
+    timeout: 10000
+- runFlow:
+    when:
+      true: ${KIND == 'Withdrawal'}
+    commands:
+      - tapOn: Withdrawal
+- tapOn:
+    id: entry-amount
+- inputText: ${AMOUNT}
+# Save stays visible above the number pad.
+- tapOn:
+    id: entry-save

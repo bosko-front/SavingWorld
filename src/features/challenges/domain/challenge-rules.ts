@@ -102,8 +102,51 @@ export function countsForAttempt(attempt: ChallengeAttemptRecord, entry: Challen
   return attempt.periodEndDate === null || entry.entryDate <= attempt.periodEndDate;
 }
 
+// The goal's entries ordered by entry date, built once per entries list (Phase 21: with a year of
+// weekly attempts and thousands of entries, checking every entry for every attempt dominated each
+// ledger write and the quest board). An attempt only visits the entries dated from its start date
+// through its saved period end; `countsForAttempt` still decides each of them, so the counted set is
+// unchanged. Entry lists are never mutated after they are read, so a list's order can be reused.
+const entriesByDate = new WeakMap<readonly ChallengeEntry[], readonly ChallengeEntry[]>();
+
+function sortedByDate(entries: readonly ChallengeEntry[]): readonly ChallengeEntry[] {
+  let sorted = entriesByDate.get(entries);
+  if (!sorted) {
+    sorted = [...entries].sort((a, b) => (a.entryDate < b.entryDate ? -1 : a.entryDate > b.entryDate ? 1 : 0));
+    entriesByDate.set(entries, sorted);
+  }
+  return sorted;
+}
+
+function countedEntries(attempt: ChallengeAttemptRecord, entries: readonly ChallengeEntry[]): ChallengeEntry[] {
+  const sorted = sortedByDate(entries);
+  // First entry dated on or after the start date (dates share one fixed format, so text order is
+  // date order).
+  let low = 0;
+  let high = sorted.length;
+  while (low < high) {
+    const middle = (low + high) >> 1;
+    if ((sorted[middle]?.entryDate ?? attempt.startDate) < attempt.startDate) {
+      low = middle + 1;
+    } else {
+      high = middle;
+    }
+  }
+  const counted: ChallengeEntry[] = [];
+  for (let index = low; index < sorted.length; index += 1) {
+    const entry = sorted[index];
+    if (!entry || (attempt.periodEndDate !== null && entry.entryDate > attempt.periodEndDate)) {
+      break;
+    }
+    if (countsForAttempt(attempt, entry)) {
+      counted.push(entry);
+    }
+  }
+  return counted;
+}
+
 export function attemptProgress(attempt: ChallengeAttemptRecord, entries: readonly ChallengeEntry[]): AttemptProgress {
-  const counted = entries.filter((entry) => countsForAttempt(attempt, entry));
+  const counted = countedEntries(attempt, entries);
   if (attempt.ruleId === 'first_step' || attempt.targetMinor === null) {
     return { kind: 'first_deposit', met: counted.some((entry) => entry.signedAmountMinor > 0) };
   }

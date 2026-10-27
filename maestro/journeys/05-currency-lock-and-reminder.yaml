@@ -1,0 +1,48 @@
+# J05 (T27, T13, R07, R17): Settings shows the global currency locked once a transaction exists, and the
+# weekly reminder turns on from its switch (permission dialog: device check).
+appId: com.bosko123.savingworlds
+---
+- runFlow: ../subflows/onboard.yaml
+- runFlow:
+    file: ../subflows/create-goal.yaml
+    env: { TITLE: Laptop, TARGET: "800" }
+- tapOn:
+    id: home-settings
+- extendedWaitUntil:
+    visible:
+      id: currency-settings
+    timeout: 10000
+- assertVisible:
+    id: settings-currency
+- assertVisible:
+    id: currency-rule
+- tapOn: Back
+- runFlow:
+    file: ../subflows/add-entry.yaml
+    env: { FROM_ID: home-add-savings, KIND: Deposit, AMOUNT: "5" }
+- tapOn:
+    id: home-settings
+- extendedWaitUntil:
+    visible:
+      id: currency-settings
+    timeout: 10000
+- assertNotVisible:
+    id: settings-currency
+- assertVisible:
+    id: currency-locked
+- scrollUntilVisible:
+    element:
+      id: reminder-switch
+    centerElement: true
+- tapOn:
+    id: reminder-switch
+# Maestro grants notification permission at launch, so no iOS dialog appears here; the dialog after
+# opt-in is a physical-iPhone check (D109).
+- extendedWaitUntil:
+    visible:
+      id: reminder-explanation
+      text: "On\\..*"
+    timeout: 15000
+- assertVisible:
+    id: reminder-switch
+    text: ".*Sundays at.*"

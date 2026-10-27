@@ -1,0 +1,25 @@
+# Fresh install → three onboarding steps → the currency the picker proposes for the simulator's region
+# (amounts in the journeys are matched without a currency symbol, so any 2-decimal currency works).
+appId: com.bosko123.savingworlds
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- extendedWaitUntil:
+    visible:
+      id: onboarding-next-welcome
+    timeout: 30000
+- tapOn:
+    id: onboarding-next-welcome
+- tapOn:
+    id: onboarding-next
+- extendedWaitUntil:
+    visible:
+      id: onboarding-currency-rule
+    timeout: 10000
+- tapOn:
+    id: onboarding-continue
+- extendedWaitUntil:
+    visible:
+      id: home-empty
+    timeout: 20000

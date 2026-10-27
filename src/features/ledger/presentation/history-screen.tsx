@@ -1,5 +1,5 @@
 import { Link, Stack } from 'expo-router';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View, type GestureResponderEvent } from 'react-native';
 
 import { refreshAppData, useAccessView, useAppDataStore, useCommittedRead } from '@/bootstrap/app-data';
@@ -22,7 +22,7 @@ import { IconTile } from '@/shared/ui/icon-tile';
 import { ListGroup } from '@/shared/ui/list-row';
 import { Notice } from '@/shared/ui/notice';
 
-import { newestFirst, readGoalLedger } from '../application/ledger-queries';
+import { readHistoryPage } from '../application/ledger-queries';
 
 import { entryCountText, HISTORY_COPY, KIND_LABEL } from './ledger-copy';
 
@@ -32,13 +32,20 @@ import { entryCountText, HISTORY_COPY, KIND_LABEL } from './ledger-copy';
 // a full-width button above the entries, as on Home (D81). Closed goals show the same list
 // read-only until Reopen. The list re-reads SQLite after every commit.
 //
-// Rows are rendered inside the shared scrolling Screen rather than a virtualized list; a single
-// person's manual ledger stays small (hundreds of rows), and Phase 21 profiles large histories.
+// Rows are rendered inside the shared scrolling Screen rather than a virtualized list, one bounded
+// page at a time (Phase 21): the newest HISTORY_PAGE_SIZE entries, then "Show older entries" adds
+// the next page. With 10,000 entries the release build rendered nothing for minutes when every row
+// was drawn at once (docs/evidence/PHASE_21.md).
+export const HISTORY_PAGE_SIZE = 100;
+
 export function HistoryScreen({ goalId }: { goalId: string }) {
   const currency = useAppDataStore((store) =>
     store.state.status === 'ready' && store.state.data.currency.currency.status === 'set' ? store.state.data.currency.currency.currency : null,
   );
-  const ledger = useCommittedRead(`history:${goalId}`, (db) => readGoalLedger(db, goalId));
+  const [limit, setLimit] = useState(HISTORY_PAGE_SIZE);
+  // A longer page keeps the shown rows (and the scroll position) until it has loaded.
+  const read = useCommittedRead(`history:${goalId}:${limit}`, (db) => readHistoryPage(db, goalId, limit), { keepWhileLoading: true });
+  const ledger = read.status === 'ready' && read.value && read.value.goal.id !== goalId ? ({ status: 'loading' } as const) : read;
   const access = useAccessView();
 
   if (ledger.status === 'loading') {
@@ -60,13 +67,12 @@ export function HistoryScreen({ goalId }: { goalId: string }) {
     );
   }
 
-  const { goal, entries, balanceMinor } = ledger.value;
+  const { goal, entries: rows, entryCount, balanceMinor } = ledger.value;
   const closed = !isOpenStatus(goal.status);
   // A goal that is read-only after a lost Pro entitlement keeps its whole history visible (Phase 16).
   const use = access?.use(goal) ?? 'usable';
   const open = !closed && use === 'usable';
   const locale = deviceLocale();
-  const rows = newestFirst(entries);
 
   return (
     <Screen testID="history">
@@ -77,7 +83,7 @@ export function HistoryScreen({ goalId }: { goalId: string }) {
         </AppText>
         <AppText tone="secondary" testID="history-balance">{HISTORY_COPY.balance(formatMoney(balanceMinor, currency, { locale }))}</AppText>
         <AppText role="footnote" tone="secondary">
-          {entryCountText(entries.length)}
+          {entryCountText(entryCount)}
           {open ? HISTORY_COPY.tapHint : ''}
         </AppText>
       </Card>
@@ -122,6 +128,14 @@ export function HistoryScreen({ goalId }: { goalId: string }) {
           ))}
         </ListGroup>
       )}
+      {rows.length < entryCount ? (
+        <Button
+          label={HISTORY_COPY.showOlder}
+          variant="secondary"
+          onPress={() => setLimit(rows.length + HISTORY_PAGE_SIZE)}
+          testID="history-show-older"
+        />
+      ) : null}
     </Screen>
   );
 }

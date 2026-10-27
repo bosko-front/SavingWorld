@@ -1,7 +1,13 @@
 import type { AppDatabase } from '@/data/db/database';
 import type { SqlExecutor } from '@/data/db/sql';
 import { getGoal, type GoalRecord } from '@/data/repositories/goal-repository';
-import { getEntry, listEntriesForGoal, type LedgerEntryRecord } from '@/data/repositories/ledger-repository';
+import {
+  getEntry,
+  goalLedgerTotals,
+  listEntriesForGoal,
+  listNewestEntriesForGoal,
+  type LedgerEntryRecord,
+} from '@/data/repositories/ledger-repository';
 import { sumMinor, toMinorAmount } from '@/core/money';
 
 // Read side for one goal's ledger: committed data from a single read snapshot. The balance is
@@ -27,6 +33,29 @@ export async function readGoalLedger(db: AppDatabase, goalId: string): Promise<G
   return db.read(async (snapshot) => {
     const goal = await getGoal(snapshot, goalId);
     return goal ? ledgerFor(snapshot, goal) : null;
+  });
+}
+
+// One page of History (Phase 21): the newest `limit` entries, newest first, with the goal's entry
+// count and balance from SQL over all of its entries, from one read snapshot. A ledger of thousands
+// of entries is never decoded or rendered at once; History asks for a longer page to show more.
+export type HistoryPage = {
+  goal: GoalRecord;
+  // Newest first, at most `limit`.
+  entries: LedgerEntryRecord[];
+  entryCount: number;
+  balanceMinor: number;
+};
+
+export async function readHistoryPage(db: AppDatabase, goalId: string, limit: number): Promise<HistoryPage | null> {
+  return db.read(async (snapshot) => {
+    const goal = await getGoal(snapshot, goalId);
+    if (!goal) {
+      return null;
+    }
+    const totals = await goalLedgerTotals(snapshot, goal.id);
+    const entries = await listNewestEntriesForGoal(snapshot, goal.id, limit);
+    return { goal, entries, entryCount: totals.entryCount, balanceMinor: totals.sumMinor };
   });
 }
 

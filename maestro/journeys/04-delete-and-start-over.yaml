@@ -1,0 +1,39 @@
+# J04 (T07, R04, R05, D74): Free has one goal in total; a second Create opens "Build another world";
+# deleting the goal after the native confirmation empties Home and lets Free create again.
+appId: com.bosko123.savingworlds
+---
+- runFlow: ../subflows/onboard.yaml
+- runFlow:
+    file: ../subflows/create-goal.yaml
+    env: { TITLE: Old plan, TARGET: "500" }
+- runFlow:
+    file: ../subflows/add-entry.yaml
+    env: { FROM_ID: home-add-savings, KIND: Deposit, AMOUNT: "10" }
+- tapOn:
+    id: home-goal-menu
+- tapOn: "New goal"
+- extendedWaitUntil:
+    visible:
+      id: paywall-another-world
+    timeout: 15000
+- assertVisible: "Build another world"
+- tapOn:
+    id: goal-cancel
+    optional: true
+- swipe:
+    direction: DOWN
+    optional: true
+- tapOn:
+    id: home-goal-menu
+- tapOn: "Delete goal…"
+- tapOn: "Delete"
+- extendedWaitUntil:
+    visible:
+      id: home-empty
+    timeout: 15000
+- runFlow:
+    file: ../subflows/create-goal.yaml
+    env: { TITLE: New plan, TARGET: "300" }
+- assertVisible:
+    id: home-amount
+    text: ".*0[.,]00.*"

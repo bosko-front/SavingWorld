@@ -131,8 +131,14 @@ export type CommittedRead<T> = { status: 'loading' } | { status: 'ready'; value:
 
 // A screen-specific read of committed data (for example one goal's History), re-run whenever
 // `key` changes and after every `refreshAppData()`. The previous value stays on screen while the
-// next read runs, so a commit never blanks a list or resets a form built from it.
-export function useCommittedRead<T>(key: string, read: (db: AppDatabase) => Promise<T>): CommittedRead<T> {
+// next read runs, so a commit never blanks a list or resets a form built from it. A new key reads
+// as loading, unless `keepWhileLoading` says the screen can keep showing the previous key's value
+// (History asking for a longer page of the same goal).
+export function useCommittedRead<T>(
+  key: string,
+  read: (db: AppDatabase) => Promise<T>,
+  options: { keepWhileLoading?: boolean } = {},
+): CommittedRead<T> {
   const version = useAppDataStore((store) => store.version);
   const [result, setResult] = useState<{ key: string; read: CommittedRead<T> }>({ key, read: { status: 'loading' } });
 
@@ -160,7 +166,7 @@ export function useCommittedRead<T>(key: string, read: (db: AppDatabase) => Prom
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, version]);
 
-  return result.key === key ? result.read : { status: 'loading' };
+  return result.key === key || (options.keepWhileLoading && result.read.status === 'ready') ? result.read : { status: 'loading' };
 }
 
 // What this person may do: Pro capabilities only while the stored entitlement is a verified

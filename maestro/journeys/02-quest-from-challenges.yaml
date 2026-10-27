@@ -1,0 +1,35 @@
+# J02 (T12, R14-R16): First step started on Challenges, savings added from the quest card through the
+# shared entry form; the deposit counts once in the balance and completes the quest once.
+appId: com.bosko123.savingworlds
+---
+- runFlow: ../subflows/onboard.yaml
+- runFlow:
+    file: ../subflows/create-goal.yaml
+    env: { TITLE: Bike, TARGET: "200" }
+- tapOn: Challenges
+- extendedWaitUntil:
+    visible:
+      id: challenges-start
+    timeout: 15000
+- tapOn:
+    id: challenges-start
+- extendedWaitUntil:
+    visible:
+      id: quest-current
+    timeout: 15000
+- runFlow:
+    file: ../subflows/add-entry.yaml
+    env: { FROM_ID: challenges-add-savings, KIND: Deposit, AMOUNT: "25" }
+- extendedWaitUntil:
+    visible:
+      id: quest-completed
+    timeout: 15000
+- tapOn: Home
+- extendedWaitUntil:
+    visible:
+      id: home-amount
+      text: ".*25[.,]00.*"
+    timeout: 15000
+- tapOn:
+    id: home-goal-menu
+- assertVisible: "History \\(1 entry\\)"

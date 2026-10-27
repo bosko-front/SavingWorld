@@ -1,0 +1,56 @@
+# J03 (T07, T09, R13): the first saved 100% gives one souvenir while the goal stays active; Finish
+# closes it; Collection shows the finished world; Reopen makes it active again at 100%.
+appId: com.bosko123.savingworlds
+---
+- runFlow: ../subflows/onboard.yaml
+- runFlow:
+    file: ../subflows/create-goal.yaml
+    env: { TITLE: Camera, TARGET: "100" }
+- runFlow:
+    file: ../subflows/add-entry.yaml
+    env: { FROM_ID: home-add-savings, KIND: Deposit, AMOUNT: "100" }
+- extendedWaitUntil:
+    visible:
+      id: home-funded
+    timeout: 20000
+- tapOn:
+    id: home-goal-menu
+- tapOn: "Finish goal"
+- extendedWaitUntil:
+    visible:
+      id: home-another-world
+    timeout: 15000
+- tapOn: Collection
+- extendedWaitUntil:
+    visible:
+      id: collection-completed
+    timeout: 15000
+- tapOn: "Camera.*"
+- extendedWaitUntil:
+    visible:
+      id: souvenir-actions
+    timeout: 15000
+- scrollUntilVisible:
+    element:
+      id: "reopen-.*"
+- tapOn:
+    id: "reopen-.*"
+- extendedWaitUntil:
+    visible: "Still open"
+    timeout: 10000
+# The souvenir detail has no tab bar (D112): its round Back button (top left) returns to Collection.
+- tapOn:
+    point: 9%, 10%
+- extendedWaitUntil:
+    visible:
+      id: collection-intro
+    timeout: 10000
+- tapOn: Home
+- extendedWaitUntil:
+    visible:
+      id: home-goal-title
+      text: Camera
+    timeout: 15000
+- assertVisible:
+    id: home-percent
+    text: "100%"

@@ -1,0 +1,87 @@
+# J01 (T06, T19, R03, R06): onboarding, one Free goal, deposit 50 − withdrawal 20 = 30, a withdrawal of
+# 31 is refused inline with the draft kept, a correction 50 → 60 gives 40, and a cold restart keeps the
+# exact numbers.
+appId: com.bosko123.savingworlds
+---
+- runFlow: ../subflows/onboard.yaml
+- runFlow:
+    file: ../subflows/create-goal.yaml
+    env:
+      TITLE: Summer trip
+      TARGET: "1000"
+- runFlow:
+    file: ../subflows/add-entry.yaml
+    env: { FROM_ID: home-add-savings, KIND: Deposit, AMOUNT: "50" }
+- extendedWaitUntil:
+    visible:
+      text: ".*50[.,]00.*"
+      id: home-amount
+    timeout: 15000
+- runFlow:
+    file: ../subflows/add-entry.yaml
+    env: { FROM_ID: home-add-savings, KIND: Withdrawal, AMOUNT: "20" }
+- extendedWaitUntil:
+    visible:
+      text: ".*30[.,]00.*"
+      id: home-amount
+    timeout: 15000
+- runFlow:
+    file: ../subflows/add-entry.yaml
+    env: { FROM_ID: home-add-savings, KIND: Withdrawal, AMOUNT: "31" }
+- extendedWaitUntil:
+    visible:
+      text: ".*withdrawal can.t be more than the saved balance.*"
+    timeout: 10000
+- assertVisible:
+    id: entry-amount
+    text: ".*31.*"
+# Close the sheet without saving: swipe it down from its grabber (Cancel sits under the number pad).
+- swipe:
+    start: 50%, 8%
+    end: 50%, 95%
+    duration: 400
+- extendedWaitUntil:
+    notVisible:
+      id: entry-amount
+    timeout: 10000
+- assertVisible:
+    id: home-amount
+    text: ".*30[.,]00.*"
+# Correct the deposit from History: 50 → 60.
+- tapOn:
+    id: home-goal-menu
+- tapOn: "History.*"
+- extendedWaitUntil:
+    visible:
+      id: history-list
+    timeout: 10000
+- tapOn: "Deposit, .*50[.,]00.*"
+- extendedWaitUntil:
+    visible:
+      id: entry-amount
+    timeout: 10000
+- tapOn:
+    id: entry-amount
+- eraseText: 10
+- inputText: "60"
+- assertVisible:
+    id: entry-amount
+    text: ".*60.*"
+- tapOn:
+    id: entry-save
+- extendedWaitUntil:
+    visible:
+      id: history-balance
+      text: ".*40[.,]00.*"
+    timeout: 15000
+# Cold restart: the same exact state from SQLite.
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: home-amount
+      text: ".*40[.,]00.*"
+    timeout: 30000
+- assertVisible:
+    id: home-goal-title
+    text: Summer trip

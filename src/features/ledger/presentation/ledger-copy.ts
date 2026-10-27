@@ -183,4 +183,5 @@ export const HISTORY_COPY = {
     `Your ${world} is waiting for its first savings. Each deposit and withdrawal you record is listed here, newest first.`,
   rowLabel: (kind: string, amount: string, date: string, note: string | null) => `${kind}, ${amount}, ${date}${note ? `, note: ${note}` : ''}`,
   rowHint: 'Opens this entry to correct or delete it.',
+  showOlder: 'Show older entries',
 } as const;

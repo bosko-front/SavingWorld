@@ -369,3 +369,63 @@ describe('challenge board', () => {
     expect(board.history).toEqual([]);
   });
 });
+
+// Phase 21: progress visits only the entries inside an attempt's date window (entries indexed by date
+// once per list). The counted set must equal checking every entry with `countsForAttempt`.
+describe('date-indexed counting', () => {
+  function bruteForce(attempt: ChallengeAttemptRecord, entries: readonly ChallengeEntry[]) {
+    const counted = entries.filter((entry) => countsForAttempt(attempt, entry));
+    return {
+      firstDeposit: counted.some((entry) => entry.signedAmountMinor > 0),
+      sum: counted.reduce((total, entry) => total + entry.signedAmountMinor, 0),
+    };
+  }
+
+  it('matches a check of every entry for random ledgers and attempts, in any entry order', () => {
+    let state = 7;
+    const next = () => {
+      state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0;
+      return state / 2 ** 32;
+    };
+    const day = (offset: number) => new Date(Date.UTC(2026, 8, 1) + offset * 86_400_000).toISOString().slice(0, 10);
+    for (let round = 0; round < 40; round += 1) {
+      // Unsorted on purpose: corrections can move an entry's date anywhere.
+      const entries = Array.from({ length: 120 }, (_, i) =>
+        record(iso(Date.UTC(2026, 8, 1) + Math.floor(next() * 60 * 86_400_000)), day(Math.floor(next() * 60)), next() < 0.8 ? 100 + i : -(10 + i)),
+      );
+      const start = Math.floor(next() * 50);
+      const attempts = [
+        weekly({
+          startedAtUtc: iso(Date.UTC(2026, 8, 1) + start * 86_400_000),
+          startDate: date(day(start)),
+          periodEndDate: date(day(start + 6)),
+          periodEndAtUtc: iso(Date.UTC(2026, 8, 1) + (start + 7) * 86_400_000),
+          targetMinor: 1_000_000,
+          state: round % 2 === 0 ? 'active' : 'historical',
+          result: round % 2 === 0 ? null : 'not_completed',
+          historicalAtUtc: round % 2 === 0 ? null : iso(Date.UTC(2026, 8, 1) + (start + 7) * 86_400_000),
+        }),
+        weekly({ ruleId: 'first_step', targetMinor: null, startDate: date(day(start)), startedAtUtc: iso(Date.UTC(2026, 8, 1) + start * 86_400_000), periodEndDate: null, periodEndAtUtc: null, weekStartDate: null }),
+        weekly({ ruleId: 'next_milestone', targetMinor: 1_000_000, milestoneStage: 3, startDate: date(day(start)), startedAtUtc: iso(Date.UTC(2026, 8, 1) + start * 86_400_000), periodEndDate: null, periodEndAtUtc: null, weekStartDate: null }),
+      ];
+      for (const attempt of attempts) {
+        const expected = bruteForce(attempt, entries);
+        const progress = attemptProgress(attempt, entries);
+        if (progress.kind === 'first_deposit') {
+          expect(progress.met).toBe(expected.firstDeposit);
+        } else {
+          expect(progress.progressMinor).toBe(Math.max(0, expected.sum));
+        }
+      }
+    }
+  });
+
+  it('reads a new entries list afresh, so a correction is never counted from an older list', () => {
+    const attempt = weekly();
+    const before = [record('2026-10-21T09:00:00.000Z', '2026-10-21', 400)];
+    expect(attemptProgress(attempt, before)).toMatchObject({ progressMinor: 400 });
+    const corrected = [record('2026-10-21T09:00:00.000Z', '2026-10-26', 400)];
+    expect(attemptProgress(attempt, corrected)).toMatchObject({ progressMinor: 0 });
+    expect(attemptProgress(attempt, before)).toMatchObject({ progressMinor: 400 });
+  });
+});

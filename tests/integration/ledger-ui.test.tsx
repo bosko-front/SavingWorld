@@ -340,6 +340,30 @@ describe('History, corrections and confirmed deletion', () => {
     ]);
   });
 
+  it('shows a long history one page at a time, newest first, with the count and balance of every entry (Phase 21)', async () => {
+    const goalId = await setupGoal('Long history', 100_000_000);
+    const ids: string[] = [];
+    for (let i = 0; i < 230; i += 1) {
+      ids.push(await seedEntry(goalId, 'deposit', 100 + i, addDays(TODAY, -230 + i)));
+    }
+    await renderRouter(APP_DIR, { initialUrl: `/history?goalId=${goalId}` });
+    const rowIds = () => screen.getAllByTestId(/^history-row-/).map((row) => row.props.testID);
+    expect(rowIds()).toHaveLength(100);
+    expect(rowIds()[0]).toBe(`history-row-${ids[229]}`);
+    expect(rowIds()[99]).toBe(`history-row-${ids[130]}`);
+    expect(screen.getByText(/^230 entries/)).toBeTruthy();
+    // 100 + 101 + … + 329 minor units = 49,335 = €493.35, from every entry, not only the page.
+    expect(screen.getByTestId('history-balance')).toHaveTextContent('Saved: €493.35');
+
+    await userEvent.press(screen.getByTestId('history-show-older'));
+    await waitFor(() => expect(rowIds()).toHaveLength(200));
+    expect(rowIds()[0]).toBe(`history-row-${ids[229]}`);
+    await userEvent.press(screen.getByTestId('history-show-older'));
+    await waitFor(() => expect(rowIds()).toHaveLength(230));
+    expect(rowIds()[229]).toBe(`history-row-${ids[0]}`);
+    expect(screen.queryByTestId('history-show-older')).toBeNull();
+  });
+
   it('deletes after a native confirmation; deleting a funding deposit is refused inline', async () => {
     const goalId = await setupGoal();
     const deposit = await seedEntry(goalId, 'deposit', 5_000, addDays(TODAY, -2));

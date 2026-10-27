@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="SW P21 E2E - iOS 26.0 - C4ECF3CB-AEDB-4917-84F3-CBFF0631AB7A" tests="5" failures="0" time="644.0">
+    <testcase id="05-currency-lock-and-reminder" name="05-currency-lock-and-reminder" classname="05-currency-lock-and-reminder" file="maestro/journeys/05-currency-lock-and-reminder.yaml" time="108.0" status="SUCCESS"/>
+    <testcase id="02-quest-from-challenges" name="02-quest-from-challenges" classname="02-quest-from-challenges" file="maestro/journeys/02-quest-from-challenges.yaml" time="100.0" status="SUCCESS"/>
+    <testcase id="04-delete-and-start-over" name="04-delete-and-start-over" classname="04-delete-and-start-over" file="maestro/journeys/04-delete-and-start-over.yaml" time="154.0" status="SUCCESS"/>
+    <testcase id="03-souvenir-finish-reopen" name="03-souvenir-finish-reopen" classname="03-souvenir-finish-reopen" file="maestro/journeys/03-souvenir-finish-reopen.yaml" time="119.0" status="SUCCESS"/>
+    <testcase id="01-free-ledger-restart" name="01-free-ledger-restart" classname="01-free-ledger-restart" file="maestro/journeys/01-free-ledger-restart.yaml" time="163.0" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

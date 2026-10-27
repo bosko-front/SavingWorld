@@ -1,10 +1,15 @@
 # Project status
 
-Updated 27 October 2026 after Phase 20 (EAS preview delivery and OTA recovery; VERIFIED COMPLETE by owner decision D143). Phase 19.5 was closed earlier the same day by D139. Functional scope is fixed by the local [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx).
+Updated 27 October 2026 during Phase 21 (resilience, performance and release candidate; **IN PROGRESS**). Phase 20 was closed earlier the same day by D143. Functional scope is fixed by the local [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx).
 
 ## Current state
 
-- Current stage: **Phase 20 VERIFIED COMPLETE** ([evidence](evidence/PHASE_20.md), D142, D143). Next prompt: [PHASE_21](prompts/PHASE_21.md).
+- Current stage: **Phase 21 IN PROGRESS** ([evidence](evidence/PHASE_21.md), D144). Next prompt: [PHASE_21](prompts/PHASE_21.md) again.
+  - Built: native scenarios PF01 (10,004 entries, 8 Pro goals, 52 weekly quests, EUR), PF02 (JPY) and PF03 (BHD) whole-app fixtures and RS01 (real SQLITE_FULL: rollback with receipt and quest result, reads continue, same operation ID commits once later); app-database fixture files for simulator UI measurement; `scripts/release-audit.mjs` (A1-A6); `scripts/test-e2e.mjs` + `maestro/` (five Free journeys); the Phase 03 `details` sample route reduced to a `__DEV__` stub.
+  - Measured and fixed (D144): History with 10,000 entries drew nothing for 10+ minutes in the release-mode build; it now shows 100 rows at a time ("Show older entries"), first page 0.33 s after the tap (release-mode measurement build). Quest counting is indexed by date: on the SE iOS 18.5 simulator the quest board went 155 → 98 ms and heavy-goal writes ~117-128 → 86-97 ms.
+  - Checks: lint, typecheck, Jest 61 suites / 1,625 passed (1 env-gated skip), `test:db` 59/59 + R2 before and after (SE iOS 18.5 simulators), `release-check` PASS (JS-only: OTA-compatible with runtime 1.0.0), `release-audit` PASS, `test:e2e` 5/5 PASS on the Phase 20 release-mode simulator build.
+  - Not done (mandatory): the release-candidate EAS builds (need the owner's approval to commit first), the OTA/offline repeat on the RC, and every physical-iPhone/Duo check (Instruments profiling on a named baseline device, D90 ambient decision, purchase/Restore, real Sunday reminder, itemized VoiceOver, haptics, icon/launch look, Duo split view and fold). Nothing committed.
+- Previous stage: **Phase 20 VERIFIED COMPLETE** ([evidence](evidence/PHASE_20.md), D142, D143).
   - Built: hidden release build details (press and hold Settings › About › Version, or its VoiceOver action; About looks as in D110), the drill marker (null on main), the `preview-simulator` profile, the compatibility gate `node scripts/release-check.mjs` with `delivery/runtime-contracts.json` (runtime 1.0.0 recorded: fingerprint c83b89a5…, schema 5), `scripts/ota-drill.mjs` (redacted ledger hash, expo-updates state, seeding, local fault proxy) and the synthetic fixture built by the real commands; the validated runbook and prepared production promotion/rollout/recovery table in [EAS_AND_OTA](EAS_AND_OTA.md).
   - EAS: preview builds **e86513c7** (simulator) and **638cba93** (device, ad hoc), Release, 1.0.0 (1), channel preview, environment production; first preview channel/branch; preview updates OTA-1 c49dc07b, incompatible test 3859b02e (runtime `phase20-incompatible`), OTA-2 e647be4f, republish 1a6b5b59, roll-back-to-embedded 802ac048, OTA-1 for the iPhone 09c72f72, iPhone roll-back-to-embedded 91bb041d (preview now serves the embedded bundle). No production channel, build or update.
   - Simulator release-mode drill PASS: first launch with the update server unreachable, background download + next-cold-start activation, offline launch from cache with Island and Garden, interrupted / corrupted / killed-mid-download (update stays pending, embedded keeps launching), incompatible runtime refused by the server and, when forced through the proxy, never launched by the client, rollback to republished OTA-1 and to embedded with a write made on OTA-2 kept and readable; ledger hash unchanged at every step, no duplicate entry.
@@ -124,7 +129,7 @@ Updated 27 October 2026 after Phase 20 (EAS preview delivery and OTA recovery; V
 | 19 | Accessibility localization and Settings review | VERIFIED COMPLETE | [PHASE_19](evidence/PHASE_19.md); D134-D138; lint, typecheck, Jest 1571+, `test:db` 55/55 + R2 (SE), simulator PASS; VoiceOver, haptics, reminder and Duo owner-reported (D135, D138); privacy/support pages live (D137) |
 | 19.5 | App icon and launch screen (owner-added, D114) | VERIFIED COMPLETE | [PHASE_19_5](evidence/PHASE_19_5.md); D139; owner chose the cottage close-up and approved light/dark/tinted icons and the launch screen; EAS build 0799fb03; physical-iPhone look in Phase 21 |
 | 20 | EAS preview delivery and OTA recovery verification | VERIFIED COMPLETE | [PHASE_20](evidence/PHASE_20.md); D142-D143; preview builds e86513c7/638cba93, preview updates, simulator drill PASS, owner's iPhone drill PASS (owner-reported); Duo cold launch carried to 21 |
-| 21 | Resilience performance and release candidate | NOT STARTED | No implementation evidence |
+| 21 | Resilience performance and release candidate | IN PROGRESS | [PHASE_21](evidence/PHASE_21.md); D144; History paging and quest index measured/fixed, native PF/RS scenarios, release audit, Maestro journeys; RC build, OTA repeat on the RC and all physical-device checks NOT RUN |
 | 22 | App Store release preparation and final handoff | NOT STARTED | No implementation evidence |
 
 States: NOT STARTED, IN PROGRESS, BLOCKED, VERIFIED COMPLETE. Missing mandatory native/device/art/store evidence keeps a phase incomplete. A handoff label alone cannot advance it.
@@ -171,7 +176,7 @@ Q01-Q06 are RESOLVED in [SOURCE_RECONCILIATION](SOURCE_RECONCILIATION.md). One g
 
 ## Next action and continuation
 
-Phase 20 is verified complete (D143). Start a new Claude Code session in ~/Desktop/SavingWorld with the full [PHASE_21](prompts/PHASE_21.md) prompt (resilience, performance and release candidate); it also covers the carried Duo release-mode cold launch. Owner actions outside the app: PRIVACY.md wording for the update request's user agent and language; the Privacy Policy/Support URLs and App Privacy answers in App Store Connect (D137).
+Phase 21 is in progress (D144). Owner decisions needed: approval to commit this work locally (the release candidate must be built from a commit), the baseline device for profiling (only an iPhone 14 Pro is available), and a time for the physical-iPhone/Duo checks listed in the evidence. Then continue in a new session with the full [PHASE_21](prompts/PHASE_21.md) prompt: build `preview` + `preview-simulator` RCs, rerun `node scripts/test-e2e.mjs`, `node scripts/release-audit.mjs` and the Phase 20 OTA runbook on the RC, and run the device matrix. Owner actions outside the app (unchanged): PRIVACY.md wording for the update request's user agent and language; Privacy Policy/Support URLs and App Privacy answers in App Store Connect (D137).
 
 ## Ongoing updates
 

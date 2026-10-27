@@ -1,0 +1,43 @@
+appId: com.bosko123.savingworlds
+---
+- tapOn:
+    text: Cancel
+    optional: true
+- launchApp:
+    stopApp: true
+- extendedWaitUntil:
+    visible:
+      id: home-goal-title
+    timeout: 30000
+- tapOn:
+    id: home-goal-menu
+- tapOn:
+    text: "History.*"
+- extendedWaitUntil:
+    visible:
+      id: history-balance
+    timeout: 90000
+- back
+- extendedWaitUntil:
+    visible:
+      id: home-goal-title
+    timeout: 60000
+- tapOn: Challenges
+- extendedWaitUntil:
+    visible:
+      id: quest-history-toggle
+    timeout: 60000
+- tapOn:
+    id: quest-history-toggle
+- tapOn: Home
+- tapOn:
+    id: home-add-savings
+- tapOn:
+    id: entry-amount
+- inputText: "12.34"
+- tapOn:
+    id: entry-save
+- extendedWaitUntil:
+    visible:
+      id: home-goal-title
+    timeout: 60000

@@ -57,6 +57,28 @@ export async function listEntriesForGoal(executor: SqlExecutor, goalId: string):
   return rows.map(decodeEntry);
 }
 
+// The newest `limit` entries of one goal, newest first: the exact reverse of the chronological order
+// (Phase 21: History shows a bounded page instead of every row; the goal index serves the reverse
+// scan).
+export async function listNewestEntriesForGoal(executor: SqlExecutor, goalId: string, limit: number): Promise<LedgerEntryRecord[]> {
+  const rows = await executor.all(
+    `SELECT ${ENTRY_COLUMNS} FROM ledger_entries WHERE goal_id = ? ORDER BY entry_date DESC, created_at_utc DESC, id DESC LIMIT ?`,
+    [goalId, limit],
+  );
+  return rows.map(decodeEntry);
+}
+
+// How many entries one goal has and their sum. Every chronological running balance of a goal stays
+// within 0..MAX_MINOR (candidate-history rule), so the sum is a checked stored-range amount.
+export async function goalLedgerTotals(executor: SqlExecutor, goalId: string): Promise<{ entryCount: number; sumMinor: number }> {
+  const row = await executor.get(
+    'SELECT count(*) AS entry_count, coalesce(sum(signed_amount_minor), 0) AS amount FROM ledger_entries WHERE goal_id = ?',
+    [goalId],
+  );
+  const r = rowReader('ledger_entries', row ?? {});
+  return { entryCount: r.integer('entry_count'), sumMinor: r.minor('amount') };
+}
+
 export async function countEntries(executor: SqlExecutor): Promise<number> {
   const row = await executor.get('SELECT count(*) AS count FROM ledger_entries');
   return rowReader('ledger_entries', row ?? {}).integer('count');

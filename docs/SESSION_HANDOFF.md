@@ -1,42 +1,37 @@
 # Latest session handoff
 
-Session date: 27 October 2026. Session kind: Phase 20 (EAS preview delivery and OTA recovery). Result: **VERIFIED COMPLETE by owner decision D143** — simulator release-mode drill recorded, the owner's iPhone drill (real StoreKit sandbox right, real Airplane Mode, rollback to embedded) passed (owner-reported). Next prompt: [PHASE_21](prompts/PHASE_21.md). Details: [PHASE_20 evidence](evidence/PHASE_20.md), decisions D142-D143.
+Session date: 27 October 2026. Session kind: Phase 21 (resilience, performance and release candidate). Result: **IN PROGRESS** — automated, native-SQLite and simulator work done; the release-candidate build, its OTA repeat and every physical-device check remain. Next prompt: [PHASE_21](prompts/PHASE_21.md) again. Details: [PHASE_21 evidence](evidence/PHASE_21.md), decision D144.
 
-The previous handoff (Phase 19.5, VERIFIED COMPLETE by D139-D141) is superseded; its record remains in [PHASE_19_5 evidence](evidence/PHASE_19_5.md).
+The previous handoff (Phase 20, VERIFIED COMPLETE by D143) is superseded; its record remains in [PHASE_20 evidence](evidence/PHASE_20.md).
 
 ## Completed this session
 
-- Read v1.2 (textutil) and the required documents; audited EAS read-only: only a `development` channel/branch, no preview/production build or update, no EAS environment variables; runtime 1.0.0 not shared before this session.
-- Owner choices (this session): local commits on main, no push; hidden build details on Version; iPhone steps today with test data.
-- Code: hidden release build details (`src/bootstrap/build-info*.ts`, `read-build-info.ts`, `delivery-marker.ts`, `ListRow onLongPress`, Settings Version row), `preview-simulator` profile, gate `scripts/release-check.mjs` + `scripts/release/release-contract.js` + `delivery/runtime-contracts.json`, drill tool `scripts/ota-drill.mjs` + `scripts/release/persisted-digest.js`, fixture `tests/native/release-fixture.ts`, tests (build-info, release-contract, delivery-config, catalog, Settings press-and-hold/VoiceOver action, fixture).
-- EAS: preview builds e86513c7 (simulator) and 638cba93 (device, ad hoc), both fingerprint c83b89a5… = local; runtime 1.0.0 contract recorded. Preview updates: OTA-1 c49dc07b (6a40478), incompatible-runtime test 3859b02e (6fb83a9), OTA-2 e647be4f (1246d8a), republish 1a6b5b59, roll-back-to-embedded 802ac048, OTA-1 for the iPhone 09c72f72 (update 01a17d7d-a9fe-73d5-b4db-0cccb4d720a2). Production: nothing (no channel).
-- Simulator drill on "SW P20 A" (direct) and "SW P20 B" (fault proxy), iPhone 17 Pro iOS 26.0, synthetic fixture: all T24/T25 and rollback rows PASS; ledger hash e8082baab0b3 at every step, fe2c192038ef after the one €50 deposit on OTA-2 and through both rollbacks.
-- Docs: EAS_AND_OTA "Validated runbook (Phase 20)" (metadata contract, gate, network note, preview update, recovery, prepared production promotion/rollout/stop table), DECISIONS D142, PROJECT_STATUS, RELEASE_CHECKLIST, TEST_PLAN, CLAUDE.md fact line, evidence PHASE_20 with screenshots, digest table and redacted proxy log.
+- Read v1.2 (textutil) and the required documents; baseline `main` 92e7586 clean; `release-check` PASS.
+- Native scenarios: `tests/native/performance-scenarios.ts` (PF01 10,004 entries / 8 Pro goals / 52 weekly quests in EUR with exact totals and timed reads/writes; PF02 JPY and PF03 BHD whole-app fixtures) and `tests/native/resilience-scenarios.ts` (RS01 real SQLITE_FULL). Registered in the native runner and the host Jest run.
+- Fixture files: `tests/integration/performance-fixture.test.ts` (`PERF_FIXTURE_DIR=<dir>` writes `ui-free-10k` and `ui-collection` app databases; seed with `node scripts/ota-drill.mjs seed --device <udid> --db <file> --replace-test-data`).
+- Measured and fixed (D144): History paging (`readHistoryPage`, 100 rows + "Show older entries", `useCommittedRead` `keepWhileLoading`) after the release build showed nothing for 10+ minutes with 10,000 entries; date-indexed quest counting in `challenge-rules.ts` (board 155 → 98 ms, heavy writes ~120 → ~90 ms on the SE iOS 18.5 simulator).
+- Release tooling: `scripts/release-audit.mjs` (A1-A6 PASS; found and fixed the `details` sample route rendering in release), `scripts/test-e2e.mjs` + `maestro/` (five Free journeys, Reduce Motion on).
+- Docs: evidence PHASE_21 with screenshots and `test:db` records in `docs/evidence/phase-21/`, DECISIONS D144, PROJECT_STATUS, TEST_PLAN, RELEASE_CHECKLIST, CLAUDE.md fact line.
 
 ## Decisions
 
-- D142 (build details on press-and-hold, drill marker, `preview-simulator`, runtime contract gate, drill tooling, local commits).
-- D143 (owner closes Phase 20 on the simulator drill and the owner-reported iPhone drill).
+- D144 (bounded History, date-indexed quest counting, release audit, Maestro journeys, fixtures; JS only, OTA-compatible with runtime 1.0.0).
 
 ## Checks
 
-See the evidence's table and "Final checks". NOT RUN: `test:db` (no persistence change; the release build read/wrote the fixture natively), `deps:check`/`doctor` (no dependency change), Duo release-mode cold launch (simulator launch hung; Phase 21).
+lint, typecheck PASS; Jest 61 suites / 1,625 passed (1 env-gated skip); `test:db` 59/59 + R2 before and after; `release-check` PASS; `release-audit` PASS; `test:e2e` 5/5 PASS on e86513c7 (`docs/evidence/phase-21/e2e-e86513c7.xml`). NOT RUN: deps:check/doctor (no dependency change), test:storekit (billing unchanged), RC EAS builds, OTA repeat on the RC, all physical-device checks.
 
-## Owner's iPhone drill (D143)
+## Open items and owner decisions
 
-iPhone 14 Pro, preview build 638cba93 installed over the development build (test data, sandbox Pro): Airplane Mode launch on the embedded bundle; online download of OTA-1 for the iPhone (update 01a17d7d…) and activation at the next cold start; offline launch from cache with both themes; operator roll-back-to-embedded (group 91bb041d) → "Update shows Embedded bundle, no Delivery check line, data and Pro are the same." Owner-reported, no screenshots in the repository.
-
-## Carried and open items
-
-1. Duo release-mode cold launch (the new Duo simulator never finished `simctl launch`): Phase 21 on the release candidate.
-2. PRIVACY.md does not mention the update request's user agent (app build, iOS/CFNetwork version) or preferred language: owner decides the wording before the Phase 22 App Privacy answers.
-3. Housekeeping: preview now ends with roll-back-to-embedded 91bb041d. Simulators "SW P20 A" (booted) and "SW P20 B" (shut down; its test copy points at 127.0.0.1:8787) hold synthetic data only and can be deleted. Side branches `phase20-ota-drill` and `phase20-ota-incompatible` hold drill commits; never merge. The owner's iPhone now runs the preview build (channel preview); a later development build can be reinstalled over it.
-4. Optional: exclude `assets/worlds/` (Blender sources) in `.easignore` to cut the 619 MB build upload.
-5. Git: committed on `main`, not pushed.
+1. **Commit approval.** Nothing is committed. The RC must be built from a commit; approve a local commit on `main` (no push) or say otherwise.
+2. **Baseline device.** Only the owner's iPhone 14 Pro is available; name the oldest supported iPhone for profiling or accept the 14 Pro with a recorded limitation.
+3. **Device session.** Instruments profiling (cold launch, 10,000-entry History/Home/Challenges, Collection, both worlds, ambient on/off for the D90 decision, unlock moment), purchase/Restore on the RC, a real Sunday 18:00 reminder with travel/DST/reinstall, itemized VoiceOver and haptics, icon/launch look, physical Duo split view/fold with a draft. Instruments needs a development-signed Release build on the device.
+4. Simulators made this session (synthetic data, deletable): "SW P21 Perf SE" (89785432…) and "SW P21 E2E" (C4ECF3CB…). Another session in this folder had Metro on 8081, a booted "iPhone Duo" and the "SW iPhone SE 3 iOS 18.5" simulator; they were used read-only for one `test:db` run and not changed.
+5. Carried: PRIVACY.md wording for the update request's user agent/language (owner, before Phase 22); `.easignore` for `assets/worlds/` (optional).
 
 ## Exact next session
 
-In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_21.md` (resilience, performance and release candidate). Runtime 1.0.0 is shared: any native, config, package.json-scripts or stored-data change needs a new app version; run `node scripts/release-check.mjs --eas` before any update.
+In ~/Desktop/SavingWorld, after the owner's answers above, start Claude Code with the full `docs/prompts/PHASE_21.md`. Then: commit, `npm run eas -- build --platform ios --profile preview-simulator` and `--profile preview`, `node scripts/release-check.mjs --record <build-id> --reason "Phase 21 release candidate"` (same fingerprint), `node scripts/test-e2e.mjs --app <RC .app> --report docs/evidence/phase-21/e2e-rc.xml`, `node scripts/release-audit.mjs --out docs/evidence/phase-21/release-audit-rc.json`, the Phase 20 runbook (offline launch, one preview update, roll back to embedded) on the RC with the release fixture, then the device matrix.
 
 ## Parallel workstream: Garden art (26 October 2026)
 

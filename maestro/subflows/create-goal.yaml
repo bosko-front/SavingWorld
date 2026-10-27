@@ -1,0 +1,30 @@
+# From the empty Home: New goal → title ${TITLE}, target ${TARGET} → Create.
+appId: com.bosko123.savingworlds
+---
+- tapOn:
+    id: home-new-goal
+- extendedWaitUntil:
+    visible:
+      id: goal-title
+    timeout: 10000
+- tapOn:
+    id: goal-title
+- inputText: ${TITLE}
+- tapOn:
+    id: goal-target
+- inputText: ${TARGET}
+- assertVisible:
+    id: goal-target
+    text: ".*${TARGET}.*"
+# The number pad has no return key: tapping the World label closes it (tapping Create while the pad
+# covers it would land on a key).
+- tapOn: "^World$"
+- scrollUntilVisible:
+    element:
+      id: goal-save
+- tapOn:
+    id: goal-save
+- extendedWaitUntil:
+    visible:
+      id: home-goal-title
+    timeout: 15000
