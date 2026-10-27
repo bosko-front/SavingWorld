@@ -30,6 +30,11 @@ export default function HomeStackLayout() {
       <Stack.Screen name="details" options={{ title: 'Details', headerLargeTitleEnabled: false }} />
       <Stack.Screen name="settings" options={{ title: 'Settings', headerLargeTitleEnabled: false }} />
       <Stack.Screen name="history" options={{ title: 'History', headerLargeTitleEnabled: false }} />
+      {/* Phase 18: the one Pro Statistics screen ("your savings at a glance", D97). */}
+      <Stack.Screen
+        name="statistics"
+        options={{ title: 'Savings insights', headerLargeTitleEnabled: false, headerBackButtonDisplayMode: 'minimal' }}
+      />
       {/* Development/test-only gallery and layout lab. Unreachable in release builds (__DEV__ false).
           The native database runner is a root route (src/app/dev-db.tsx). */}
       <Stack.Protected guard={__DEV__}>
@@ -39,6 +44,10 @@ export default function HomeStackLayout() {
         <Stack.Screen name="dev-world" options={{ title: 'World inspector', headerLargeTitleEnabled: false }} />
         <Stack.Screen name="dev-reminder" options={{ title: 'Reminder lab', headerLargeTitleEnabled: false }} />
         <Stack.Screen name="dev-store" options={{ title: 'Store lab', headerLargeTitleEnabled: false }} />
+        <Stack.Screen
+          name="dev-statistics"
+          options={{ title: 'Savings insights', headerLargeTitleEnabled: false, headerBackButtonDisplayMode: 'minimal' }}
+        />
       </Stack.Protected>
     </Stack>
   );

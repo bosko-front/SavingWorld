@@ -1,23 +1,25 @@
 # Latest session handoff
 
-Session date: 26 October 2026. Session kind: Phase 17 (Garden and per-goal theme switching). Result: **Phase 17 VERIFIED COMPLETE** (owner decision D130): lint, typecheck, Jest, the still-stack pixel check, `test:db` 52/52 + restart, simulator checks and the owner's device look; carried items below. Next prompt: [PHASE_18](prompts/PHASE_18.md). Details: [PHASE_17 evidence](evidence/PHASE_17.md), decision D129.
+Session date: 26-27 October 2026. Session kind: Phase 18 (four precise Pro savings statistics). Result: **Phase 18 VERIFIED COMPLETE by owner decision D133** (Statistics VoiceOver carried to Phases 19/21). Earlier state: code complete; Lint, typecheck, Jest, `test:db` 55/55 + restart and the simulator look pass; the required chart VoiceOver check is NOT RUN (no VoiceOver in the simulator). Next prompt: [PHASE_18](prompts/PHASE_18.md) (continuation). Details: [PHASE_18 evidence](evidence/PHASE_18.md), decision D131.
 
-The previous handoff (Phase 16) is superseded; its record remains in [PHASE_16 evidence](evidence/PHASE_16.md) and DECISIONS D117-D128. The Garden art workstream notes below are kept for history.
+The previous handoff (Phase 17) is superseded; its record remains in [PHASE_17 evidence](evidence/PHASE_17.md) and DECISIONS D129-D130. The Garden art workstream notes below are kept for history.
 
 ## Completed this session
 
-- Verified Phase 16 from code (goal access gates, paywall, `theme_locked`) and the Garden export (version 1, 16 extension layers, D124 milestones). Baseline `main` c768e1a, Jest 1080/1080.
-- Garden art bundled unchanged (`assets/themes/garden/`, static map `src/features/worlds/themes/garden-assets.ts`) and registered.
-- Contract and renderer: kinds koi/glow/butterfly/petal, water owned by an unlock, `AMBIENT_REST`, presets, limits and release switches per kind; `WorldScene` motion per kind and `crossfadeTheme` (old world kept until the new one has loaded, 450 ms, instant under Reduce Motion).
-- `changeGoalTheme` + `updateGoalTheme` + `canChangeGoalTheme`; `editGoal` uses the same rule.
-- World picker: `ThemeCards` (worlds/presentation), Create inline cards, `/theme-picker` (Home ⋯ "Change world", Edit goal's World row, locked-Garden note and edit view), locked "Pro" card → `/paywall`, D75 confirmation, selection haptic + shared toast; `useShownTheme` on Home.
-- Paywall: completed Garden in the Garden feature row (D121). The "gazebo" copy (D124) no longer existed (D125); verified, nothing changed.
-- World inspector: `?theme=garden`, Garden effect switches, crossfade on Island/Garden toggle.
-- Tests: `garden-manifest.test.ts`, `theme-switching.test.ts`, `theme-picker-ui.test.tsx`, `garden-ambient.test.tsx`, native scenario G10; `scripts/check-still-stack.py`.
+- Verified Phase 17 from code (statuses active/paused/completed, souvenirs separate from status, `deleteGoal` removes entries and souvenir, ledger reads recompute balances, `canOpenStatistics` present without an entry). Baseline `main` e3af610.
+- Domain `src/features/statistics/domain/savings-statistics.ts` (period, the four views in BigInt, `presentable`), repository `src/data/repositories/statistics-repository.ts` (goal counts, per-goal sums, single entries from a date), query `src/features/statistics/application/statistics-queries.ts` (`pro_required` before any read).
+- Screen `src/features/statistics/presentation/` ("Savings insights": headline total, This month cards, Last 30 days line + summary + collapsible daily list, Completed goals → Collection; loading/failure/no-goal/locked/too-large states), chart `src/shared/ui/line-chart.tsx` (react-native-svg, no motion), route `src/app/(tabs)/(home)/statistics.tsx`.
+- Entry points, Pro only: Home ⋯ "Savings insights"; Settings row under the Pro row. Free: none; deep link shows the Pro invitation.
+- Dev: `/dev-statistics?sample=rising|flat|lower|large` (Settings › Development only › Statistics preview).
+- Tests: `tests/unit/savings-statistics.test.ts` (18), `tests/integration/statistics-ui.test.tsx` (7), native scenarios P01-P03 (`tests/native/statistics-scenarios.ts`, in Jest and the `test:db` runner).
+- Simulator fix: chart axis labels wrap inside the card at accessibility sizes; the headline steps down to the large role above 1.35× text.
 
-- Owner fixes after review: Done on the Pro screen is a compact centered button; the shared pinned footer (`screen.tsx`) keeps at least 16 pt under its last control. Owner: "sad je ok", then "komituj i zatvori fazu".
+## Savings insights polish (owner request, 27 October 2026; uncommitted with Phase 18)
 
-## Also: onboarding redesign (owner request, D132)
+- Step chart with value/date labels and a day inspector, "Net change" card, tab bar hidden, compact Back (D131 point 6). Lint, typecheck and the touched tests (40/40) pass; screenshots 09-14 in `docs/evidence/phase-18/`. Metro was restarted through `.claude/launch.json` ("metro"); the frozen SE simulator was rebooted (data kept, text size back to "large").
+- Noticed: History rows rely on Intl `signDisplay`, which Hermes ignores (deposits may show without "+"); not changed.
+
+## Also this session: onboarding redesign (owner request, D132)
 
 - Onboarding is three steps (Welcome on a full-screen sky, How it works, Choose your currency; Next, Next, Get Started) in `src/features/settings/presentation/onboarding-screen.tsx`; new shared `TopBleed` (`src/shared/layout/top-bleed.tsx`) and FormScreen `bleed`. Currency rules, command and persistence unchanged; no other screen changed.
 - A double-tap guard (presses within 600 ms of a step change are ignored) after the simulator showed a second tap saving the currency on step 3.
@@ -26,26 +28,26 @@ The previous handoff (Phase 16) is superseded; its record remains in [PHASE_16 e
 
 ## Decisions
 
-- D130 (owner): closes Phase 17.
-- D129 (engineering, no product rule changed): contract kinds and presets, Change Theme rule, picker stages (completed worlds in Create, current stage for an existing goal, completed Garden on a locked card the person does not use), one haptic per theme change (selection on the pick, no success haptic with the toast), crossfade.
+- D133 (owner): closes Phase 18, VoiceOver carried.
+- D131 (engineering, no product rule changed): exact semantics (whole calendar month by entry date; end-of-day line with opening balance; entry after today in total/month only), per-goal SQL sums + BigInt, Pro guard in the query, Pro-only entries in the ⋯ menu and Settings, "Savings insights" title, presentation, dev preview.
 
 ## Checks
 
-- Lint PASS, typecheck PASS, Jest 50 suites, 1133 passed + 1 env-gated skip (final run after all edits).
-- Still stack vs `assets/worlds/garden/renders/milestones/`: PASS, mean 0.000-0.534/255 at stages 0-10.
-- `npm run test:db -- --device <17 Pro Max iOS 26.0>`: PASS 52/52 + R2.
-- Simulator (17 Pro Max iOS 26.0; SE iOS 18.5; a new SE for Create): screenshots `docs/evidence/phase-17/01`-`13`.
+- Lint PASS, typecheck PASS, Jest 52 suites, 1161 passed + 1 env-gated skip (final run after all edits).
+- `npm run test:db -- --device <17 Pro Max iOS 26.0> --record docs/evidence/phase-18/test-db-17promax-ios26.0.json`: PASS 55/55 + R2.
+- `deps:check`/`doctor`: 1 check failed on six newer SDK 58 patch releases (not caused by this phase; not upgraded).
+- Simulator: 17 Pro Max default text (preview, locked Free deep link); SE iOS 18.5 accessibility XXXL (before/after the axis fix). Screenshots `docs/evidence/phase-18/01`-`08`.
 
 ## Incomplete work and blockers
 
-1. Done: the owner reviewed on his device and closed the phase (D130). The Pro switch and the Garden → Island path with a real purchase were not itemized; no sandbox purchase was made in this session.
-2. Carried to Phases 19/21: VoiceOver of the picker cards, the locked card and the paywall preview; the felt selection haptic; physical-iPhone frames/energy/memory with Garden motion on and off (D90); simulator Reduce Motion relaunch check (Jest covers the gate).
-3. Simulators: the existing SE now runs build 7769c486 (its text size reset to "large"); "SW SE 3 Phase17" (synthetic, shut down) can be deleted. The 17 Pro Max test data was not changed (Free; no theme change made).
-4. Git: Phase 17 committed on `main` (not pushed).
+1. Carried by D133 (owner): Statistics VoiceOver and the felt scrubbing haptic on a physical iPhone with Pro (Phases 19/21).
+2. Not run natively: Duo chart reflow; the Pro screen with a real purchase on a device (simulators are Free).
+3. Simulators: the SE's text size was restored to "large"; no app data changed (test databases are deleted by the runner).
+4. Git: Phase 18 committed on `main` with D133 (not pushed); the onboarding redesign was committed separately (52e18cc).
 
 ## Exact next session
 
-In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_18.md` (four precise Pro savings statistics). Verify Phase 17 from [PHASE_17 evidence](evidence/PHASE_17.md). Never enter Apple Account passwords or codes on the owner's behalf.
+In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_19.md` (accessibility, localization and Settings review). Include the carried physical-iPhone checks from RELEASE_CHECKLIST (now with Savings insights, D133) and History's deposit "+" sign on iOS. Never enter Apple Account passwords or codes on the owner's behalf.
 
 ## Parallel workstream: Garden art (26 October 2026)
 

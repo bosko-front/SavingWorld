@@ -3,7 +3,7 @@ import { useState, type ReactElement } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { accessView, goalCommandDeps, refreshAppData, useAppDataStore, type AccessView } from '@/bootstrap/app-data';
-import type { GoalUse } from '@/core/access';
+import { canOpenStatistics, type GoalUse } from '@/core/access';
 import { MILESTONE_COUNT, progressPercent, sceneFeedback } from '@/core/progression';
 import type { CollectibleRecord } from '@/data/repositories/collectible-repository';
 import { isOpenStatus, type GoalSummary } from '@/data/repositories/goal-repository';
@@ -178,7 +178,17 @@ function SelectedGoalHome({ summary, dashboard, open, access, souvenir }: Select
             busy={busy}
             use={use}
             needsKeptChoice={access.needsKeptChoice}
-            menu={<GoalMenu summary={summary} funded={dashboard.amounts.funded} use={use} busy={busy} run={action.run} onDelete={() => confirmDelete(goal)} />}
+            menu={
+              <GoalMenu
+                summary={summary}
+                funded={dashboard.amounts.funded}
+                use={use}
+                busy={busy}
+                run={action.run}
+                onDelete={() => confirmDelete(goal)}
+                statistics={canOpenStatistics(access.capabilities)}
+              />
+            }
           />
           {open.length > 1 ? <GoalSwitcher open={open} selectedId={goal.id} access={access} /> : null}
         </View>

@@ -21,9 +21,12 @@ type GoalMenuProps = {
   run: ReturnType<typeof useGoalAction>['run'];
   // Opens the native delete confirmation (useDeleteGoal).
   onDelete: () => void;
+  // Pro: the menu also opens the all-goal Statistics screen (Phase 18).
+  statistics: boolean;
 };
 
-// Home's goal options (owner directions D73-D74): History, Edit goal, Change world (Phase 17: the world
+// Home's goal options (owner directions D73-D74): History, Savings insights (Pro, Phase 18: all goals,
+// not this goal), Edit goal, Change world (Phase 17: the world
 // picker, also for a Garden goal without Pro, which may be grown as an Island), Pause/Resume, Finish goal (only
 // at B ≥ T, Phase 11), Delete goal and New goal live in one native pull-down menu (SwiftUI Menu from
 // @expo/ui) behind the ⋯ button next to the goal title, so Home shows the world and the progress
@@ -31,7 +34,7 @@ type GoalMenuProps = {
 // destructive and confirmed natively; New goal opens the goal form, which shows the "Build another
 // world" paywall entry when Free's one goal exists (Phase 16). History and Delete stay available for
 // every goal.
-export function GoalMenu({ summary, funded, use, busy, run, onDelete }: GoalMenuProps) {
+export function GoalMenu({ summary, funded, use, busy, run, onDelete, statistics }: GoalMenuProps) {
   const router = useRouter();
   const { goal } = summary;
   const paused = goal.status === 'paused';
@@ -53,6 +56,9 @@ export function GoalMenu({ summary, funded, use, busy, run, onDelete }: GoalMenu
           systemImage={ICON_SYMBOLS.history}
           onPress={() => router.push({ pathname: '/history', params: { goalId: goal.id } })}
         />
+        {statistics ? (
+          <Button label="Savings insights" systemImage={ICON_SYMBOLS.statistics} onPress={() => router.push('/statistics')} />
+        ) : null}
         {editable ? (
           <Button
             label="Edit goal"

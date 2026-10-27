@@ -8,8 +8,8 @@ import { haptics } from '@/shared/ui/haptics';
 // A tab press plays the light selection haptic (owner request, DECISIONS D66); a press the native
 // side prevented plays nothing.
 // Screens without the tab bar: secondary screens that return with their Back button (owner
-// requests: Settings D111, a Collection souvenir's detail D112).
-const ROUTES_WITHOUT_TAB_BAR = ['/settings', '/souvenir'];
+// requests: Settings D111, a Collection souvenir's detail D112, Savings insights D131).
+const ROUTES_WITHOUT_TAB_BAR = ['/settings', '/souvenir', '/statistics', '/dev-statistics'];
 
 export default function TabsLayout() {
   const pathname = usePathname();

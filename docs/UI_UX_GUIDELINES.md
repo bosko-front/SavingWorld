@@ -10,7 +10,7 @@ Native Stack/NativeTabs remain the navigation owner as available window geometry
 
 ## Navigation and screen contracts
 
-Use three main destinations: Home, Challenges and Collection. Settings is reachable from Home. Pro statistics opens from Home; it does not need another permanent tab. Home includes a goal switcher for multiple goals. Push detail screens and present focused forms modally where dismissal/cancel behavior is obvious. Preserve unsaved input on recoverable write failures; confirm destructive abandonment only for meaningful edits.
+Use three main destinations: Home, Challenges and Collection. Settings is reachable from Home. Pro statistics opens from Home (the ⋯ goal options, "Savings insights", Pro only) and from Settings' Pro section (D131); it does not need another permanent tab. Home includes a goal switcher for multiple goals. Push detail screens and present focused forms modally where dismissal/cancel behavior is obvious. Preserve unsaved input on recoverable write failures; confirm destructive abandonment only for meaningful edits.
 
 | Screen | Required content and actions | States and checks |
 | --- | --- | --- |

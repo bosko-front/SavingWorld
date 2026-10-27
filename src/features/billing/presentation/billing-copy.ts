@@ -171,6 +171,7 @@ export const PRO_SETTINGS_COPY = {
   section: 'Pro',
   title: 'Saving Worlds Pro',
   active: 'Active',
+  statistics: 'Savings insights',
   inactiveDetail: 'More goals, the Garden and your savings at a glance',
   footnote: 'Restore Purchases is on the Pro screen. It brings back Pro, not savings data.',
   infoTitle: 'About Restore Purchases',

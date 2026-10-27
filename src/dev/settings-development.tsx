@@ -20,6 +20,7 @@ const DEVELOPMENT_LINKS: { title: string; href: Href }[] = [
   { title: 'World inspector', href: '/dev-world' },
   { title: 'Reminder lab', href: '/dev-reminder' },
   { title: 'Store lab', href: '/dev-store' },
+  { title: 'Statistics preview', href: '/dev-statistics' },
   { title: 'Database tests', href: '/dev-db' },
   { title: 'Detail screen', href: '/details' },
   { title: 'Sample form', href: '/sample-form' },
