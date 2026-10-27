@@ -342,6 +342,8 @@ function proxy() {
         currentUpdate: headers['expo-current-update-id'],
         embeddedUpdate: headers['expo-embedded-update-id'],
         served: manifest ? { id: manifest.id, runtimeVersion: manifest.runtimeVersion, assets: (manifest.assets?.length ?? 0) + 1 } : null,
+        // Everything the app sent to the update service (privacy audit): header names and values.
+        requestHeaders: req.headers,
         directive: /name="directive"/.test(text) ? (/"type"\s*:\s*"([^"]+)"/.exec(text.split('name="directive"')[1] ?? '')?.[1] ?? 'yes') : null,
       });
     } catch (error) {
