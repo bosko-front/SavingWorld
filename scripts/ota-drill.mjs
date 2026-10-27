@@ -16,9 +16,12 @@
 //       Edits the INSTALLED test copy's Expo.plist so expo-updates talks to the local fault proxy
 //       (scope key kept as https://u.expo.dev) or back to EAS. A test harness change of a simulator
 //       install, never of the built artifact: do it on a fresh install before its first launch.
-//   proxy [--port 8787] [--mode pass] [--log <file.jsonl>]
-//       Local update proxy in front of u.expo.dev with switchable faults:
-//         pass           forward everything unchanged (asset URLs rewritten through the proxy)
+//   proxy --assets <export dir> [--port 8787] [--mode pass] [--log <file.jsonl>]
+//       Local update proxy in front of u.expo.dev with switchable faults. The asset CDN refuses
+//       clients other than the app (403), so the proxy serves asset bytes from the local `eas update`
+//       export of the same update (dist/, copied before the next publish), matched by the manifest's
+//       SHA-256; the app verifies every hash, so only identical bytes can be accepted.
+//         pass           forward the manifest unchanged and serve the exact asset bytes
 //         offline        drop every connection (no network for updates)
 //         interrupt      forward the manifest, cut every asset download after 64 KiB
 //         throttle       forward the manifest, send assets at 16 KiB/s (to kill the app mid-download)
@@ -26,6 +29,7 @@
 //         wrong-runtime  ask EAS for runtime <value of --wrong-runtime> instead of the app's runtime
 //       Switch with: curl http://127.0.0.1:<port>/__drill/mode/<mode>
 import { execFileSync } from 'node:child_process';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import http from 'node:http';
 import { createRequire } from 'node:module';
@@ -40,6 +44,16 @@ const BUNDLE_ID = 'com.bosko123.savingworlds';
 const PROJECT_ID = '25d3089f-a32e-461f-baf2-7c95a396984e';
 const ORIGIN = 'https://u.expo.dev';
 const DATABASE = 'saving-worlds.db';
+// Short, stable name for an asset URL in the log (key or last path part).
+function assetName(url) {
+  try {
+    const parsed = new URL(url);
+    return parsed.searchParams.get('key') ?? parsed.pathname.split('/').pop();
+  } catch {
+    return String(url).slice(-32);
+  }
+}
+
 const MODES = ['pass', 'offline', 'interrupt', 'throttle', 'corrupt', 'wrong-runtime'];
 
 function fail(message) {
@@ -211,11 +225,21 @@ function proxy() {
     }
   };
   const self = `http://127.0.0.1:${port}`;
+  // sha256 (base64url, as in the manifest's `hash`) → file of the local export.
+  const assets = new Map();
+  const exportDir = option('--assets');
+  if (exportDir) {
+    const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => (entry.isDirectory() ? walk(path.join(dir, entry.name)) : [path.join(dir, entry.name)]));
+    for (const file of walk(exportDir)) {
+      assets.set(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('base64url'), file);
+    }
+  }
 
   const rewriteManifest = (body, contentType) => {
     const rewrite = (json) => {
       const manifest = JSON.parse(json);
-      const through = (asset) => (asset && asset.url ? { ...asset, url: `${self}/__asset?u=${encodeURIComponent(asset.url)}` } : asset);
+      const through = (asset) =>
+        asset && asset.url ? { ...asset, url: `${self}/__asset?h=${encodeURIComponent(asset.hash ?? '')}&u=${encodeURIComponent(asset.url)}` } : asset;
       if (manifest.launchAsset) {
         manifest.launchAsset = through(manifest.launchAsset);
       }
@@ -265,13 +289,23 @@ function proxy() {
     try {
       if (url.pathname === '/__asset') {
         const original = url.searchParams.get('u');
-        const upstream = await fetch(original);
-        const bytes = Buffer.from(await upstream.arrayBuffer());
-        const headers = { 'content-type': upstream.headers.get('content-type') ?? 'application/octet-stream', 'content-length': String(bytes.length) };
+        const local = assets.get(url.searchParams.get('h') ?? '');
+        let bytes;
+        let status = 200;
+        if (local) {
+          bytes = fs.readFileSync(local);
+        } else {
+          const upstream = await fetch(original);
+          status = upstream.status;
+          bytes = Buffer.from(await upstream.arrayBuffer());
+        }
+        const headers = { 'content-type': 'application/octet-stream', 'content-length': String(bytes.length) };
+        const upstream = { status };
+        log({ event: 'asset-request', source: local ? 'local export' : 'upstream', status, bytes: bytes.length, asset: assetName(original) });
         if (mode === 'interrupt') {
           res.writeHead(upstream.status, headers);
           res.write(bytes.subarray(0, Math.min(65536, Math.floor(bytes.length / 2))));
-          log({ event: 'asset-cut', bytes: bytes.length, asset: original.slice(-24) });
+          log({ event: 'asset-cut', bytes: bytes.length, asset: assetName(original) });
           setTimeout(() => res.socket?.destroy(), 50);
           return;
         }
@@ -281,12 +315,12 @@ function proxy() {
             bad[i] ^= 0xff;
           }
           res.writeHead(upstream.status, headers).end(bad);
-          log({ event: 'asset-corrupted', bytes: bytes.length, asset: original.slice(-24) });
+          log({ event: 'asset-corrupted', bytes: bytes.length, asset: assetName(original) });
           return;
         }
         if (mode === 'throttle') {
           res.writeHead(upstream.status, headers);
-          log({ event: 'asset-throttled', bytes: bytes.length, asset: original.slice(-24) });
+          log({ event: 'asset-throttled', bytes: bytes.length, asset: assetName(original) });
           let offset = 0;
           const timer = setInterval(() => {
             if (res.destroyed) {
@@ -307,14 +341,16 @@ function proxy() {
           return;
         }
         res.writeHead(upstream.status, headers).end(bytes);
-        log({ event: 'asset', status: upstream.status, bytes: bytes.length, asset: original.slice(-24) });
+        log({ event: 'asset', status: upstream.status, bytes: bytes.length, asset: assetName(original) });
         return;
       }
       // Manifest request: forward with the app's own headers (channel, runtime, platform, current and
       // embedded update IDs). Ask for an uncompressed body so the manifest part can be rewritten.
       const headers = {};
       for (const [name, value] of Object.entries(req.headers)) {
-        if (!['host', 'connection', 'accept-encoding', 'content-length'].includes(name)) {
+        // No conditional request: a 304 would make the app reuse a cached manifest whose asset links
+        // were rewritten for an earlier proxy run.
+        if (!['host', 'connection', 'accept-encoding', 'content-length', 'if-none-match'].includes(name)) {
           headers[name] = value;
         }
       }
@@ -357,7 +393,7 @@ function proxy() {
       }
     }
   });
-  server.listen(port, '127.0.0.1', () => log({ event: 'listening', port }));
+  server.listen(port, '127.0.0.1', () => log({ event: 'listening', port, exportAssets: assets.size }));
 }
 
 const commands = { snapshot, updates, seed, point, proxy };

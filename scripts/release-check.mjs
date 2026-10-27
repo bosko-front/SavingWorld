@@ -55,9 +55,13 @@ function args() {
   };
 }
 
+// Node gives each address family 250 ms to connect by default; slower networks then fail EAS calls
+// with ETIMEDOUT (seen in Phase 20). Child processes get a longer attempt timeout.
+const CHILD_ENV = { ...process.env, NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --network-family-autoselection-attempt-timeout=3000`.trim() };
+
 function run(command, commandArgs, { json = false } = {}) {
   try {
-    const output = execFileSync(command, commandArgs, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024 });
+    const output = execFileSync(command, commandArgs, { cwd: ROOT, env: CHILD_ENV, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024 });
     return json ? JSON.parse(output) : output.trim();
   } catch (error) {
     fail(`${command} ${commandArgs.join(' ')} failed: ${String(error.stderr ?? error.message).split('\n').slice(-3).join(' ')}`);
@@ -74,6 +78,7 @@ function easOptional(commandArgs) {
   try {
     const output = execFileSync('npx', ['--yes', 'eas-cli@25.3.0', ...commandArgs, '--json'], {
       cwd: ROOT,
+      env: CHILD_ENV,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
     });
