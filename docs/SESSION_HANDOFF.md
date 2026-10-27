@@ -1,6 +1,6 @@
 # Latest session handoff
 
-Session date: 27 October 2026. Session kind: Phase 20 (EAS preview delivery and OTA recovery). Result: **IN PROGRESS** — simulator release-mode drill complete and recorded; the owner's iPhone drill (real StoreKit sandbox right, real Airplane Mode) is pending. Next prompt: [PHASE_20](prompts/PHASE_20.md) (same). Details: [PHASE_20 evidence](evidence/PHASE_20.md), decision D142.
+Session date: 27 October 2026. Session kind: Phase 20 (EAS preview delivery and OTA recovery). Result: **VERIFIED COMPLETE by owner decision D143** — simulator release-mode drill recorded, the owner's iPhone drill (real StoreKit sandbox right, real Airplane Mode, rollback to embedded) passed (owner-reported). Next prompt: [PHASE_21](prompts/PHASE_21.md). Details: [PHASE_20 evidence](evidence/PHASE_20.md), decisions D142-D143.
 
 The previous handoff (Phase 19.5, VERIFIED COMPLETE by D139-D141) is superseded; its record remains in [PHASE_19_5 evidence](evidence/PHASE_19_5.md).
 
@@ -16,23 +16,27 @@ The previous handoff (Phase 19.5, VERIFIED COMPLETE by D139-D141) is superseded;
 ## Decisions
 
 - D142 (build details on press-and-hold, drill marker, `preview-simulator`, runtime contract gate, drill tooling, local commits).
+- D143 (owner closes Phase 20 on the simulator drill and the owner-reported iPhone drill).
 
 ## Checks
 
 See the evidence's table and "Final checks". NOT RUN: `test:db` (no persistence change; the release build read/wrote the fixture natively), `deps:check`/`doctor` (no dependency change), Duo release-mode cold launch (simulator launch hung; Phase 21).
 
-## Incomplete work and blockers
+## Owner's iPhone drill (D143)
 
-1. **Owner's iPhone drill** (evidence "Device drill" steps 1-6). Part 1 (install 638cba93, Airplane Mode, embedded) and part 2 (online → update 01a17d7d…, marker OTA-1; then offline from cache) were sent to the owner; part 3 needs the operator to run `update:roll-back-to-embedded` on preview, then two cold starts on the phone. Pro must stay active (real sandbox purchase) and data unchanged at every step.
-2. PRIVACY.md lists the update request contents but not the user agent (app build, iOS/CFNetwork version) or preferred language; owner decides the wording (public page).
-3. Duo release-mode cold launch: Phase 21.
-4. Housekeeping: the preview branch ends with the iPhone's OTA-1; after the device drill, finish with a roll-back-to-embedded so preview builds run their embedded bundle. Simulators "SW P20 A" (booted) and "SW P20 B" (shut down, its test copy points at 127.0.0.1:8787) hold synthetic data only; delete when done. Side branches `phase20-ota-drill` and `phase20-ota-incompatible` hold the drill commits; never merge.
-5. Optional: exclude `assets/worlds/` (Blender sources) in `.easignore` to cut the 619 MB build upload.
-6. Git: committed on `main`, not pushed.
+iPhone 14 Pro, preview build 638cba93 installed over the development build (test data, sandbox Pro): Airplane Mode launch on the embedded bundle; online download of OTA-1 for the iPhone (update 01a17d7d…) and activation at the next cold start; offline launch from cache with both themes; operator roll-back-to-embedded (group 91bb041d) → "Update shows Embedded bundle, no Delivery check line, data and Pro are the same." Owner-reported, no screenshots in the repository.
+
+## Carried and open items
+
+1. Duo release-mode cold launch (the new Duo simulator never finished `simctl launch`): Phase 21 on the release candidate.
+2. PRIVACY.md does not mention the update request's user agent (app build, iOS/CFNetwork version) or preferred language: owner decides the wording before the Phase 22 App Privacy answers.
+3. Housekeeping: preview now ends with roll-back-to-embedded 91bb041d. Simulators "SW P20 A" (booted) and "SW P20 B" (shut down; its test copy points at 127.0.0.1:8787) hold synthetic data only and can be deleted. Side branches `phase20-ota-drill` and `phase20-ota-incompatible` hold drill commits; never merge. The owner's iPhone now runs the preview build (channel preview); a later development build can be reinstalled over it.
+4. Optional: exclude `assets/worlds/` (Blender sources) in `.easignore` to cut the 619 MB build upload.
+5. Git: committed on `main`, not pushed.
 
 ## Exact next session
 
-In ~/Desktop/SavingWorld, continue with `docs/prompts/PHASE_20.md`: record the owner's iPhone results in the evidence's "Device drill" table, run the rollback-to-embedded step with the owner, re-run `node scripts/release-check.mjs --eas`, then close the phase (VERIFIED COMPLETE only with the device rows passed) and name PHASE_21.
+In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_21.md` (resilience, performance and release candidate). Runtime 1.0.0 is shared: any native, config, package.json-scripts or stored-data change needs a new app version; run `node scripts/release-check.mjs --eas` before any update.
 
 ## Parallel workstream: Garden art (26 October 2026)
 

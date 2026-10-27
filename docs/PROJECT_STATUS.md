@@ -1,14 +1,15 @@
 # Project status
 
-Updated 27 October 2026 during Phase 20 (EAS preview delivery and OTA recovery; IN PROGRESS: simulator release-mode drill complete, the owner's iPhone sandbox-rights drill pending). Phase 19.5 was closed earlier the same day by D139. Functional scope is fixed by the local [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx).
+Updated 27 October 2026 after Phase 20 (EAS preview delivery and OTA recovery; VERIFIED COMPLETE by owner decision D143). Phase 19.5 was closed earlier the same day by D139. Functional scope is fixed by the local [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx).
 
 ## Current state
 
-- Current stage: **Phase 20 IN PROGRESS** ([evidence](evidence/PHASE_20.md), D142). Next prompt: [PHASE_20](prompts/PHASE_20.md) (same) until the device drill is recorded, then [PHASE_21](prompts/PHASE_21.md).
+- Current stage: **Phase 20 VERIFIED COMPLETE** ([evidence](evidence/PHASE_20.md), D142, D143). Next prompt: [PHASE_21](prompts/PHASE_21.md).
   - Built: hidden release build details (press and hold Settings › About › Version, or its VoiceOver action; About looks as in D110), the drill marker (null on main), the `preview-simulator` profile, the compatibility gate `node scripts/release-check.mjs` with `delivery/runtime-contracts.json` (runtime 1.0.0 recorded: fingerprint c83b89a5…, schema 5), `scripts/ota-drill.mjs` (redacted ledger hash, expo-updates state, seeding, local fault proxy) and the synthetic fixture built by the real commands; the validated runbook and prepared production promotion/rollout/recovery table in [EAS_AND_OTA](EAS_AND_OTA.md).
-  - EAS: preview builds **e86513c7** (simulator) and **638cba93** (device, ad hoc), Release, 1.0.0 (1), channel preview, environment production; first preview channel/branch; preview updates OTA-1 c49dc07b, incompatible test 3859b02e (runtime `phase20-incompatible`), OTA-2 e647be4f, republish 1a6b5b59, roll-back-to-embedded 802ac048, OTA-1 for the iPhone 09c72f72. No production channel, build or update.
+  - EAS: preview builds **e86513c7** (simulator) and **638cba93** (device, ad hoc), Release, 1.0.0 (1), channel preview, environment production; first preview channel/branch; preview updates OTA-1 c49dc07b, incompatible test 3859b02e (runtime `phase20-incompatible`), OTA-2 e647be4f, republish 1a6b5b59, roll-back-to-embedded 802ac048, OTA-1 for the iPhone 09c72f72, iPhone roll-back-to-embedded 91bb041d (preview now serves the embedded bundle). No production channel, build or update.
   - Simulator release-mode drill PASS: first launch with the update server unreachable, background download + next-cold-start activation, offline launch from cache with Island and Garden, interrupted / corrupted / killed-mid-download (update stays pending, embedded keeps launching), incompatible runtime refused by the server and, when forced through the proxy, never launched by the client, rollback to republished OTA-1 and to embedded with a write made on OTA-2 kept and readable; ledger hash unchanged at every step, no duplicate entry.
-  - Pending (keeps the phase open): the owner's iPhone 14 Pro drill with the real StoreKit sandbox right and real Airplane Mode; the Duo release-mode cold launch (simulator launch hung; carried to Phase 21); PRIVACY.md wording for the user agent and language headers (owner).
+  - iPhone 14 Pro drill (owner-reported, D143): Airplane Mode launch on the embedded bundle, online download and activation at the next cold start, offline launch from cache with both themes, roll-back-to-embedded; data and the sandbox Pro right unchanged throughout.
+  - Carried: the Duo release-mode cold launch (simulator launch hung; Phase 21); PRIVACY.md wording for the user agent and language headers (owner, before Phase 22).
 - Previous stage: **Phase 19.5 VERIFIED COMPLETE** ([evidence](evidence/PHASE_19_5.md), owner decision D139). Next prompt: [PHASE_20](prompts/PHASE_20.md).
   - Built: three icon concepts rendered from the approved Island scene (`assets/branding/`, scripts + provenance README, concept sheet at 60/40/29 pt); the owner chose B, the cottage close-up, with a night-blue dark sky. Final `assets/images/icon-light.png`, `icon-dark.png`, `icon-tinted.png` (1024, RGB, no alpha, sRGB) through `ios.icon { light, dark, tinted }` (PNG set chosen over an Icon Composer `.icon`), launch screen = cream `LAUNCH_BACKGROUND` + 120 pt cottage-and-tree mark (`splash-mark.png`). Expo template icon and splash deleted.
   - Checks: lint, typecheck, Jest 56 suites / 1577 passed (1 env-gated skip; new icon file tests), throwaway prebuild + `actool` without warnings, EAS development simulator build **0799fb03** (1.0.0, runtime 1.0.0, fingerprint 935de421…), installed over test data on the SE iOS 18.5, 17 Pro Max iOS 26.0 and Duo iOS 27.1: cold launch, home screen light (all three), dark and tinted (iOS 26.0), Spotlight, Settings › Apps, app switcher.
@@ -122,7 +123,7 @@ Updated 27 October 2026 during Phase 20 (EAS preview delivery and OTA recovery; 
 | 18 | Four precise Pro savings statistics | VERIFIED COMPLETE | [PHASE_18](evidence/PHASE_18.md); D131-D133; Jest 1161 + `test:db` 55/55 + simulator look PASS, owner polish (touched tests 40/40); Statistics VoiceOver carried to Phases 19/21 |
 | 19 | Accessibility localization and Settings review | VERIFIED COMPLETE | [PHASE_19](evidence/PHASE_19.md); D134-D138; lint, typecheck, Jest 1571+, `test:db` 55/55 + R2 (SE), simulator PASS; VoiceOver, haptics, reminder and Duo owner-reported (D135, D138); privacy/support pages live (D137) |
 | 19.5 | App icon and launch screen (owner-added, D114) | VERIFIED COMPLETE | [PHASE_19_5](evidence/PHASE_19_5.md); D139; owner chose the cottage close-up and approved light/dark/tinted icons and the launch screen; EAS build 0799fb03; physical-iPhone look in Phase 21 |
-| 20 | EAS preview delivery and OTA recovery verification | IN PROGRESS | [PHASE_20](evidence/PHASE_20.md); D142; preview builds e86513c7/638cba93, preview updates and simulator drill PASS; owner's iPhone sandbox-rights drill pending |
+| 20 | EAS preview delivery and OTA recovery verification | VERIFIED COMPLETE | [PHASE_20](evidence/PHASE_20.md); D142-D143; preview builds e86513c7/638cba93, preview updates, simulator drill PASS, owner's iPhone drill PASS (owner-reported); Duo cold launch carried to 21 |
 | 21 | Resilience performance and release candidate | NOT STARTED | No implementation evidence |
 | 22 | App Store release preparation and final handoff | NOT STARTED | No implementation evidence |
 
@@ -170,7 +171,7 @@ Q01-Q06 are RESOLVED in [SOURCE_RECONCILIATION](SOURCE_RECONCILIATION.md). One g
 
 ## Next action and continuation
 
-Phase 20 is IN PROGRESS. The owner runs the iPhone drill in [PHASE_20 evidence](evidence/PHASE_20.md) "Device drill" (preview build 638cba93, OTA-1 for the iPhone 09c72f72, then a roll-back-to-embedded run by the operator); the same prompt [PHASE_20](prompts/PHASE_20.md) records it and closes the phase. Open owner actions outside the app: enter the Privacy Policy and Support URLs and the App Privacy answers in App Store Connect (D137).
+Phase 20 is verified complete (D143). Start a new Claude Code session in ~/Desktop/SavingWorld with the full [PHASE_21](prompts/PHASE_21.md) prompt (resilience, performance and release candidate); it also covers the carried Duo release-mode cold launch. Owner actions outside the app: PRIVACY.md wording for the update request's user agent and language; the Privacy Policy/Support URLs and App Privacy answers in App Store Connect (D137).
 
 ## Ongoing updates
 

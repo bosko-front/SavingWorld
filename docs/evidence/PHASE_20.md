@@ -1,6 +1,6 @@
 # Phase 20 evidence: EAS preview delivery and OTA recovery verification
 
-Session date: 27 October 2026. State: **IN PROGRESS** (simulator release-mode drill complete; the physical-iPhone part with real StoreKit sandbox rights and real Airplane Mode is pending the owner, see "Device drill"). Prompt: [PHASE_20](../prompts/PHASE_20.md). Decision: [D142](../DECISIONS.md).
+Session date: 27 October 2026. State: **VERIFIED COMPLETE** by owner decision D143 (simulator release-mode drill recorded here; the physical-iPhone drill with the real StoreKit sandbox right and real Airplane Mode passed, owner-reported, see "Device drill"). Prompt: [PHASE_20](../prompts/PHASE_20.md). Decision: [D142](../DECISIONS.md).
 
 ## Starting point and dependencies
 
@@ -74,27 +74,28 @@ Simulators: two dedicated iPhone 17 Pro iOS 26.0 simulators created for this pha
 4. **Launch writes the rights row.** The first launch stored `not_owned` (StoreKit answered on the simulator); the digest was split so the ledger hash excludes stored rights and settings records.
 5. **Simulator A wedged** (`simctl` calls hung after a killed `terminate` while the Mac's load average was 200-477); rebooted, data kept.
 
-## Device drill (owner, iPhone 14 Pro, StoreKit sandbox) — PENDING
+## Device drill (owner, iPhone 14 Pro, StoreKit sandbox)
+
+Steps 1-5 reported by the owner on 27 October 2026 as "sve je ok" (all fine); step 6: "Update shows Embedded bundle, no Delivery check line, data and Pro are the same." Recorded as owner-reported, without screenshots in the repository. The preview branch now ends with roll-back-to-embedded 91bb041d, so preview installs run their embedded bundle.
 
 Required by the prompt and not replaceable by a simulator: real Airplane Mode, the actual verified StoreKit sandbox right through an update and a rollback.
 
 | Step | Expected | Result |
 | --- | --- | --- |
-| 1. Note state in the dev build (Pro, goals) | — | PENDING |
-| 2. Install preview build 638cba93 over the dev build | data kept | PENDING |
-| 3. Airplane Mode on, open | embedded launch, same goals/amounts, Pro active; build details "preview / 1.0.0 / Embedded bundle" | PENDING |
-| 4. Airplane off, open, wait, swipe away, open | update 01a17d7d-a9fe-73d5-b4db-0cccb4d720a2, marker OTA-1; same data; Pro active | PENDING |
-| 5. Airplane on, swipe away, open | same update from cache; Island and Garden drawn; Pro active | PENDING |
-| 6. Rollback to embedded (operator), Airplane off, open twice | Embedded bundle; same data; Pro active | PENDING |
+| 1. Note state in the dev build (Pro, goals) | — | PASS (owner-reported) |
+| 2. Install preview build 638cba93 over the dev build | data kept | PASS (owner-reported) |
+| 3. Airplane Mode on, open | embedded launch, same goals/amounts, Pro active; build details "preview / 1.0.0 / Embedded bundle" | PASS (owner-reported: "sve je ok") |
+| 4. Airplane off, open, wait, swipe away, open | update 01a17d7d-a9fe-73d5-b4db-0cccb4d720a2, marker OTA-1; same data; Pro active | PASS (owner-reported) |
+| 5. Airplane on, swipe away, open | same update from cache; Island and Garden drawn; Pro active | PASS (owner-reported) |
+| 6. Rollback to embedded (operator), Airplane off, open twice | Embedded bundle; same data; Pro active | Operator step done: roll-back-to-embedded group 91bb041d-9bcd-42b6-9026-836dec2bbb13 (update 01a17d91-7ffd-756a-9360-f7a363c50e94); phone: Update "Embedded bundle", no Delivery check line, same data and Pro — PASS (owner-reported) |
 
 ## Not done / limitations
 
-- The device drill above (keeps the phase IN PROGRESS).
 - Simulator "offline" is the update server made unreachable through the proxy, not a full network loss; StoreKit stayed reachable on the simulators (Free there). The device drill covers real Airplane Mode.
 - `updates_assets` rows in expo-updates' database are duplicated per retry (624 → 1096 links for 160 assets on B); files on disk are complete. expo-updates behavior, no impact seen.
 - The project archive for EAS Build is 619 MB (Blender sources under `assets/worlds/` are uploaded; the app reads only `assets/themes/`); excluding them in `.easignore` would cut upload time, not done in this phase.
 - Changing package.json "scripts" changes the native fingerprint (`packageJson:scripts` source), so the drill tools are run with `node scripts/…`, not npm scripts.
 
-## Next
+## Closing
 
-Same prompt: [PHASE_20](../prompts/PHASE_20.md) until the device drill is recorded; then [PHASE_21](../prompts/PHASE_21.md).
+The owner closed the phase after the device drill (D143). Carried, not passed: the Duo release-mode cold launch (Phase 21 on the release candidate); PRIVACY.md wording for the user agent and language headers (owner; before Phase 22 App Privacy answers). Next prompt: [PHASE_21](../prompts/PHASE_21.md).
