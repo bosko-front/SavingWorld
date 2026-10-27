@@ -2,7 +2,7 @@
 
 Product scope follows [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx); this document adds compatible engineering detail only.
 
-The owner selected EAS. Configure EAS Build and EAS Update in Phase 01, then prove the complete delivery/recovery workflow in Phase 20 before final integrated verification in Phase 21 and release preparation in Phase 22. Local Xcode remains a diagnostic tool. This document plans future work; no EAS account/project/build/update has been created or changed by this documentation task.
+The owner selected EAS. Configure EAS Build and EAS Update in Phase 01, then prove the complete delivery/recovery workflow in Phase 20 before final integrated verification in Phase 21 and release preparation in Phase 22. Local Xcode remains a diagnostic tool. Phase 01 linked the project; Phase 20 made the first release-mode preview builds and preview-channel updates and validated the runbook below ([evidence](evidence/PHASE_20.md)). Production has no channel, build or update yet.
 
 ## Tool ownership and project setup
 
@@ -28,7 +28,7 @@ Preview intentionally uses the production export environment so a tested update 
 
 If a distinct preview environment or bundle identifier is later needed, record the difference and add a production-equivalent candidate check before promotion. Do not claim a differently compiled preview bundle is the exact production artifact.
 
-A simulator helper may extend a base profile with ios.simulator true. Phase 01 added `development-simulator` (extends development, so channel development and environment development) for unsigned simulator dev clients; see D34 and [PHASE_01 evidence](evidence/PHASE_01.md). The linked project is `@bosko123/saving-worlds`. For OTA acceptance it must be a release-mode preview artifact, not simply a Metro session or normal dev client. Device distribution/signing and App Store purchase tests have their own evidence.
+A simulator helper may extend a base profile with ios.simulator true. Phase 20 added `preview-simulator` (extends preview: channel preview, environment production; D142) for simulator release-mode QA. Phase 01 added `development-simulator` (extends development, so channel development and environment development) for unsigned simulator dev clients; see D34 and [PHASE_01 evidence](evidence/PHASE_01.md). The linked project is `@bosko123/saving-worlds`. For OTA acceptance it must be a release-mode preview artifact, not simply a Metro session or normal dev client. Device distribution/signing and App Store purchase tests have their own evidence.
 
 Use fixed development/preview/production channel names and a simple matching branch convention. Channels route installed builds to branches; branch names are not Git branches or access rights. Do not use automatic branch inference or user-accessible channel surfing. Record the actual channel-to-branch mapping before publication. See [channel concepts](https://docs.expo.dev/eas-update/eas-cli/).
 
@@ -84,6 +84,54 @@ Before a production update, identify the exact tested artifact, production chann
 For production, prepare a small initial staged rollout with a concrete observation interval, responsible operator and criteria to continue/stop. Select values for the actual release/audience; do not invent monitoring that nobody runs. Consult available EAS delivery/error data and manual beta reports, audit any data collection, and do not add an analytics SDK automatically. Promotion to 100 percent is a recorded operator action, not a timer-based assumption. See [rollouts](https://docs.expo.dev/eas-update/rollouts/).
 
 EAS supports prior-update and embedded rollback, but reverting code does not undo SQLite writes or restore deleted savings. Confirm the known-good bundle can read current persisted state before rollback; otherwise prepare a tested forward fix/new native release. Expo error recovery is a last resort with limits, not a backup system. Keep embedded fallback and normal anti-bricking mechanisms enabled. See [rollback operations](https://docs.expo.dev/eas-update/rollbacks/) and [error recovery limits](https://docs.expo.dev/eas-update/error-recovery/).
+
+## Validated runbook (Phase 20)
+
+Verified on 27 October 2026 with preview builds e86513c7 (simulator) and 638cba93 (device) and the preview updates listed in [PHASE_20 evidence](evidence/PHASE_20.md). Decision D142.
+
+### Release metadata contract
+
+Every shared runtime has an entry in `delivery/runtime-contracts.json`: runtime and app version, platform, the native fingerprint (`npx expo-updates fingerprint:generate --platform ios`, the same hash EAS stores on each build), the newest schema version, a SHA-256 of the files that define stored meaning (migrations and runner, receipt/row/settings/entitlement encodings, currency registry, minor-unit limits, theme versions; list in `scripts/release/release-contract.js`), the first shared build and every recorded build with source revision and reason. Runtime 1.0.0: fingerprint c83b89a5…, schema 5, recorded from e86513c7.
+
+`node scripts/release-check.mjs` is the gate (not an npm script: @expo/fingerprint hashes package.json "scripts"):
+
+- default: delivery config (project, update URL, appVersion policy, ON_LOAD with 0 ms wait, embedded fallback, the profile → channel/environment matrix, no runtime override, pinned CLI) and the runtime contract;
+- `--eas`: channel → branch mappings, whether production exists and holds updates, every finished preview/production build on the runtime with its EAS fingerprint, the latest preview update groups (read-only);
+- `--publish`: also a clean tree (untracked `docs/` evidence excepted);
+- `--record <build-id> --reason "…"`: writes the contract after EAS's fingerprint for that build matches the local one; `--out <file>` saves the release record.
+
+A FAIL means: no update on this runtime. A native change (fingerprint) or a stored-data change needs a new app `version` (new runtime) and a new native build. A change in a stored-data file that provably keeps the meaning (a comment, a rename) is re-recorded with `--record` and a reason, never ignored. Check the gate's own exit code (0 pass, 1 fail, 2 tool error); never run it through a pipe that hides the code.
+
+### Network note
+
+On slow connections eas-cli 25.3.0 fails with ETIMEDOUT after ~500 ms because Node gives each address family 250 ms to connect. Prefix EAS commands with `NODE_OPTIONS=--network-family-autoselection-attempt-timeout=3000` (the gate does this for its own calls).
+
+### Preview update (JS/assets only)
+
+1. Commit; `node scripts/release-check.mjs --eas --publish --out <record.json>` must exit 0.
+2. `npm run eas -- update --platform ios --channel preview --environment production --message "<what> (<commit>)" --non-interactive`. Record group and update IDs.
+3. On a preview installation with synthetic data (or the owner's test phone): launch, wait, close, launch again; Settings › About › press and hold Version shows the update ID. Check offline launch, both themes, ledger unchanged (`node scripts/ota-drill.mjs snapshot --device <udid>` on simulators), Pro unchanged.
+
+### Recovery
+
+- Prior known-good: `npm run eas -- update:republish --group <known-good group> --message "rollback: …" --non-interactive` (same branch). Installs adopt it on their next cold start after it downloads.
+- Embedded: `npm run eas -- update:roll-back-to-embedded --branch <branch> --runtime-version <runtime> --platform ios --message "…" --non-interactive`.
+- Code rollback never reverts the database: before rolling back, confirm the target bundle reads the current schema and stored meaning (the gate's runtime contract guarantees it for every update on the runtime). Phase 20 proved a write made on OTA-2 stays readable after republishing OTA-1 and after rolling back to embedded.
+- If the target cannot read current data: no rollback; publish a tested forward fix, or ship a new native version.
+
+### Production promotion (prepared, not executed)
+
+Requires the owner's explicit instruction for each operation. Preconditions: an App Store build of the same runtime exists (production channel, Phase 22) and the gate passes with `--eas`.
+
+| Item | Rule |
+| --- | --- |
+| Tested artifact | The exact preview update group that passed the preview drill on the release candidate, same runtime and platform, exported with environment production. Never re-export for production. |
+| Operator | The owner (bosko123), or someone the owner names in writing for that release. |
+| Promotion | `npm run eas -- update:republish --group <tested preview group> --destination-channel production --rollout-percentage 10 --message "<release note>" --non-interactive` |
+| Observation | At least 24 h at 10%: EAS update dashboard (install, launch and crash counts for the group; no SDK is added), TestFlight/App Store crash reports, support email. Continue to 50% and then 100% with `npm run eas -- update:edit <group> --rollout-percentage <n>`, each a recorded operator action. |
+| Stop | Any crash or launch-failure increase attributable to the group, an emergency launch reported in build details, a data report, or a failed check on the owner's device: `npm run eas -- update:revert-update-rollout --group <group> --non-interactive`, or republish the previous production group / roll back to embedded as above. |
+| Baseline | The production build's embedded update (shown as "Embedded bundle" in build details) stays the fallback for everyone outside the rollout. |
+| Record | Release record JSON, group/update IDs, rollout steps with times, observations and the stop/continue decision go into the phase evidence. |
 
 ## Authorization and handoff
 

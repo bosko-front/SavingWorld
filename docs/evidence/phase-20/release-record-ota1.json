@@ -1,0 +1,187 @@
+{
+  "checkedAt": "2026-10-27T12:30:27.809Z",
+  "sourceRevision": "6a40478aed69e4b1eddc3820c2cdd38874dd1de2",
+  "dirtyTree": false,
+  "project": "25d3089f-a32e-461f-baf2-7c95a396984e",
+  "bundleIdentifier": "com.bosko123.savingworlds",
+  "platform": "ios",
+  "appVersion": "1.0.0",
+  "runtimeVersion": "1.0.0",
+  "fingerprint": "c83b89a5d24660fbb150b4b77e20fdf4c969aee3",
+  "schemaVersion": 5,
+  "persistedContract": "5e4b7f952c7e5294bac8c0e71d3379c95a7dcbb7420a09a1e01fbe873aafef8a",
+  "runtimeShared": true,
+  "eas": {
+    "channels": {
+      "preview": [
+        "preview"
+      ],
+      "production": null
+    },
+    "builds": [
+      {
+        "id": "638cba93-4d79-4db1-ac85-b1744a94a885",
+        "profile": "preview",
+        "channel": null,
+        "appVersion": "1.0.0",
+        "buildNumber": "1",
+        "gitCommit": "692abd97d525fcc968388af0d3099f1c0d91077c",
+        "fingerprint": "c83b89a5d24660fbb150b4b77e20fdf4c969aee3",
+        "simulator": false
+      },
+      {
+        "id": "e86513c7-111c-4e28-b85d-ab04d36bf4a3",
+        "profile": "preview-simulator",
+        "channel": null,
+        "appVersion": "1.0.0",
+        "buildNumber": "1",
+        "gitCommit": "6abd4981ac03dd6cbd683962742be672b01eae47",
+        "fingerprint": "c83b89a5d24660fbb150b4b77e20fdf4c969aee3",
+        "simulator": true
+      }
+    ],
+    "previewUpdates": []
+  },
+  "findings": [
+    {
+      "level": "pass",
+      "id": "project",
+      "message": "EAS project 25d3089f-a32e-461f-baf2-7c95a396984e"
+    },
+    {
+      "level": "pass",
+      "id": "owner",
+      "message": "owner/slug bosko123/saving-worlds"
+    },
+    {
+      "level": "pass",
+      "id": "update-url",
+      "message": "update URL https://u.expo.dev/25d3089f-a32e-461f-baf2-7c95a396984e"
+    },
+    {
+      "level": "pass",
+      "id": "runtime-policy",
+      "message": "runtime policy {\"policy\":\"appVersion\"}"
+    },
+    {
+      "level": "pass",
+      "id": "nonblocking-launch",
+      "message": "check ON_LOAD, launch wait 0 ms"
+    },
+    {
+      "level": "pass",
+      "id": "embedded-fallback",
+      "message": "embedded update and anti-bricking measures stay enabled"
+    },
+    {
+      "level": "pass",
+      "id": "app-version",
+      "message": "app version 1.0.0"
+    },
+    {
+      "level": "pass",
+      "id": "profile-development",
+      "message": "development: channel development, environment development"
+    },
+    {
+      "level": "pass",
+      "id": "profile-development-simulator",
+      "message": "development-simulator: channel development, environment development"
+    },
+    {
+      "level": "pass",
+      "id": "profile-preview",
+      "message": "preview: channel preview, environment production"
+    },
+    {
+      "level": "pass",
+      "id": "profile-preview-simulator",
+      "message": "preview-simulator: channel preview, environment production"
+    },
+    {
+      "level": "pass",
+      "id": "profile-production",
+      "message": "production: channel production, environment production"
+    },
+    {
+      "level": "pass",
+      "id": "runtime-development",
+      "message": "development: no runtime override"
+    },
+    {
+      "level": "pass",
+      "id": "runtime-development-simulator",
+      "message": "development-simulator: no runtime override"
+    },
+    {
+      "level": "pass",
+      "id": "runtime-preview",
+      "message": "preview: no runtime override"
+    },
+    {
+      "level": "pass",
+      "id": "runtime-preview-simulator",
+      "message": "preview-simulator: no runtime override"
+    },
+    {
+      "level": "pass",
+      "id": "runtime-production",
+      "message": "production: no runtime override"
+    },
+    {
+      "level": "pass",
+      "id": "cli-pin",
+      "message": "eas-cli pinned 25.3.0, eas.json requires >= 25.3.0"
+    },
+    {
+      "level": "pass",
+      "id": "contract-version",
+      "message": "recorded app version 1.0.0, current 1.0.0"
+    },
+    {
+      "level": "pass",
+      "id": "native-contract",
+      "message": "native fingerprint c83b89a5d246 matches the shared runtime"
+    },
+    {
+      "level": "pass",
+      "id": "schema-contract",
+      "message": "schema 5 (shared runtime: 5)"
+    },
+    {
+      "level": "pass",
+      "id": "persisted-contract",
+      "message": "stored-data contract files unchanged"
+    },
+    {
+      "level": "pass",
+      "id": "clean-tree",
+      "message": "clean tree at 6a40478"
+    },
+    {
+      "level": "pass",
+      "id": "channel-preview",
+      "message": "channel preview → preview"
+    },
+    {
+      "level": "pass",
+      "id": "channel-production",
+      "message": "channel production → not created (no production build yet)"
+    },
+    {
+      "level": "info",
+      "id": "production-updates",
+      "message": "production branch has no updates"
+    },
+    {
+      "level": "pass",
+      "id": "build-638cba93",
+      "message": "preview build 638cba93-4d79-4db1-ac85-b1744a94a885 (1.0.0 (1), 692abd9) fingerprint c83b89a5d246 = local"
+    },
+    {
+      "level": "pass",
+      "id": "build-e86513c7",
+      "message": "preview-simulator build e86513c7-111c-4e28-b85d-ab04d36bf4a3 (1.0.0 (1), 6abd498) fingerprint c83b89a5d246 = local"
+    }
+  ]
+}

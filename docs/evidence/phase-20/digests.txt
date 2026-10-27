@@ -1,0 +1,31 @@
+# Persisted-state digests (synthetic fixture only), scripts/ota-drill.mjs snapshot
+# time UTC | sim | step | ledger sha256[0:12] | balance/target minor | entries | receipts | souvenirs | attempts | stored rights
+2026-10-27T12:22:31 | BE992E11 | B seeded | (pre-split) | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | none
+2026-10-27T12:24:32 | F2004769 | A before launch | (pre-split) | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | none
+2026-10-27T12:25:20 | F2004769 | after embedded launch | (pre-split) | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:25:22 | BE992E11 | after embedded launch | (pre-split) | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:27:16 | F2004769 | after embedded launch (ledger hash) | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:27:17 | BE992E11 | after embedded launch (ledger hash) | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:42:42 | F2004769 | A running OTA-1 | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:43:59 | BE992E11 | B after interrupted download, offline relaunch | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:45:43 | BE992E11 | B after corrupted download, offline relaunch | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:47:51 | BE992E11 | B interrupted download (real bytes) | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:48:06 | BE992E11 | B offline relaunch after interrupt | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:48:35 | BE992E11 | B interrupted download (real bytes) | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:48:50 | BE992E11 | B offline relaunch after interrupt | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:49:10 | BE992E11 | B corrupted download (real bytes, flipped) | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:49:26 | BE992E11 | B offline relaunch after corrupt | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:49:36 | BE992E11 | B app killed mid-download | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:49:50 | BE992E11 | B offline relaunch after kill | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:50:20 | BE992E11 | B full download through proxy (still running embedded) | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:50:35 | BE992E11 | B offline cold start: activates cached OTA-1 | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:52:43 | BE992E11 | B: proxy asks EAS for runtime phase20-incompatible | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:52:57 | BE992E11 | B offline relaunch after incompatible manifest | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:53:25 | BE992E11 | B: proxy asks EAS for runtime phase20-incompatible | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:53:40 | BE992E11 | B offline relaunch after incompatible manifest | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:54:13 | BE992E11 | B: complete incompatible update offered | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T12:54:28 | BE992E11 | B offline relaunch: must not launch phase20-incompatible | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T13:08:50 | F2004769 | A running OTA-2 | e8082baab0b3 | 80000/100000 | 3 | 9 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T13:09:40 | F2004769 | A after €50 deposit on OTA-2 | fe2c192038ef | 85000/100000 | 4 | 10 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T13:10:49 | F2004769 | A on republished OTA-1 | fe2c192038ef | 85000/100000 | 4 | 10 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned
+2026-10-27T13:12:09 | F2004769 | A after roll-back-to-embedded | fe2c192038ef | 85000/100000 | 4 | 10 | 1 | first_step=completed next_milestone=completed next_milestone=active | not_owned

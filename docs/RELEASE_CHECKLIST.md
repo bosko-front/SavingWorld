@@ -58,15 +58,15 @@ Product authority is [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx). Q01-Q06 
 
 ## EAS Build and OTA delivery
 
-- [ ] EAS Build/Update belongs to the intended owner/project; profile/channel/environment, public identifiers, native signing and reproducible CLI/package versions are recorded without credentials.
-- [ ] Development/preview/production profiles are explicit; release-mode preview uses production export values on the isolated preview channel, with native parity/signing differences documented.
-- [ ] appVersion/runtime and native/persisted-data compatibility gate prevents reuse of an incompatible shared runtime. A build-number-only bump is not treated as a runtime boundary.
-- [ ] Real preview update activation, incompatible/interrupted download, cached/embedded offline startup and complete Island/Garden asset groups have release-mode evidence.
+- [x] EAS Build/Update belongs to the intended owner/project; profile/channel/environment, public identifiers, native signing and reproducible CLI/package versions are recorded without credentials. Phase 20: bosko123 / 25d3089f…, eas-cli 25.3.0, preview builds e86513c7/638cba93 ([evidence](evidence/PHASE_20.md)).
+- [x] Development/preview/production profiles are explicit; release-mode preview uses production export values on the isolated preview channel, with native parity/signing differences documented. Phase 20: `preview`/`preview-simulator` → channel preview, environment production; fingerprints equal; device build ad hoc vs store signing for production (Phase 22 checks the production candidate).
+- [x] appVersion/runtime and native/persisted-data compatibility gate prevents reuse of an incompatible shared runtime. A build-number-only bump is not treated as a runtime boundary. Phase 20: `node scripts/release-check.mjs` + `delivery/runtime-contracts.json` (D142).
+- [ ] Real preview update activation, incompatible/interrupted download, cached/embedded offline startup and complete Island/Garden asset groups have release-mode evidence. Phase 20: PASS on release-mode simulator builds; the owner's iPhone (real Airplane Mode) pending; Phase 21 repeats on the release candidate.
 - [ ] No forced reload during draft/save/migration/challenge/purchase work; core tracking never waits for the update service.
-- [ ] Known-good/embedded rollback was tested against current synthetic financial data; no claim that a code rollback undoes SQLite writes. Schema/data migrations require the planned native release.
+- [ ] Known-good/embedded rollback was tested against current synthetic financial data; no claim that a code rollback undoes SQLite writes. Schema/data migrations require the planned native release. Phase 20: PASS on the simulator (write on OTA-2 kept through both rollbacks); StoreKit sandbox rights through a rollback pending on the owner's iPhone.
 - [ ] Production candidate has exact EAS build/update IDs, source revision, runtime/platform/environment/channel/branch, schema contract and reviewed promotion/rollout/recovery instructions.
-- [ ] EAS update request/diagnostic metadata is included in the shipped dependency/privacy audit; no financial history is sent as update metadata.
-- [ ] Production publishing/routing/rollout and store upload remain distinct explicit operator actions. No test accidentally altered production delivery.
+- [ ] EAS update request/diagnostic metadata is included in the shipped dependency/privacy audit; no financial history is sent as update metadata. Phase 20 captured the actual headers (no savings data); PRIVACY.md omits the user agent and language headers: owner wording pending.
+- [ ] Production publishing/routing/rollout and store upload remain distinct explicit operator actions. No test accidentally altered production delivery. Phase 20: no production channel, build or update exists; prepared promotion table in EAS_AND_OTA "Validated runbook".
 
 ## App Store materials and current requirements
 

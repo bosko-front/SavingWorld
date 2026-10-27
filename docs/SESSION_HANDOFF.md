@@ -1,48 +1,38 @@
 # Latest session handoff
 
-Session date: 27 October 2026. Session kind: Phase 19.5 (app icon and launch screen). Result: **Phase 19.5 VERIFIED COMPLETE by owner approval D139**. Next prompt: [PHASE_20](prompts/PHASE_20.md). Details: [PHASE_19_5 evidence](evidence/PHASE_19_5.md).
+Session date: 27 October 2026. Session kind: Phase 20 (EAS preview delivery and OTA recovery). Result: **IN PROGRESS** — simulator release-mode drill complete and recorded; the owner's iPhone drill (real StoreKit sandbox right, real Airplane Mode) is pending. Next prompt: [PHASE_20](prompts/PHASE_20.md) (same). Details: [PHASE_20 evidence](evidence/PHASE_20.md), decision D142.
 
-The previous handoff (Phase 19, VERIFIED COMPLETE by D138) is superseded; its record remains in [PHASE_19 evidence](evidence/PHASE_19.md) and DECISIONS D134-D138.
+The previous handoff (Phase 19.5, VERIFIED COMPLETE by D139-D141) is superseded; its record remains in [PHASE_19_5 evidence](evidence/PHASE_19_5.md).
 
 ## Completed this session
 
-- Read v1.2 in full (textutil) and the required docs. Baseline `main` 6550911, clean. The app still had the Expo template icon and splash.
-- Checked the pinned SDK: `ios.icon` takes a path, `{ light, dark, tinted }` or one `.icon` folder (not both); `expo-splash-screen` takes background, image, width, resize mode and an optional dark entry.
-- `assets/branding/`: `scripts/render_icon.py` renders a concept from the approved Island `.blend` (read-only, own square camera on the frozen view and lights, storybook pass, never saved); `icon_compose.py` adds the skies and writes light/dark/tinted icons and the mark; `review_sheet.py` makes the 60/40/29 pt sheet; README with commands and provenance.
-- Three concepts (A finished Island, B cottage close-up, C first tree) on `review/icon_concepts_sheet.png`. **Owner chose B with the night-blue dark sky**, then approved the built result ("Approve all").
-- Final `assets/images/icon-light.png`, `icon-dark.png`, `icon-tinted.png` (1024, RGB, no alpha, sRGB) and `splash-mark.png` (cottage and tree cut out, 600 px, shown at 120 pt). Template `icon.png` and `splash-icon.png` deleted. `app.config.ts`: `ios.icon` object + top-level light icon, splash `{ cream, splash-mark, 120, contain }`. `.easignore` skips `assets/branding/`.
-- Tests: `delivery-config.test.ts` checks the icon/mark paths, template files gone, size, RGB, no `tRNS`, sRGB, mark ≥ @3x; the launch color guard stays.
-- Docs: DECISIONS D139; DESIGN_SYSTEM Icons; RELEASE_CHECKLIST; PROJECT_STATUS; SOURCE_RECONCILIATION (Q09 line); CLAUDE.md fact line; evidence PHASE_19_5 with screenshots 01-14.
-
-## Owner follow-ups the same day (D140, D141)
-
-- D140: the launch screen background is Home's sky `skyTop` `#CFE6EE` (root view stays cream). The owner's local Xcode build still showed the placeholder because `ios/` dated from 26 October; regenerated with `npx expo prebuild -p ios --clean` (CocoaPods needs `LANG=en_US.UTF-8`). Also fixed: a stray `#2d96cb` launch color and a `__pycache__` file that commit 48be676 had picked up.
-- D141: the launch screen stays until Home's world of the current stage has loaded (`src/bootstrap/launch-splash.ts`, cap 1.5 s after the database opens; onboarding/failures release at once). Jest 58 suites: 1581 passed.
-- The owner checks both in his own Xcode build. EAS build 0799fb03 predates both (cream launch, old splash timing); Phase 20's builds carry them.
+- Read v1.2 (textutil) and the required documents; audited EAS read-only: only a `development` channel/branch, no preview/production build or update, no EAS environment variables; runtime 1.0.0 not shared before this session.
+- Owner choices (this session): local commits on main, no push; hidden build details on Version; iPhone steps today with test data.
+- Code: hidden release build details (`src/bootstrap/build-info*.ts`, `read-build-info.ts`, `delivery-marker.ts`, `ListRow onLongPress`, Settings Version row), `preview-simulator` profile, gate `scripts/release-check.mjs` + `scripts/release/release-contract.js` + `delivery/runtime-contracts.json`, drill tool `scripts/ota-drill.mjs` + `scripts/release/persisted-digest.js`, fixture `tests/native/release-fixture.ts`, tests (build-info, release-contract, delivery-config, catalog, Settings press-and-hold/VoiceOver action, fixture).
+- EAS: preview builds e86513c7 (simulator) and 638cba93 (device, ad hoc), both fingerprint c83b89a5… = local; runtime 1.0.0 contract recorded. Preview updates: OTA-1 c49dc07b (6a40478), incompatible-runtime test 3859b02e (6fb83a9), OTA-2 e647be4f (1246d8a), republish 1a6b5b59, roll-back-to-embedded 802ac048, OTA-1 for the iPhone 09c72f72 (update 01a17d7d-a9fe-73d5-b4db-0cccb4d720a2). Production: nothing (no channel).
+- Simulator drill on "SW P20 A" (direct) and "SW P20 B" (fault proxy), iPhone 17 Pro iOS 26.0, synthetic fixture: all T24/T25 and rollback rows PASS; ledger hash e8082baab0b3 at every step, fe2c192038ef after the one €50 deposit on OTA-2 and through both rollbacks.
+- Docs: EAS_AND_OTA "Validated runbook (Phase 20)" (metadata contract, gate, network note, preview update, recovery, prepared production promotion/rollout/stop table), DECISIONS D142, PROJECT_STATUS, RELEASE_CHECKLIST, TEST_PLAN, CLAUDE.md fact line, evidence PHASE_20 with screenshots, digest table and redacted proxy log.
 
 ## Decisions
 
-- D139 (owner): cottage close-up icon, night-blue dark sky, tinted grayscale; PNG set rather than Icon Composer `.icon`; one light launch screen with the cottage mark; approved after the simulator build.
+- D142 (build details on press-and-hold, drill marker, `preview-simulator`, runtime contract gate, drill tooling, local commits).
 
 ## Checks
 
-- Lint PASS, typecheck PASS, Jest 56 suites: 1577 passed, 1 env-gated skip; icon/launch tests 138/138 after the final art was copied.
-- Throwaway prebuild in the scratchpad: AppIcon set with any/dark/tinted 1024 entries, splash logo 120/240/360 px, splash color `#F6F4EA`; `actool` no warnings. Expo keeps an alpha channel on the dark variant by design; all pixels opaque.
-- EAS development simulator build **0799fb03-84c4-4b0e-91fa-e9d05a19def8** (1.0.0 / build 1 / runtime 1.0.0, fingerprint 935de421…), installed over test data on SE iOS 18.5, 17 Pro Max iOS 26.0, Duo iOS 27.1.
-- Screenshots: cold launch on all three, home light on all three, dark and tinted on iOS 26.0, Spotlight, Settings › Apps, app switcher.
-- NOT RUN: `deps:check`/`doctor` (no dependency change), `test:db` (no persistence change), physical iPhone (Phase 21).
+See the evidence's table and "Final checks". NOT RUN: `test:db` (no persistence change; the release build read/wrote the fixture natively), `deps:check`/`doctor` (no dependency change), Duo release-mode cold launch (simulator launch hung; Phase 21).
 
 ## Incomplete work and blockers
 
-1. Physical-iPhone look of the icon and launch screen: Phase 21 release-candidate check.
-2. One plain white frame with the dev client's Tools button appeared once during a Duo cold launch; the recorded sequence showed cream + mark throughout. Confirm in the Phase 20 release-mode build.
-3. Dark/tinted not shown on the iOS 18.5 simulator (its Customize sheet froze); shown on iOS 26.0.
-4. Simulator state: the iPhone 17 Pro Max iOS 26.0 home screen is left in the Tinted style (Customize → Default to undo).
-5. Git: committed on `main` (48be676, 6794f37, 47ee132 plus this docs commit); not pushed.
+1. **Owner's iPhone drill** (evidence "Device drill" steps 1-6). Part 1 (install 638cba93, Airplane Mode, embedded) and part 2 (online → update 01a17d7d…, marker OTA-1; then offline from cache) were sent to the owner; part 3 needs the operator to run `update:roll-back-to-embedded` on preview, then two cold starts on the phone. Pro must stay active (real sandbox purchase) and data unchanged at every step.
+2. PRIVACY.md lists the update request contents but not the user agent (app build, iOS/CFNetwork version) or preferred language; owner decides the wording (public page).
+3. Duo release-mode cold launch: Phase 21.
+4. Housekeeping: the preview branch ends with the iPhone's OTA-1; after the device drill, finish with a roll-back-to-embedded so preview builds run their embedded bundle. Simulators "SW P20 A" (booted) and "SW P20 B" (shut down, its test copy points at 127.0.0.1:8787) hold synthetic data only; delete when done. Side branches `phase20-ota-drill` and `phase20-ota-incompatible` hold the drill commits; never merge.
+5. Optional: exclude `assets/worlds/` (Blender sources) in `.easignore` to cut the 619 MB build upload.
+6. Git: committed on `main`, not pushed.
 
 ## Exact next session
 
-In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_20.md` (EAS preview delivery and OTA recovery). Owner actions outside the app (unchanged): enter the Privacy Policy and Support URLs (D137) and the App Privacy answers in App Store Connect.
+In ~/Desktop/SavingWorld, continue with `docs/prompts/PHASE_20.md`: record the owner's iPhone results in the evidence's "Device drill" table, run the rollback-to-embedded step with the owner, re-run `node scripts/release-check.mjs --eas`, then close the phase (VERIFIED COMPLETE only with the device rows passed) and name PHASE_21.
 
 ## Parallel workstream: Garden art (26 October 2026)
 

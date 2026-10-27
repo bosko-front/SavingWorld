@@ -1,0 +1,131 @@
+{"at":"2026-10-27T12:22:22.106Z","mode":"offline","event":"listening","port":8787}
+{"at":"2026-10-27T12:22:26.357Z","mode":"offline","event":"mode"}
+{"at":"2026-10-27T12:22:26.365Z","mode":"offline","event":"dropped","path":"/x"}
+{"at":"2026-10-27T12:22:33.069Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:22:33.072Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:22:33.074Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:43:27.844Z","mode":"interrupt","event":"mode"}
+{"at":"2026-10-27T12:43:29.551Z","mode":"interrupt","event":"manifest","status":200,"channel":"preview","askedRuntime":"1.0.0","sentRuntime":"1.0.0","currentUpdate":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","embeddedUpdate":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","served":{"id":"01a17d61-dac0-794e-88ac-208761282f21","runtimeVersion":"1.0.0","assets":160},"requestHeaders":{"host":"127.0.0.1:8787","connection":"keep-alive","user-agent":"SavingWorlds/1 CFNetwork/3860.100.1 Darwin/27.0.0","accept":"multipart/mixed,application/expo+json,application/json","expo-runtime-version":"1.0.0","expo-channel-name":"preview","accept-language":"en-US,en;q=0.9","expo-current-update-id":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","expo-updates-environment":"BARE","accept-encoding":"gzip, deflate","expo-embedded-update-id":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","expo-protocol-version":"1","expo-api-version":"1","expo-json-error":"true","expo-platform":"ios","eas-client-id":"<random install id, redacted>"},"directive":null}
+{"at":"2026-10-27T12:43:29.897Z","mode":"interrupt","event":"asset-cut","bytes":1724,"asset":"e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:43:29.936Z","mode":"interrupt","event":"asset-cut","bytes":1724,"asset":"e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:43:29.947Z","mode":"interrupt","event":"asset-cut","bytes":1724,"asset":"e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:43:29.948Z","mode":"interrupt","event":"asset-cut","bytes":1724,"asset":"e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:43:50.939Z","mode":"offline","event":"mode"}
+{"at":"2026-10-27T12:43:51.862Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:43:51.865Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:43:51.867Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:44:14.498Z","mode":"corrupt","event":"listening","port":8787}
+{"at":"2026-10-27T12:44:16.460Z","mode":"corrupt","event":"mode"}
+{"at":"2026-10-27T12:44:25.823Z","mode":"corrupt","event":"manifest","status":304,"channel":"preview","askedRuntime":"1.0.0","sentRuntime":"1.0.0","currentUpdate":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","embeddedUpdate":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","served":null,"requestHeaders":{"host":"127.0.0.1:8787","user-agent":"SavingWorlds/1 CFNetwork/3860.100.1 Darwin/27.0.0","connection":"keep-alive","accept":"multipart/mixed,application/expo+json,application/json","if-none-match":"W/\"fd6e-Pe17U4dXk/Bf7ivNeQsCbfhWAB4\"","expo-runtime-version":"1.0.0","expo-channel-name":"preview","accept-language":"en-US,en;q=0.9","expo-current-update-id":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","expo-updates-environment":"BARE","accept-encoding":"gzip, deflate","expo-embedded-update-id":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","expo-protocol-version":"1","expo-api-version":"1","expo-json-error":"true","expo-platform":"ios","eas-client-id":"<random install id, redacted>"},"directive":null}
+{"at":"2026-10-27T12:44:26.009Z","mode":"corrupt","event":"asset-corrupted","bytes":1724,"asset":"I8dvryp2TLXxE9DKqjCm2NN54-HfFCrFNcg8F_7LXJA"}
+{"at":"2026-10-27T12:44:26.031Z","mode":"corrupt","event":"asset-corrupted","bytes":1724,"asset":"DP7IegcRXP-7kIHiKmplB43A2HIM9nT01_O4JsXZKXI"}
+{"at":"2026-10-27T12:44:26.032Z","mode":"corrupt","event":"asset-corrupted","bytes":1724,"asset":"A08F4i_QzJW79C3BCIZYmmpH_p2FkQbdTQZ_2hVWDeg"}
+{"at":"2026-10-27T12:44:26.033Z","mode":"corrupt","event":"asset-corrupted","bytes":1724,"asset":"mypBj5N0OKC9fY-vgHFg7yFLThD8O1Caq7fpqul7wFc"}
+{"at":"2026-10-27T12:45:34.513Z","mode":"offline","event":"mode"}
+{"at":"2026-10-27T12:45:35.232Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:45:35.235Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:45:35.236Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:45:56.632Z","mode":"throttle","event":"mode"}
+{"at":"2026-10-27T12:45:57.577Z","mode":"throttle","event":"manifest","status":304,"channel":"preview","askedRuntime":"1.0.0","sentRuntime":"1.0.0","currentUpdate":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","embeddedUpdate":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","served":null,"requestHeaders":{"host":"127.0.0.1:8787","user-agent":"SavingWorlds/1 CFNetwork/3860.100.1 Darwin/27.0.0","connection":"keep-alive","accept":"multipart/mixed,application/expo+json,application/json","if-none-match":"\"fd6e-Pe17U4dXk/Bf7ivNeQsCbfhWAB4\"","expo-runtime-version":"1.0.0","expo-channel-name":"preview","accept-language":"en-US,en;q=0.9","expo-current-update-id":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","expo-updates-environment":"BARE","accept-encoding":"gzip, deflate","expo-embedded-update-id":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","expo-protocol-version":"1","expo-api-version":"1","expo-json-error":"true","expo-platform":"ios","eas-client-id":"<random install id, redacted>"},"directive":null}
+{"at":"2026-10-27T12:45:57.747Z","mode":"throttle","event":"asset-throttled","bytes":1724,"asset":"mypBj5N0OKC9fY-vgHFg7yFLThD8O1Caq7fpqul7wFc"}
+{"at":"2026-10-27T12:45:57.747Z","mode":"throttle","event":"asset-throttled","bytes":1724,"asset":"A08F4i_QzJW79C3BCIZYmmpH_p2FkQbdTQZ_2hVWDeg"}
+{"at":"2026-10-27T12:45:57.750Z","mode":"throttle","event":"asset-throttled","bytes":1724,"asset":"DP7IegcRXP-7kIHiKmplB43A2HIM9nT01_O4JsXZKXI"}
+{"at":"2026-10-27T12:45:57.751Z","mode":"throttle","event":"asset-throttled","bytes":1724,"asset":"I8dvryp2TLXxE9DKqjCm2NN54-HfFCrFNcg8F_7LXJA"}
+{"at":"2026-10-27T12:45:57.998Z","mode":"throttle","event":"asset-throttled-done","bytes":1724}
+{"at":"2026-10-27T12:45:57.999Z","mode":"throttle","event":"asset-throttled-done","bytes":1724}
+{"at":"2026-10-27T12:45:58.000Z","mode":"throttle","event":"asset-throttled-done","bytes":1724}
+{"at":"2026-10-27T12:45:58.002Z","mode":"throttle","event":"asset-throttled-done","bytes":1724}
+{"at":"2026-10-27T12:47:19.760Z","mode":"offline","event":"listening","port":8787,"exportAssets":163}
+{"at":"2026-10-27T12:47:36.470Z","mode":"interrupt","event":"mode"}
+{"at":"2026-10-27T12:47:37.675Z","mode":"interrupt","event":"manifest","status":304,"channel":"preview","askedRuntime":"1.0.0","sentRuntime":"1.0.0","currentUpdate":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","embeddedUpdate":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","served":null,"requestHeaders":{"host":"127.0.0.1:8787","user-agent":"SavingWorlds/1 CFNetwork/3860.100.1 Darwin/27.0.0","connection":"keep-alive","accept":"multipart/mixed,application/expo+json,application/json","if-none-match":"\"fd6e-Pe17U4dXk/Bf7ivNeQsCbfhWAB4\"","expo-runtime-version":"1.0.0","expo-channel-name":"preview","accept-language":"en-US,en;q=0.9","expo-current-update-id":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","expo-updates-environment":"BARE","accept-encoding":"gzip, deflate","expo-embedded-update-id":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","expo-protocol-version":"1","expo-api-version":"1","expo-json-error":"true","expo-platform":"ios","eas-client-id":"<random install id, redacted>"},"directive":null}
+{"at":"2026-10-27T12:47:37.835Z","mode":"interrupt","event":"asset-request","source":"upstream","status":403,"bytes":1724,"asset":"mypBj5N0OKC9fY-vgHFg7yFLThD8O1Caq7fpqul7wFc"}
+{"at":"2026-10-27T12:47:37.835Z","mode":"interrupt","event":"asset-cut","bytes":1724,"asset":"mypBj5N0OKC9fY-vgHFg7yFLThD8O1Caq7fpqul7wFc"}
+{"at":"2026-10-27T12:47:37.838Z","mode":"interrupt","event":"asset-request","source":"upstream","status":403,"bytes":1724,"asset":"I8dvryp2TLXxE9DKqjCm2NN54-HfFCrFNcg8F_7LXJA"}
+{"at":"2026-10-27T12:47:37.838Z","mode":"interrupt","event":"asset-cut","bytes":1724,"asset":"I8dvryp2TLXxE9DKqjCm2NN54-HfFCrFNcg8F_7LXJA"}
+{"at":"2026-10-27T12:47:37.839Z","mode":"interrupt","event":"asset-request","source":"upstream","status":403,"bytes":1724,"asset":"DP7IegcRXP-7kIHiKmplB43A2HIM9nT01_O4JsXZKXI"}
+{"at":"2026-10-27T12:47:37.839Z","mode":"interrupt","event":"asset-cut","bytes":1724,"asset":"DP7IegcRXP-7kIHiKmplB43A2HIM9nT01_O4JsXZKXI"}
+{"at":"2026-10-27T12:47:37.839Z","mode":"interrupt","event":"asset-request","source":"upstream","status":403,"bytes":1724,"asset":"A08F4i_QzJW79C3BCIZYmmpH_p2FkQbdTQZ_2hVWDeg"}
+{"at":"2026-10-27T12:47:37.839Z","mode":"interrupt","event":"asset-cut","bytes":1724,"asset":"A08F4i_QzJW79C3BCIZYmmpH_p2FkQbdTQZ_2hVWDeg"}
+{"at":"2026-10-27T12:47:51.479Z","mode":"offline","event":"mode"}
+{"at":"2026-10-27T12:47:52.107Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:47:52.110Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:47:52.111Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:48:17.314Z","mode":"offline","event":"listening","port":8787,"exportAssets":163}
+{"at":"2026-10-27T12:48:20.237Z","mode":"interrupt","event":"mode"}
+{"at":"2026-10-27T12:48:21.799Z","mode":"interrupt","event":"manifest","status":200,"channel":"preview","askedRuntime":"1.0.0","sentRuntime":"1.0.0","currentUpdate":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","embeddedUpdate":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","served":{"id":"01a17d61-dac0-794e-88ac-208761282f21","runtimeVersion":"1.0.0","assets":160},"requestHeaders":{"host":"127.0.0.1:8787","user-agent":"SavingWorlds/1 CFNetwork/3860.100.1 Darwin/27.0.0","connection":"keep-alive","accept":"multipart/mixed,application/expo+json,application/json","if-none-match":"\"fd6e-Pe17U4dXk/Bf7ivNeQsCbfhWAB4\"","expo-runtime-version":"1.0.0","expo-channel-name":"preview","accept-language":"en-US,en;q=0.9","expo-current-update-id":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","expo-updates-environment":"BARE","accept-encoding":"gzip, deflate","expo-embedded-update-id":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","expo-protocol-version":"1","expo-api-version":"1","expo-json-error":"true","expo-platform":"ios","eas-client-id":"<random install id, redacted>"},"directive":null}
+{"at":"2026-10-27T12:48:21.812Z","mode":"interrupt","event":"asset-request","source":"local export","status":200,"bytes":4482100,"asset":"mypBj5N0OKC9fY-vgHFg7yFLThD8O1Caq7fpqul7wFc"}
+{"at":"2026-10-27T12:48:21.813Z","mode":"interrupt","event":"asset-cut","bytes":4482100,"asset":"mypBj5N0OKC9fY-vgHFg7yFLThD8O1Caq7fpqul7wFc"}
+{"at":"2026-10-27T12:48:21.814Z","mode":"interrupt","event":"asset-request","source":"local export","status":200,"bytes":809,"asset":"I8dvryp2TLXxE9DKqjCm2NN54-HfFCrFNcg8F_7LXJA"}
+{"at":"2026-10-27T12:48:21.815Z","mode":"interrupt","event":"asset-cut","bytes":809,"asset":"I8dvryp2TLXxE9DKqjCm2NN54-HfFCrFNcg8F_7LXJA"}
+{"at":"2026-10-27T12:48:21.817Z","mode":"interrupt","event":"asset-request","source":"local export","status":200,"bytes":645,"asset":"A08F4i_QzJW79C3BCIZYmmpH_p2FkQbdTQZ_2hVWDeg"}
+{"at":"2026-10-27T12:48:21.818Z","mode":"interrupt","event":"asset-cut","bytes":645,"asset":"A08F4i_QzJW79C3BCIZYmmpH_p2FkQbdTQZ_2hVWDeg"}
+{"at":"2026-10-27T12:48:21.820Z","mode":"interrupt","event":"asset-request","source":"local export","status":200,"bytes":332,"asset":"DP7IegcRXP-7kIHiKmplB43A2HIM9nT01_O4JsXZKXI"}
+{"at":"2026-10-27T12:48:21.821Z","mode":"interrupt","event":"asset-cut","bytes":332,"asset":"DP7IegcRXP-7kIHiKmplB43A2HIM9nT01_O4JsXZKXI"}
+{"at":"2026-10-27T12:48:35.375Z","mode":"offline","event":"mode"}
+{"at":"2026-10-27T12:48:36.074Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:48:36.077Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:48:36.080Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:48:56.039Z","mode":"corrupt","event":"mode"}
+{"at":"2026-10-27T12:48:56.891Z","mode":"corrupt","event":"manifest","status":200,"channel":"preview","askedRuntime":"1.0.0","sentRuntime":"1.0.0","currentUpdate":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","embeddedUpdate":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","served":{"id":"01a17d61-dac0-794e-88ac-208761282f21","runtimeVersion":"1.0.0","assets":160},"requestHeaders":{"host":"127.0.0.1:8787","user-agent":"SavingWorlds/1 CFNetwork/3860.100.1 Darwin/27.0.0","connection":"keep-alive","accept":"multipart/mixed,application/expo+json,application/json","if-none-match":"W/\"fd6e-Pe17U4dXk/Bf7ivNeQsCbfhWAB4\"","expo-runtime-version":"1.0.0","expo-channel-name":"preview","accept-language":"en-US,en;q=0.9","expo-current-update-id":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","expo-updates-environment":"BARE","accept-encoding":"gzip, deflate","expo-embedded-update-id":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","expo-protocol-version":"1","expo-api-version":"1","expo-json-error":"true","expo-platform":"ios","eas-client-id":"<random install id, redacted>"},"directive":null}
+{"at":"2026-10-27T12:48:56.898Z","mode":"corrupt","event":"asset-request","source":"local export","status":200,"bytes":4482100,"asset":"mypBj5N0OKC9fY-vgHFg7yFLThD8O1Caq7fpqul7wFc"}
+{"at":"2026-10-27T12:48:56.902Z","mode":"corrupt","event":"asset-corrupted","bytes":4482100,"asset":"mypBj5N0OKC9fY-vgHFg7yFLThD8O1Caq7fpqul7wFc"}
+{"at":"2026-10-27T12:48:56.904Z","mode":"corrupt","event":"asset-request","source":"local export","status":200,"bytes":809,"asset":"I8dvryp2TLXxE9DKqjCm2NN54-HfFCrFNcg8F_7LXJA"}
+{"at":"2026-10-27T12:48:56.905Z","mode":"corrupt","event":"asset-corrupted","bytes":809,"asset":"I8dvryp2TLXxE9DKqjCm2NN54-HfFCrFNcg8F_7LXJA"}
+{"at":"2026-10-27T12:48:56.906Z","mode":"corrupt","event":"asset-request","source":"local export","status":200,"bytes":645,"asset":"A08F4i_QzJW79C3BCIZYmmpH_p2FkQbdTQZ_2hVWDeg"}
+{"at":"2026-10-27T12:48:56.906Z","mode":"corrupt","event":"asset-corrupted","bytes":645,"asset":"A08F4i_QzJW79C3BCIZYmmpH_p2FkQbdTQZ_2hVWDeg"}
+{"at":"2026-10-27T12:48:56.907Z","mode":"corrupt","event":"asset-request","source":"local export","status":200,"bytes":332,"asset":"DP7IegcRXP-7kIHiKmplB43A2HIM9nT01_O4JsXZKXI"}
+{"at":"2026-10-27T12:48:56.908Z","mode":"corrupt","event":"asset-corrupted","bytes":332,"asset":"DP7IegcRXP-7kIHiKmplB43A2HIM9nT01_O4JsXZKXI"}
+{"at":"2026-10-27T12:49:10.851Z","mode":"offline","event":"mode"}
+{"at":"2026-10-27T12:49:12.805Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:49:12.810Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:49:12.813Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:49:26.340Z","mode":"throttle","event":"mode"}
+{"at":"2026-10-27T12:49:27.219Z","mode":"throttle","event":"manifest","status":200,"channel":"preview","askedRuntime":"1.0.0","sentRuntime":"1.0.0","currentUpdate":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","embeddedUpdate":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","served":{"id":"01a17d61-dac0-794e-88ac-208761282f21","runtimeVersion":"1.0.0","assets":160},"requestHeaders":{"host":"127.0.0.1:8787","user-agent":"SavingWorlds/1 CFNetwork/3860.100.1 Darwin/27.0.0","connection":"keep-alive","accept":"multipart/mixed,application/expo+json,application/json","if-none-match":"W/\"fd6e-Pe17U4dXk/Bf7ivNeQsCbfhWAB4\"","expo-runtime-version":"1.0.0","expo-channel-name":"preview","accept-language":"en-US,en;q=0.9","expo-current-update-id":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","expo-updates-environment":"BARE","accept-encoding":"gzip, deflate","expo-embedded-update-id":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","expo-protocol-version":"1","expo-api-version":"1","expo-json-error":"true","expo-platform":"ios","eas-client-id":"<random install id, redacted>"},"directive":null}
+{"at":"2026-10-27T12:49:27.236Z","mode":"throttle","event":"asset-request","source":"local export","status":200,"bytes":4482100,"asset":"mypBj5N0OKC9fY-vgHFg7yFLThD8O1Caq7fpqul7wFc"}
+{"at":"2026-10-27T12:49:27.237Z","mode":"throttle","event":"asset-throttled","bytes":4482100,"asset":"mypBj5N0OKC9fY-vgHFg7yFLThD8O1Caq7fpqul7wFc"}
+{"at":"2026-10-27T12:49:27.241Z","mode":"throttle","event":"asset-request","source":"local export","status":200,"bytes":809,"asset":"I8dvryp2TLXxE9DKqjCm2NN54-HfFCrFNcg8F_7LXJA"}
+{"at":"2026-10-27T12:49:27.241Z","mode":"throttle","event":"asset-throttled","bytes":809,"asset":"I8dvryp2TLXxE9DKqjCm2NN54-HfFCrFNcg8F_7LXJA"}
+{"at":"2026-10-27T12:49:27.244Z","mode":"throttle","event":"asset-request","source":"local export","status":200,"bytes":332,"asset":"DP7IegcRXP-7kIHiKmplB43A2HIM9nT01_O4JsXZKXI"}
+{"at":"2026-10-27T12:49:27.244Z","mode":"throttle","event":"asset-throttled","bytes":332,"asset":"DP7IegcRXP-7kIHiKmplB43A2HIM9nT01_O4JsXZKXI"}
+{"at":"2026-10-27T12:49:27.245Z","mode":"throttle","event":"asset-request","source":"local export","status":200,"bytes":645,"asset":"A08F4i_QzJW79C3BCIZYmmpH_p2FkQbdTQZ_2hVWDeg"}
+{"at":"2026-10-27T12:49:27.245Z","mode":"throttle","event":"asset-throttled","bytes":645,"asset":"A08F4i_QzJW79C3BCIZYmmpH_p2FkQbdTQZ_2hVWDeg"}
+{"at":"2026-10-27T12:49:27.492Z","mode":"throttle","event":"asset-throttled-done","bytes":809}
+{"at":"2026-10-27T12:49:27.495Z","mode":"throttle","event":"asset-throttled-done","bytes":332}
+{"at":"2026-10-27T12:49:27.496Z","mode":"throttle","event":"asset-throttled-done","bytes":645}
+{"at":"2026-10-27T12:49:33.011Z","mode":"throttle","event":"asset-aborted-by-client","sent":90112,"bytes":4482100}
+{"at":"2026-10-27T12:49:36.196Z","mode":"offline","event":"mode"}
+{"at":"2026-10-27T12:49:36.867Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:49:36.870Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:49:36.873Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:50:05.753Z","mode":"pass","event":"mode"}
+{"at":"2026-10-27T12:50:06.966Z","mode":"pass","event":"manifest","status":200,"channel":"preview","askedRuntime":"1.0.0","sentRuntime":"1.0.0","currentUpdate":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","embeddedUpdate":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","served":{"id":"01a17d61-dac0-794e-88ac-208761282f21","runtimeVersion":"1.0.0","assets":160},"requestHeaders":{"host":"127.0.0.1:8787","user-agent":"SavingWorlds/1 CFNetwork/3860.100.1 Darwin/27.0.0","connection":"keep-alive","accept":"multipart/mixed,application/expo+json,application/json","if-none-match":"W/\"fd6e-Pe17U4dXk/Bf7ivNeQsCbfhWAB4\"","expo-runtime-version":"1.0.0","expo-channel-name":"preview","accept-language":"en-US,en;q=0.9","expo-current-update-id":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","expo-updates-environment":"BARE","accept-encoding":"gzip, deflate","expo-embedded-update-id":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","expo-protocol-version":"1","expo-api-version":"1","expo-json-error":"true","expo-platform":"ios","eas-client-id":"<random install id, redacted>"},"directive":null}
+{"at":"2026-10-27T12:50:06.976Z","mode":"pass","event":"asset-request","source":"local export","status":200,"bytes":4482100,"asset":"mypBj5N0OKC9fY-vgHFg7yFLThD8O1Caq7fpqul7wFc"}
+{"at":"2026-10-27T12:50:06.977Z","mode":"pass","event":"asset","status":200,"bytes":4482100,"asset":"mypBj5N0OKC9fY-vgHFg7yFLThD8O1Caq7fpqul7wFc"}
+{"at":"2026-10-27T12:50:20.640Z","mode":"offline","event":"mode"}
+{"at":"2026-10-27T12:50:21.327Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:50:21.329Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:50:21.332Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:52:28.233Z","mode":"wrong-runtime","event":"mode"}
+{"at":"2026-10-27T12:52:29.568Z","mode":"wrong-runtime","event":"error","message":"TypeError: fetch failed"}
+{"at":"2026-10-27T12:52:43.085Z","mode":"offline","event":"mode"}
+{"at":"2026-10-27T12:52:43.759Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:52:43.761Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:52:43.763Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:53:08.176Z","mode":"offline","event":"listening","port":8787,"exportAssets":163}
+{"at":"2026-10-27T12:53:11.115Z","mode":"wrong-runtime","event":"mode"}
+{"at":"2026-10-27T12:53:15.293Z","mode":"wrong-runtime","event":"manifest","status":200,"channel":"preview","askedRuntime":"1.0.0","sentRuntime":"phase20-incompatible","currentUpdate":"01a17d61-dac0-794e-88ac-208761282f21","embeddedUpdate":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","served":{"id":"01a17d6a-c2eb-768c-bcaf-b6c35a0f4cf6","runtimeVersion":"phase20-incompatible","assets":160},"requestHeaders":{"host":"127.0.0.1:8787","user-agent":"SavingWorlds/1 CFNetwork/3860.100.1 Darwin/27.0.0","connection":"keep-alive","accept":"multipart/mixed,application/expo+json,application/json","if-none-match":"W/\"fd6e-Pe17U4dXk/Bf7ivNeQsCbfhWAB4\"","expo-runtime-version":"1.0.0","expo-channel-name":"preview","accept-language":"en-US,en;q=0.9","expo-current-update-id":"01a17d61-dac0-794e-88ac-208761282f21","expo-updates-environment":"BARE","accept-encoding":"gzip, deflate","expo-embedded-update-id":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","expo-protocol-version":"1","expo-api-version":"1","expo-json-error":"true","expo-platform":"ios","eas-client-id":"<random install id, redacted>"},"directive":null}
+{"at":"2026-10-27T12:53:19.232Z","mode":"wrong-runtime","event":"asset-request","source":"upstream","status":403,"bytes":1724,"asset":"ZXF_WC2tGz3vPvS5ike5zLCoXwjPCGgnj24X47bKqoE"}
+{"at":"2026-10-27T12:53:19.232Z","mode":"wrong-runtime","event":"asset","status":403,"bytes":1724,"asset":"ZXF_WC2tGz3vPvS5ike5zLCoXwjPCGgnj24X47bKqoE"}
+{"at":"2026-10-27T12:53:26.003Z","mode":"offline","event":"mode"}
+{"at":"2026-10-27T12:53:26.722Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:53:26.726Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:53:26.730Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:53:54.387Z","mode":"offline","event":"listening","port":8787,"exportAssets":166}
+{"at":"2026-10-27T12:53:58.203Z","mode":"wrong-runtime","event":"mode"}
+{"at":"2026-10-27T12:54:01.251Z","mode":"wrong-runtime","event":"manifest","status":200,"channel":"preview","askedRuntime":"1.0.0","sentRuntime":"phase20-incompatible","currentUpdate":"01a17d61-dac0-794e-88ac-208761282f21","embeddedUpdate":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","served":{"id":"01a17d6a-c2eb-768c-bcaf-b6c35a0f4cf6","runtimeVersion":"phase20-incompatible","assets":160},"requestHeaders":{"host":"127.0.0.1:8787","user-agent":"SavingWorlds/1 CFNetwork/3860.100.1 Darwin/27.0.0","connection":"keep-alive","accept":"multipart/mixed,application/expo+json,application/json","if-none-match":"W/\"fd7c-eL1WirVgyi27Olo1FoX199GL59k\"","expo-runtime-version":"1.0.0","expo-channel-name":"preview","accept-language":"en-US,en;q=0.9","expo-current-update-id":"01a17d61-dac0-794e-88ac-208761282f21","expo-updates-environment":"BARE","accept-encoding":"gzip, deflate","expo-embedded-update-id":"e5193fd7-7630-4efb-a462-c48ce74bd1e2","expo-protocol-version":"1","expo-api-version":"1","expo-json-error":"true","expo-platform":"ios","eas-client-id":"<random install id, redacted>"},"directive":null}
+{"at":"2026-10-27T12:54:01.273Z","mode":"wrong-runtime","event":"asset-request","source":"local export","status":200,"bytes":4482116,"asset":"ZXF_WC2tGz3vPvS5ike5zLCoXwjPCGgnj24X47bKqoE"}
+{"at":"2026-10-27T12:54:01.274Z","mode":"wrong-runtime","event":"asset","status":200,"bytes":4482116,"asset":"ZXF_WC2tGz3vPvS5ike5zLCoXwjPCGgnj24X47bKqoE"}
+{"at":"2026-10-27T12:54:13.279Z","mode":"offline","event":"mode"}
+{"at":"2026-10-27T12:54:14.002Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:54:14.005Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
+{"at":"2026-10-27T12:54:14.008Z","mode":"offline","event":"dropped","path":"/25d3089f-a32e-461f-baf2-7c95a396984e"}
