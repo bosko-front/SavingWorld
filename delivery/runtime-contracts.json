@@ -26,11 +26,12 @@
           "src/data/repositories/settings-repository.ts": "ffc747ea1bd6e49d2c605321570842474c4636ca53e64ab6f53ed7ed7794c4d7"
         }
       },
-      "sourceRevision": "ce4641996226b2d351985212ed00207c5e45d5b2",
+      "sourceRevision": "1fc67c04b79dadeb9e0b38e78f34841b03e0074a",
       "firstSharedBuild": "e86513c7-111c-4e28-b85d-ab04d36bf4a3",
       "builds": [
         "e86513c7-111c-4e28-b85d-ab04d36bf4a3",
-        "5e207eba-847f-47c0-98a9-9a7725aec0eb"
+        "5e207eba-847f-47c0-98a9-9a7725aec0eb",
+        "9a42b94e-26eb-415a-8aca-1b0698d84f56"
       ],
       "history": [
         {
@@ -44,6 +45,12 @@
           "build": "5e207eba-847f-47c0-98a9-9a7725aec0eb",
           "revision": "ce4641996226b2d351985212ed00207c5e45d5b2",
           "reason": "Phase 21 release candidate, preview-simulator (ce46419)"
+        },
+        {
+          "at": "2026-10-27T16:55:53.612Z",
+          "build": "9a42b94e-26eb-415a-8aca-1b0698d84f56",
+          "revision": "1fc67c04b79dadeb9e0b38e78f34841b03e0074a",
+          "reason": "Phase 21 release candidate, preview device (ce46419)"
         }
       ]
     }

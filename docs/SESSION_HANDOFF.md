@@ -23,7 +23,7 @@ lint, typecheck PASS; Jest 61 suites / 1,625 passed (1 env-gated skip); `test:db
 
 ## Open items and owner decisions
 
-1. **Release candidate (owner-approved).** Committed locally as ce46419 (not pushed). EAS `preview-simulator` 5e207eba FINISHED and recorded (`delivery/runtime-contracts.json`, fingerprint c83b89a5… = runtime 1.0.0); `preview` device 9a42b94e was still building at the close. The owner's EAS free plan is at ~80% of its builds: start no EAS build without explicit approval; Phase 22 still needs the production build.
+1. **Release candidate (owner-approved).** Committed locally as ce46419 (not pushed). EAS `preview-simulator` 5e207eba FINISHED and recorded (`delivery/runtime-contracts.json`, fingerprint c83b89a5… = runtime 1.0.0); `preview` device 9a42b94e FINISHED and recorded (same fingerprint); the owner installs it from its EAS build page. The owner's EAS free plan is at ~80% of its builds: start no EAS build without explicit approval; Phase 22 still needs the production build.
 2. **Baseline device.** Only the owner's iPhone 14 Pro is available; name the oldest supported iPhone for profiling or accept the 14 Pro with a recorded limitation.
 3. **Device session.** Instruments profiling (cold launch, 10,000-entry History/Home/Challenges, Collection, both worlds, ambient on/off for the D90 decision, unlock moment), purchase/Restore on the RC, a real Sunday 18:00 reminder with travel/DST/reinstall, itemized VoiceOver and haptics, icon/launch look, physical Duo split view/fold with a draft. Instruments needs a development-signed Release build on the device.
 4. Simulators made this session (synthetic data, deletable): "SW P21 Perf SE" (89785432…) and "SW P21 E2E" (C4ECF3CB…). Another session in this folder had Metro on 8081, a booted "iPhone Duo" and the "SW iPhone SE 3 iOS 18.5" simulator; they were used read-only for one `test:db` run and not changed.
@@ -31,7 +31,7 @@ lint, typecheck PASS; Jest 61 suites / 1,625 passed (1 env-gated skip); `test:db
 
 ## Exact next session
 
-In ~/Desktop/SavingWorld, after the owner's answers above, start Claude Code with the full `docs/prompts/PHASE_21.md`. Then: check that 9a42b94e finished and `node scripts/release-check.mjs --record 9a42b94e-26eb-415a-8aca-1b0698d84f56 --reason "Phase 21 release candidate, preview device (ce46419)"`, download 5e207eba's .app, `node scripts/test-e2e.mjs --app <RC .app> --report docs/evidence/phase-21/e2e-rc.xml`, `node scripts/release-audit.mjs --out docs/evidence/phase-21/release-audit-rc.json`, the Phase 20 runbook (offline launch, one preview update, roll back to embedded) on the RC with the release fixture, then the device matrix.
+In ~/Desktop/SavingWorld, after the owner's answers above, start Claude Code with the full `docs/prompts/PHASE_21.md`. Then: take the owner's smoke-test result for 9a42b94e, download 5e207eba's .app, `node scripts/test-e2e.mjs --app <RC .app> --report docs/evidence/phase-21/e2e-rc.xml`, `node scripts/release-audit.mjs --out docs/evidence/phase-21/release-audit-rc.json`, the Phase 20 runbook (offline launch, one preview update, roll back to embedded) on the RC with the release fixture, then the device matrix.
 
 ## Parallel workstream: Garden art (26 October 2026)
 

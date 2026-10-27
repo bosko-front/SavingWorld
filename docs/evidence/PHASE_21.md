@@ -119,7 +119,7 @@ Committed locally as **ce46419** on `main` (not pushed). EAS builds from that co
 | Build | Profile | State at session end | Fingerprint |
 | --- | --- | --- | --- |
 | **5e207eba-847f-47c0-98a9-9a7725aec0eb** | `preview-simulator` | FINISHED; recorded with `node scripts/release-check.mjs --record` (gate PASS) | c83b89a5d246 = shared runtime |
-| **9a42b94e-26eb-415a-8aca-1b0698d84f56** | `preview` (ad hoc device) | IN PROGRESS when the session closed; record it with `--record` once finished | c83b89a5d246 (computed at upload) |
+| **9a42b94e-26eb-415a-8aca-1b0698d84f56** | `preview` (ad hoc device) | FINISHED; recorded with `--record` (gate PASS); install page https://expo.dev/accounts/bosko123/projects/saving-worlds/builds/9a42b94e-26eb-415a-8aca-1b0698d84f56 | c83b89a5d246 (computed at upload) |
 
 The owner's EAS free plan is at about 80% of its build allowance: no further EAS build without explicit approval; Phase 22 still needs the `production` build. Not yet run on the RC: `test:e2e`, `release-audit` against its embedded bundle, the Phase 20 OTA/offline runbook, and the device matrix.
 
@@ -129,7 +129,7 @@ Every item below is mandatory for Phase 21; each keeps the phase IN PROGRESS.
 
 | Item | Owner | Impact | Next action |
 | --- | --- | --- | --- |
-| Device RC 9a42b94e still building at session end | Agent | Not yet installable on the iPhone | Check it finished, `release-check --record 9a42b94e…`, owner installs it |
+| Owner smoke test of device RC 9a42b94e on the iPhone 14 Pro | Owner | RC not yet seen on a device | Install from the EAS build page; open with existing data, History, one entry + one correction, Pro still active, Restore, Airplane Mode launch, ambient motion heat/battery impression |
 | `test:e2e`, `release-audit` and the offline/OTA/known-good fallback repeat on the RC binary with the release fixture | Agent after the RC build | T24-T26 on the RC | Rerun the Phase 20 runbook against the RC simulator build; publish one preview update and roll back to embedded |
 | Oldest supported iPhone for profiling | Owner | The only device available is an iPhone 14 Pro; "oldest supported" is not established | Owner names the baseline (or accepts the 14 Pro plus a recorded limitation) |
 | Device profiling with Instruments: cold launch, History/Home/Challenges/Collection with the 10,000-entry fixture, both worlds stage 0 → 10, decoded image memory vs ~32 MiB/world, ambient on/off energy and hitches (D90 keep/simplify/off decision), unlock moment and rapid deposits (D88), Collection float (D100), celebrations | Owner's device + agent | Release performance unproven; D90 decision open | Development-signed Release build on the device (Instruments needs `get-task-allow`); fixture through the dev runner or the app |
