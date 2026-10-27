@@ -1,37 +1,44 @@
 # Latest session handoff
 
-Session date: 27 October 2026. Session kind: Phase 21 (resilience, performance and release candidate). Result: **VERIFIED COMPLETE by owner decision D145** — automated, native-SQLite and simulator work done, release-candidate builds 5e207eba (simulator) and 9a42b94e (device) recorded, owner's RC smoke test on the iPhone 14 Pro passed (owner-reported); the device matrix is carried as accepted limitations. Next prompt: [PHASE_22](prompts/PHASE_22.md). Details: [PHASE_21 evidence](evidence/PHASE_21.md), decisions D144-D145.
+Session date: 27 October 2026. Session kind: Phase 22 (App Store release preparation and final handoff). Result: **IN PROGRESS** — signed App Store build made and inspected, store materials and screenshots drafted for owner review; TestFlight upload, installed-build tests and App Store Connect entry are open. Next prompt: [PHASE_22](prompts/PHASE_22.md) (continue). Details: [PHASE_22 evidence](evidence/PHASE_22.md), decision D146, [store/README.md](../store/README.md).
 
-The previous handoff (Phase 20, VERIFIED COMPLETE by D143) is superseded; its record remains in [PHASE_20 evidence](evidence/PHASE_20.md).
+The previous handoff (Phase 21, VERIFIED COMPLETE by D145) is superseded; its record remains in [PHASE_21 evidence](evidence/PHASE_21.md).
+
+## Release states
+
+Implementation complete (Phases 01-21) · release checks **not** complete · **signed candidate prepared** · not uploaded to TestFlight · not submitted · not approved · not live. Nothing in App Store Connect, no production channel, no production update, nothing pushed.
 
 ## Completed this session
 
-- Read v1.2 (textutil) and the required documents; baseline `main` 92e7586 clean; `release-check` PASS.
-- Native scenarios: `tests/native/performance-scenarios.ts` (PF01 10,004 entries / 8 Pro goals / 52 weekly quests in EUR with exact totals and timed reads/writes; PF02 JPY and PF03 BHD whole-app fixtures) and `tests/native/resilience-scenarios.ts` (RS01 real SQLITE_FULL). Registered in the native runner and the host Jest run.
-- Fixture files: `tests/integration/performance-fixture.test.ts` (`PERF_FIXTURE_DIR=<dir>` writes `ui-free-10k` and `ui-collection` app databases; seed with `node scripts/ota-drill.mjs seed --device <udid> --db <file> --replace-test-data`).
-- Measured and fixed (D144): History paging (`readHistoryPage`, 100 rows + "Show older entries", `useCommittedRead` `keepWhileLoading`) after the release build showed nothing for 10+ minutes with 10,000 entries; date-indexed quest counting in `challenge-rules.ts` (board 155 → 98 ms, heavy writes ~120 → ~90 ms on the SE iOS 18.5 simulator).
-- Release tooling: `scripts/release-audit.mjs` (A1-A6 PASS; found and fixed the `details` sample route rendering in release), `scripts/test-e2e.mjs` + `maestro/` (five Free journeys, Reduce Motion on).
-- Docs: evidence PHASE_21 with screenshots and `test:db` records in `docs/evidence/phase-21/`, DECISIONS D144, PROJECT_STATUS, TEST_PLAN, RELEASE_CHECKLIST, CLAUDE.md fact line.
+- Read v1.2 (textutil) and the required documents; baseline `main` 2720be0 clean; `release-check` PASS.
+- Rechecked Apple's current submission, screenshot, header, IAP, privacy-manifest, App Privacy and age-rating requirements on Apple's official pages (table in the evidence).
+- Inspected the RC device IPA 9a42b94e: 16 privacy manifests (no tracking, no collected types, reasons for all required-reason APIs), no usage strings, no push/iCloud entitlements, export compliance set.
+- Owner answers: local `eas build`; store name "Saving Worlds"; TestFlight upload yes (internal); App Store Connect edits only after reviewing drafts; later the exact screenshot headlines and order.
+- **Signed App Store build** with `eas build --profile production --local`: 1.0.0 build 7, Xcode 27.1 / SDK 27.1, distribution certificate "Bosko Jaksic", App Store profile (new, made by EAS), channel production, runtime 1.0.0, fingerprint c83b89a5… (matches the shared runtime), embedded update 055a9754…. Kept at `dist/store-builds/SavingWorlds-1.0.0-7.ipa` (git-ignored; SHA-256 d5e149c4…). A plain `npx expo export` writes to `dist/` and would clear it.
+- Store drafts in `store/`: listing JSON, review notes, age rating, App Privacy, IAP, header (two sizes), five screenshots + preview, IAP review screenshot, compose/frame scripts, README with the manual submission procedure.
+- Screenshot fixture `tests/native/store-fixture.ts` + `tests/integration/store-fixture.test.ts` (real commands; Free; no entitlement). Throwaway simulator "SW P22 Store" (iPhone 17 Pro iOS 27.0, UDID 236BDD72…, en_US, RC build 5e207eba) now holds the finished "Summer trip" (synthetic).
+- PRIVACY.md: user agent and preferred language lines added (open since Phase 20). Not pushed.
 
 ## Decisions
 
-- D144 (bounded History, date-indexed quest counting, release audit, Maestro journeys, fixtures; JS only, OTA-compatible with runtime 1.0.0).
-- D145 (owner closes Phase 21 on the RC smoke test; ambient motion stays on; Instruments profiling, itemized VoiceOver, Sunday reminder, physical Duo, RC Maestro/OTA repeat carried).
+- D146 (build method, store name, App Privacy approach, screenshot/data rules, header, PRIVACY.md wording; no product rule changed).
 
 ## Checks
 
-lint, typecheck PASS; Jest 61 suites / 1,625 passed (1 env-gated skip); `test:db` 59/59 + R2 before and after; `release-check` PASS; `release-audit` PASS; `test:e2e` 5/5 PASS on e86513c7 (`docs/evidence/phase-21/e2e-e86513c7.xml`). NOT RUN: deps:check/doctor (no dependency change), test:storekit (billing unchanged), RC EAS builds, OTA repeat on the RC, all physical-device checks.
+release-check PASS (start and final tree); lint, typecheck PASS; Jest 62 suites / 1,626 passed (1 env-gated skip); release-audit A1-A6 PASS; store build fingerprint = runtime 1.0.0. Build 7 uploaded to TestFlight (VALID, internal testing) and the store materials entered in App Store Connect (see PHASE_22 "App Store Connect entry"). NOT RUN: installed-build smoke/airplane/purchase/Restore, deps:check/doctor, test:db, test:storekit, test:e2e (no app change).
 
 ## Open items and owner decisions
 
-1. **Release candidate (owner-approved).** Committed locally as ce46419 (not pushed). EAS `preview-simulator` 5e207eba FINISHED and recorded (`delivery/runtime-contracts.json`, fingerprint c83b89a5… = runtime 1.0.0); `preview` device 9a42b94e FINISHED and recorded (same fingerprint); the owner installs it from its EAS build page. The owner's EAS free plan is at ~80% of its builds: start no EAS build without explicit approval; Phase 22 still needs the production build.
-2. **Carried by D145 (accepted limitations).** Profiling on a named oldest supported iPhone and, on device: Instruments profiling (cold launch, 10,000-entry History/Home/Challenges, Collection, both worlds, ambient on/off for the D90 decision, unlock moment), purchase/Restore on the RC, a real Sunday 18:00 reminder with travel/DST/reinstall, itemized VoiceOver and haptics, icon/launch look, physical Duo split view/fold with a draft. Instruments needs a development-signed Release build on the device.
-4. Simulators made this session (synthetic data, deletable): "SW P21 Perf SE" (89785432…) and "SW P21 E2E" (C4ECF3CB…). Another session in this folder had Metro on 8081, a booted "iPhone Duo" and the "SW iPhone SE 3 iOS 18.5" simulator; they were used read-only for one `test:db` run and not changed.
-5. Carried: PRIVACY.md wording for the update request's user agent/language (owner, before Phase 22); `.easignore` for `assets/worlds/` (optional).
+1. **Done 27 October:** build 7 uploaded with `eas submit` (EAS Submit needs the API key fields in `eas.json` `submit.production.ios`; they were added only for the run and removed again) and processed VALID; internal TestFlight testing; attached to version 1.0.0. App Store Connect has version 1.0.0, name, subtitle, categories, URLs, keywords, age rating 4+, the five screenshots, both header files and the IAP review screenshot (IAP READY_TO_SUBMIT). The description and promotional text are the owner's own (edited in App Store Connect; do not overwrite). The Garden screenshot is dropped.
+2. **App Review information** still empty: Apple needs contact name, email and phone together with the notes (`store/review-notes.txt`).
+3. **App Privacy** (manual, owner) per `store/app-privacy.md` incl. the Analytics purpose choice; approve and push the PRIVACY.md change first.
+4. Submission for review stays the owner's action. 27 October: the owner installed build 7 from TestFlight, reported "the app is all OK" and said they are submitting it for review themselves; confirmed the same day: review submission 4b88da3d WAITING_FOR_REVIEW (2026-10-27 20:57 UTC), version 1.0.0 build 7 and the IAP both waiting; review contact/notes and App Privacy filled by the owner; release type set by the owner to automatic after approval. Next: wait for Apple's result; push PRIVACY.md; record approval/live or address a rejection.
+5. TestFlight checks on the iPhone: install, launch, airplane-mode journey, Pro purchase and Restore; then the D145 accepted limitations stay recorded for the owner's release decision.
+6. Tooling change on the owner's Mac: Homebrew fastlane 2.241.2 installed; Homebrew Ruby 4.0.9 and CocoaPods 1.17.0 (reinstalled). Phase 21 simulators "SW P21 Perf SE" and "SW P21 E2E" shut down, not deleted.
 
 ## Exact next session
 
-In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_22.md`. The EAS free plan is at about 80% of its builds: ask before the production build, and use the TestFlight build for the final device smoke test. Runtime 1.0.0 is shared; run `node scripts/release-check.mjs --eas` before any update and `node scripts/release-audit.mjs` on the final tree. Items carried by D145 are listed in the Phase 21 evidence and RELEASE_CHECKLIST.
+In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_22.md` and continue from "Blocking items for release-ready" in the Phase 22 evidence. No production update, App Store submission or price change without the owner's explicit instruction in that session.
 
 ## Parallel workstream: Garden art (26 October 2026)
 

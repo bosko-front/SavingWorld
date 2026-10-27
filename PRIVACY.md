@@ -38,6 +38,8 @@ Apple's handling of purchases is described in the [Apple Privacy Policy](https:/
 Saving Worlds uses Expo's EAS Update service to deliver small app updates. When the app starts, it may ask Expo's servers whether an update is available. Each such request sends technical information only:
 
 - the platform (iOS);
+- the app's name and build number, and the version of iOS's network software, as sent by iOS with every app request;
+- your iPhone's preferred language, as sent by iOS with every app request;
 - the app's runtime version and update channel;
 - the identifiers of the app version and update currently installed;
 - a random identifier created when the app was installed. It is not linked to your name, your Apple Account or your savings data. It is used to deliver and count updates.
@@ -51,7 +53,7 @@ The optional weekly reminder is a local notification scheduled on your iPhone. T
 
 ## Device information used on the device
 
-The app reads your iPhone's language and region settings to show numbers, dates and your local currency in a familiar format. It also follows accessibility settings such as text size and Reduce Motion. This happens on your iPhone and is not sent anywhere.
+The app reads your iPhone's language and region settings to show numbers, dates and your local currency in a familiar format. It also follows accessibility settings such as text size and Reduce Motion. This happens on your iPhone. Apart from the preferred language that iOS adds to update checks (see App updates), none of it is sent anywhere.
 
 ## Backups and deleting your data
 

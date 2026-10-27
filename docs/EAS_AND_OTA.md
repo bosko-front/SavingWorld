@@ -2,7 +2,7 @@
 
 Product scope follows [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx); this document adds compatible engineering detail only.
 
-The owner selected EAS. Configure EAS Build and EAS Update in Phase 01, then prove the complete delivery/recovery workflow in Phase 20 before final integrated verification in Phase 21 and release preparation in Phase 22. Local Xcode remains a diagnostic tool. Phase 01 linked the project; Phase 20 made the first release-mode preview builds and preview-channel updates and validated the runbook below ([evidence](evidence/PHASE_20.md)). Production has no channel, build or update yet.
+The owner selected EAS. Configure EAS Build and EAS Update in Phase 01, then prove the complete delivery/recovery workflow in Phase 20 before final integrated verification in Phase 21 and release preparation in Phase 22. Local Xcode remains a diagnostic tool. Phase 01 linked the project; Phase 20 made the first release-mode preview builds and preview-channel updates and validated the runbook below ([evidence](evidence/PHASE_20.md)). Production has no channel and no update yet; the first App Store build (1.0.0 build 7) was made locally with `eas build --local` in Phase 22 (D146), so it has no EAS build record.
 
 ## Tool ownership and project setup
 

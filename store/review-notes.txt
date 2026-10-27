@@ -1,0 +1,21 @@
+Saving Worlds is a personal savings tracker. There is no account or sign-in, no server of our own and no bank connection: people type the amounts they set aside themselves. All records are stored on the device and every feature except the App Store purchase works offline. No demo account is needed.
+
+HOW TO REVIEW
+1. Onboarding: Next, Next, choose a currency, Get Started.
+2. Create a goal (name, target amount, optional deadline). Home shows the goal's Island. Tap "Add savings" to record a deposit; a new part of the world unlocks at every 10% of the target.
+3. Home's "..." button (Goal options): History (correct or delete entries), Edit goal, Change world, Savings insights (Pro), New goal, Pause goal, Finish goal (shown once the target is reached), Delete goal.
+4. Challenges tab: three fixed quests (First step, Next milestone, Weekly step; Weekly step needs a deadline).
+5. Collection tab: a souvenir appears when a goal first reaches 100% of its target.
+6. Settings (gear icon on Home): currency, weekly reminder (a local notification on Sundays at 18:00; permission is asked only when it is turned on), Your data, Saving Worlds Pro.
+
+IN-APP PURCHASE
+Saving Worlds Pro (com.bosko123.savingworlds.pro.lifetime) is a one-time non-consumable purchase. No subscription.
+- To open the Pro screen: Settings > Saving Worlds Pro, or Home > "..." > New goal while one goal exists ("Build another world" > Explore Pro), or the locked Garden card when choosing a world.
+- Restore Purchases is on the same Pro screen.
+- Pro unlocks: unlimited goals, the Garden world (choose it when creating a goal, or Home > "..." > Change world), switching a goal between Island and Garden, and Savings insights (Home > "..." > Savings insights).
+- The quests and the weekly reminder are identical for free and Pro users.
+
+NETWORK
+The app connects only to the App Store (StoreKit) and to Expo's update service (EAS Update) to check for app updates. No goals, amounts or notes are sent anywhere.
+
+Contact: Bosko Jaksic, boskojaksic2407995@gmail.com

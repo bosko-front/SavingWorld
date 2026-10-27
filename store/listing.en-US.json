@@ -1,0 +1,29 @@
+{
+  "_comment": "Phase 22 App Store listing for Saving Worlds 1.0.0 (English U.S.), as entered in App Store Connect on 27 October 2026. The description and promotional text are the owner's own wording, copied back from App Store Connect; do not overwrite them. Limits: name/subtitle 30 characters, promotional text 170, description 4000, keywords 100 bytes.",
+  "appInfo": {
+    "name": "Saving Worlds",
+    "subtitle": "Grow a world as you save",
+    "primaryCategory": "FINANCE",
+    "secondaryCategory": "LIFESTYLE",
+    "privacyPolicyUrl": "https://bosko-front.github.io/SavingWorld/PRIVACY.html",
+    "contentRightsDeclaration": "DOES_NOT_USE_THIRD_PARTY_CONTENT"
+  },
+  "version": {
+    "versionString": "1.0.0",
+    "copyright": "2026 Bosko Jaksic",
+    "supportUrl": "https://bosko-front.github.io/SavingWorld/SUPPORT.html",
+    "marketingUrl": null,
+    "releaseType": "MANUAL",
+    "promotionalText": "Make saving more rewarding! Watch your world grow with every milestone, complete fun challenges, and turn your savings goals into beautiful little worlds.",
+    "keywords": "savings goal,save money,piggy bank,money jar,saving tracker,cozy,island,garden,goals,habit",
+    "description": "**Make saving a little more rewarding.**\n\nSaving Worlds turns your savings goals into beautiful little worlds that grow as you save.\n\nSaving for a holiday, a new phone, a car, or something you've always wanted? Create your goal, record the money you set aside, and watch your own little world come to life.\n\n**BUILD YOUR OWN WORLD**\n\nStart with an empty island. Every milestone brings something new: trees, paths, flowers, a cozy house, a bridge, and more. The closer you get to your savings goal, the more your world grows.\n\nReach 100% and complete your island. Your finished world becomes part of your Collection, a little reminder of what you've achieved.\n\n**MAKE SAVING FUN**\n\nStay motivated with simple savings challenges. Make your first deposit, reach your next milestone, or work toward a weekly target.\n\nNo pressure. No penalties. Just small steps toward your goals.\n\n**EVERYTHING YOU NEED TO TRACK YOUR SAVINGS**\n\n• Create and manage your savings goal\n\n• Record deposits and withdrawals\n\n• Track your progress and remaining amount\n\n• Set an optional deadline\n\n• See how much you need to save each week or month\n\n• Review and edit your savings history\n\n• Pause, complete, or reopen your goal\n\n• Get an optional weekly reminder\n\n• Keep your completed worlds in your Collection\n\n**UNLOCK MORE WITH SAVING WORLDS PRO**\n\nWant to build more than one world?\n\nUnlock Saving Worlds Pro with a one-time purchase and enjoy:\n\n• Unlimited savings goals\n\n• The beautiful Garden world\n\n• Switch between Island and Garden themes\n\n• Savings statistics and progress charts\n\nNo subscriptions. No ads.\n\n**YOUR SAVINGS, YOUR CONTROL**\n\nNo account required. No bank connections. Your savings records stay on your iPhone, and the app works offline.\n\nSaving Worlds doesn't hold or transfer real money. You simply record what you've saved in real life.\n\nStart with one goal. Build your first world. Make every little saving count."
+  },
+  "ageRating": "see store/age-rating.md (expected result 4+)",
+  "appPrivacy": "see store/app-privacy.md (owner enters it in App Store Connect)",
+  "reviewNotes": "see store/review-notes.txt",
+  "inAppPurchase": "see store/in-app-purchase.md",
+  "pricing": {
+    "app": "Free",
+    "availability": "All storefronts where the In-App Purchase price exists (owner may restrict)"
+  }
+}

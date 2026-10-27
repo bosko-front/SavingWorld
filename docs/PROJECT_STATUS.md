@@ -1,10 +1,17 @@
 # Project status
 
-Updated 27 October 2026 after Phase 21 (resilience, performance and release candidate; **VERIFIED COMPLETE** by owner decision D145). Phase 20 was closed earlier the same day by D143. Functional scope is fixed by the local [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx).
+Updated 27 October 2026 during Phase 22 (App Store release preparation; **IN PROGRESS**, D146). Phase 21 was closed earlier the same day by D145. Functional scope is fixed by the local [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx).
 
 ## Current state
 
-- Current stage: **Phase 21 VERIFIED COMPLETE** ([evidence](evidence/PHASE_21.md), D144, D145). Next prompt: [PHASE_22](prompts/PHASE_22.md).
+- Current stage: **Phase 22 IN PROGRESS** ([evidence](evidence/PHASE_22.md), D146). Next prompt: [PHASE_22](prompts/PHASE_22.md) (continue).
+  - Release states: implementation complete · release checks **not** complete · **signed App Store candidate prepared** (local `eas build`, 1.0.0 build 7, runtime 1.0.0, fingerprint c83b89a5…, channel production, App Store profile, distribution certificate "Bosko Jaksic"; IPA SHA-256 d5e149c4…) · **uploaded to TestFlight** (build 7 VALID, internal testing, attached to version 1.0.0) · **submitted for review by the owner** (review submission 4b88da3d, 2026-10-27 20:57 UTC: version 1.0.0 build 7 and Saving Worlds Pro, both WAITING_FOR_REVIEW; release type changed by the owner to automatic after approval) · not approved · not live.
+  - Rechecked Apple's current requirements (Xcode 26+/iOS 26 SDK, iOS 13+ target, new age-rating questionnaire, required-reason privacy manifests, medium Dynamic Island screenshot set, iOS 27 header asset, IAP and listing limits): the build meets them; archive inspection of the RC and the store build PASS (16 manifests, no tracking, no collected types, reasons for every required-reason API, no usage strings, no push entitlement).
+  - Store drafts in `store/` for owner review: listing ("Saving Worlds", subtitle, description, keywords), review notes, age rating (4+), App Privacy (Device ID + Crash Data via EAS Update, not linked, no tracking), IAP fields and review screenshot, product page header (3840 × 1646 and 5244 × 2950), five framed screenshots 1206 × 2622 with the owner's headlines (Home 86%, Add savings, Next milestone quest, History, Collection), preview sheet. PRIVACY.md gained the user-agent/language lines (not pushed).
+  - App Store Connect (owner's go, 27 October): version 1.0.0, name, subtitle, categories, URLs, keywords, age rating 4+, five screenshots, header and search-results asset, IAP review screenshot (IAP READY_TO_SUBMIT); description and promotional text are the owner's own. Garden screenshot dropped by the owner.
+  - TestFlight build 7 installed and working on the owner's iPhone (owner-reported); the owner filled App Review information and App Privacy and submitted 1.0.0 with the IAP (confirmed WAITING_FOR_REVIEW).
+  - Open: Apple's review result, push of the PRIVACY.md wording change, the D145 accepted limitations. Not approved, not live.
+- Previous stage: **Phase 21 VERIFIED COMPLETE** ([evidence](evidence/PHASE_21.md), D144, D145).
   - Closed by the owner (D145) after the owner's smoke test of the device RC 9a42b94e on the iPhone 14 Pro (owner-reported): data, History, entry and correction, Pro, Restore, Airplane Mode launch work; the island animation does not heat the phone, so ambient motion stays on (D90).
   - Built: native scenarios PF01 (10,004 entries, 8 Pro goals, 52 weekly quests, EUR), PF02 (JPY) and PF03 (BHD) whole-app fixtures and RS01 (real SQLITE_FULL: rollback with receipt and quest result, reads continue, same operation ID commits once later); app-database fixture files for simulator UI measurement; `scripts/release-audit.mjs` (A1-A6); `scripts/test-e2e.mjs` + `maestro/` (five Free journeys); the Phase 03 `details` sample route reduced to a `__DEV__` stub.
   - Measured and fixed (D144): History with 10,000 entries drew nothing for 10+ minutes in the release-mode build; it now shows 100 rows at a time ("Show older entries"), first page 0.33 s after the tap (release-mode measurement build). Quest counting is indexed by date: on the SE iOS 18.5 simulator the quest board went 155 → 98 ms and heavy-goal writes ~117-128 → 86-97 ms.
@@ -132,7 +139,7 @@ Updated 27 October 2026 after Phase 21 (resilience, performance and release cand
 | 19.5 | App icon and launch screen (owner-added, D114) | VERIFIED COMPLETE | [PHASE_19_5](evidence/PHASE_19_5.md); D139; owner chose the cottage close-up and approved light/dark/tinted icons and the launch screen; EAS build 0799fb03; physical-iPhone look in Phase 21 |
 | 20 | EAS preview delivery and OTA recovery verification | VERIFIED COMPLETE | [PHASE_20](evidence/PHASE_20.md); D142-D143; preview builds e86513c7/638cba93, preview updates, simulator drill PASS, owner's iPhone drill PASS (owner-reported); Duo cold launch carried to 21 |
 | 21 | Resilience performance and release candidate | VERIFIED COMPLETE | [PHASE_21](evidence/PHASE_21.md); D144-D145; History paging and quest index measured/fixed, native PF/RS scenarios, release audit, 5/5 Maestro journeys, RC builds 5e207eba/9a42b94e, owner's RC smoke test; Instruments profiling, itemized VoiceOver, Sunday reminder and physical Duo carried |
-| 22 | App Store release preparation and final handoff | NOT STARTED | No implementation evidence |
+| 22 | App Store release preparation and final handoff | IN PROGRESS | [PHASE_22](evidence/PHASE_22.md); D146; signed store build 1.0.0 (7) made locally and inspected, store drafts and screenshots ready for owner review; TestFlight upload, installed-build tests and App Store Connect entry open |
 
 States: NOT STARTED, IN PROGRESS, BLOCKED, VERIFIED COMPLETE. Missing mandatory native/device/art/store evidence keeps a phase incomplete. A handoff label alone cannot advance it.
 
@@ -178,7 +185,7 @@ Q01-Q06 are RESOLVED in [SOURCE_RECONCILIATION](SOURCE_RECONCILIATION.md). One g
 
 ## Next action and continuation
 
-Phase 21 is verified complete by owner decision D145. Start a new Claude Code session in ~/Desktop/SavingWorld with the full [PHASE_22](prompts/PHASE_22.md) prompt (App Store release preparation and final handoff). The EAS free plan is at about 80% of its builds: Phase 22's production build needs the owner's explicit approval, and a short smoke test of the TestFlight build replaces another preview build. Owner actions outside the app (unchanged): PRIVACY.md wording for the update request's user agent and language; Privacy Policy/Support URLs and App Privacy answers in App Store Connect (D137).
+Phase 22 is IN PROGRESS (D146). Continue with the same [PHASE_22](prompts/PHASE_22.md) prompt. Build 7 is in TestFlight and the store materials are in App Store Connect. Owner steps: (1) install build 7 from TestFlight on the iPhone and run the smoke, airplane-mode and purchase/Restore checks (the agent records the results); (2) fill App Review information (contact + `store/review-notes.txt`); (3) approve and push PRIVACY.md, then enter App Privacy per `store/app-privacy.md`. Submission for review stays the owner's action.
 
 ## Ongoing updates
 

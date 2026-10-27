@@ -10,14 +10,14 @@ Verified 26 October 2026, before Phase 15, through Apple's official App Store Co
 | Bundle ID (App ID) | `com.bosko123.savingworlds` | `app.config.ts` `ios.bundleIdentifier`; registered (resource `2WVF7Z5269`, name "SavingWorlds", platform universal). Kept by the owner (Q09 bundle part resolved) |
 | App ID capability | In-App Purchase | Enabled on `2WVF7Z5269` |
 | App Store Connect app | `6827062634` | Existing record, name "SavingWorlds", SKU `saving-worlds`, primary language English (U.S.). Not created again |
-| App Store version | 1.0 | "Prepare for Submission", no builds uploaded |
+| App Store version | 1.0.0 | Waiting for Review (submitted by the owner 27 October 2026 with build 7 and the Pro IAP; release automatically after approval; Phase 22, D146) |
 | Lifetime Pro product | `com.bosko123.savingworlds.pro.lifetime` | Created 26 October 2026: in-app purchase `6827087893`, **Non-Consumable**, reference name "Saving Worlds Pro (Lifetime)", Family Sharing off, review note on the Pro scope; price schedule set 26 October 2026 (D116): base territory United States at **US$7.99** (price point for 7.99, proceeds 5.60), 174 other storefronts by Apple's automatic equalization (e.g. 8.99 in Serbia, Bosnia and Herzegovina and Germany, 7.99 in the UK); state still **Missing Metadata** until the review screenshot (Phase 16) |
 | Product localization (en-US) | "Saving Worlds Pro" / "Unlimited goals, Garden and Pro statistics" | Localization `f5507fbe-8765-48db-a16d-62f20d4b5dc3`, Prepare for Submission |
 | EAS project | `@bosko123/saving-worlds` (`25d3089f-a32e-461f-baf2-7c95a396984e`) | `app.config.ts`; `eas.json` `submit.production.ios` holds `ascAppId` and `appleTeamId` only |
 | Registered device | "Bosko's iPhone" (iPhone 14 Pro), enabled | For device development builds |
 | Sandbox tester | One team tester (territory Serbia), created earlier for another app | Usable by every app of the team |
-| Certificates | One Apple Development certificate (expires 18 July 2027) | No distribution certificate yet |
-| Provisioning profiles | None for Saving Worlds | EAS creates them at the first device or store build |
+| Certificates | Apple Development (expires 18 July 2027); Apple Distribution "iPhone Distribution: Bosko Jaksic", serial 5C9E695B…, expires 26 October 2027 | Distribution certificate made by EAS on 26 October 2026 for the ad hoc device builds; reused for the Phase 22 App Store build |
+| Provisioning profiles | Development and ad hoc (EAS); App Store "*[expo] com.bosko123.savingworlds AppStore 2026-10-27T17:22:36Z" (expires 26 October 2027) | Made by EAS (Phase 22 local store build, D146) |
 
 ## How it maps to the billing architecture
 
