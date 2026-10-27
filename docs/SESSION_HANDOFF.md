@@ -1,90 +1,42 @@
 # Latest session handoff
 
-Session date: 27 October 2026. Session kind: Phase 19 (accessibility, localization and Settings review). Result: **Phase 19 VERIFIED COMPLETE by owner decision D138**: the code, automated and simulator work is done; the owner reports that VoiceOver (D135), the felt haptics, the weekly reminder on a physical iPhone and the Duo checks work. Next prompt: [PHASE_19_5](prompts/PHASE_19_5.md). Details: [PHASE_19 evidence](evidence/PHASE_19.md), decisions D134-D138.
+Session date: 27 October 2026. Session kind: Phase 19.5 (app icon and launch screen). Result: **Phase 19.5 VERIFIED COMPLETE by owner approval D139**. Next prompt: [PHASE_20](prompts/PHASE_20.md). Details: [PHASE_19_5 evidence](evidence/PHASE_19_5.md).
 
-The previous handoff (Phase 18, VERIFIED COMPLETE by D133) is superseded; its record remains in [PHASE_18 evidence](evidence/PHASE_18.md) and DECISIONS D131-D133.
+The previous handoff (Phase 19, VERIFIED COMPLETE by D138) is superseded; its record remains in [PHASE_19 evidence](evidence/PHASE_19.md) and DECISIONS D134-D138.
 
 ## Completed this session
 
-- Read v1.2 in full (textutil) and the required docs. Verified Phase 18 in code. Baseline `main` fcdd83c, clean.
-- Settings "Your data" (R23): `local-data-settings.tsx` + `settings-copy.ts`, between Pro and About. There is no backup/export/import/sync control. Privacy and support links are not shown (Q09).
-- English catalog: about 210 inline strings moved unchanged into the feature `*-copy.ts` modules (new `collection-copy`, `settings-copy`, `onboarding-copy`, `storage-failure-copy`) and `src/shared/i18n/` (`common-copy`, `navigation-copy`, `chart-copy`). ESLint `catalogGuardrails` blocks new inline text in `.tsx` outside dev tools. The Phase 03 `details` sample route is now behind `__DEV__`.
-- Accessibility fixes from a code audit of every screen (two read-only audit agents plus my own review):
-  - focus after content swaps (`src/shared/ui/accessibility-focus.ts`; `AppText` takes `ref`);
-  - spoken form errors (`Notice announce`);
-  - a reachable world-scene fallback;
-  - the unlock message as a button with live Reduce Motion;
-  - `AmountText display` stepping down above 1.35× text;
-  - a 44 pt savings-plan info button, and "Savings needed" read once;
-  - paywall spinner hidden, product line wrap;
-  - reminder switch disabled while saving;
-  - theme picker title no longer truncated;
-  - the onboarding strip reads its captions;
-  - RTL readiness (start/end; world art area and chart pinned LTR; chevrons).
-- History "+" sign on iOS: `formatMoney` now places the sign itself (Hermes ignores `signDisplay`). I01 asserts "+€5.00" natively.
-- Tests:
-  - new: `english-catalog.test.ts` (367 strings), `locale-formatting.test.ts` (4 locales, exponents 0/2/3, dates, 12/24 h), `accessibility-settings.test.tsx`;
-  - updated: three ledger tests, one goal test and one world-scene test, plus one onboarding label test.
-- Docs: DECISIONS D134; DESIGN_SYSTEM (Notice `announce`, AmountText step-down, focus helper, chart selection haptic, purchase-haptic conflict, device icon); PROJECT_STATUS; RELEASE_CHECKLIST (privacy/support pending note); CLAUDE.md fact line.
-
-## Owner follow-up (same day, D135)
-
-- VoiceOver is fine everywhere on the owner's iPhone (owner-reported, not itemized). The purchase/restore success haptic stays; DESIGN_SYSTEM updated.
-- V07 built: Savings insights shows "Finished worlds" with "Your completed worlds live in Collection." underneath; the count is unchanged.
-- Remaining for Phase 19 (as of the end of this session): felt haptics other than the purchase, the D109 reminder device checks and the Duo matrix. Q09 links, date language and V05 were resolved later (D136, D137).
-
-## Owner request: milestone previews and English dates (D136)
-
-- Next milestone quest: a small still picture of the main object it unlocks, for all ten unlocks of Island and Garden, cut from the approved 2048 exports. The spec is `assets/worlds/milestone-previews.json`; the generator `scripts/make_milestone_previews.py` (Blender) writes `assets/themes/<theme>/previews/`. `MilestonePreviewTile` keeps the generic sparkle tile as the fallback; VoiceOver hears "Shows {object}.". Quest logic, progress and entitlements are unchanged. The owner approved the previews as shown.
-- Dates and times are in English, in the device's order and clock style.
-- Checks: milestone-previews 21/21; Challenges UI and locale tests; simulator screenshots 05-07 and the review sheet in `docs/evidence/phase-19/`. Garden previews were seen only in the review sheet (the simulators are Free).
-- Test data: on the 17 Pro Max iOS 26.0 simulator the "Camera" goal's old stage-9 quest was skipped to show the offer.
-
-## Owner request: Privacy Policy and Support pages (D137)
-
-- `PRIVACY.md` and `SUPPORT.md` (root), linked from `docs/README.md` (the README GitHub shows). `_config.yml` makes GitHub Pages publish only these two pages.
-- The claims were checked against the code and SDKs (see PHASE_19 evidence). The EAS update client ID is disclosed; there is no "no data collected" claim.
-- Recommended URLs (GitHub Pages): `https://bosko-front.github.io/SavingWorld/PRIVACY.html` and `…/SUPPORT.html`. Fallback: the `github.com/…/blob/main/…` URLs.
-- Done with the owner's approval: publisher Bosko Jaksic, support email filled in, commit 031c2b3 pushed to `main`, GitHub Pages enabled and both URLs verified (200; the development docs are not published), Settings › About links added. App Store Connect is untouched: the owner enters the two URLs (and the App Privacy answers) or approves doing it.
-
-## Phase closure (D138)
-
-- The owner reports that the remaining checks work: the felt haptics, the weekly reminder on a physical iPhone and the Duo checks ("ovo sve radi"). Phase 19 is VERIFIED COMPLETE by owner decision. The incomplete-work list below is kept for history; its device items are closed by D138.
+- Read v1.2 in full (textutil) and the required docs. Baseline `main` 6550911, clean. The app still had the Expo template icon and splash.
+- Checked the pinned SDK: `ios.icon` takes a path, `{ light, dark, tinted }` or one `.icon` folder (not both); `expo-splash-screen` takes background, image, width, resize mode and an optional dark entry.
+- `assets/branding/`: `scripts/render_icon.py` renders a concept from the approved Island `.blend` (read-only, own square camera on the frozen view and lights, storybook pass, never saved); `icon_compose.py` adds the skies and writes light/dark/tinted icons and the mark; `review_sheet.py` makes the 60/40/29 pt sheet; README with commands and provenance.
+- Three concepts (A finished Island, B cottage close-up, C first tree) on `review/icon_concepts_sheet.png`. **Owner chose B with the night-blue dark sky**, then approved the built result ("Approve all").
+- Final `assets/images/icon-light.png`, `icon-dark.png`, `icon-tinted.png` (1024, RGB, no alpha, sRGB) and `splash-mark.png` (cottage and tree cut out, 600 px, shown at 120 pt). Template `icon.png` and `splash-icon.png` deleted. `app.config.ts`: `ios.icon` object + top-level light icon, splash `{ cream, splash-mark, 120, contain }`. `.easignore` skips `assets/branding/`.
+- Tests: `delivery-config.test.ts` checks the icon/mark paths, template files gone, size, RGB, no `tRNS`, sRGB, mark ≥ @3x; the launch color guard stays.
+- Docs: DECISIONS D139; DESIGN_SYSTEM Icons; RELEASE_CHECKLIST; PROJECT_STATUS; SOURCE_RECONCILIATION (Q09 line); CLAUDE.md fact line; evidence PHASE_19_5 with screenshots 01-14.
 
 ## Decisions
 
-- D134 (engineering, no product rule changed): the catalog and its guard, the "Your data" copy and placement, the shared focus and announcement behavior, sign placement, RTL readiness. Open owner choices recorded in it:
-  1. the purchase/restore success haptic, kept by the owner (D135);
-  2. dates are English in the device's order (D136);
-  3. V07 (D135) and V05 (D136) approved and built.
+- D139 (owner): cottage close-up icon, night-blue dark sky, tinted grayscale; PNG set rather than Icon Composer `.icon`; one light launch screen with the cottage mark; approved after the simulator build.
 
 ## Checks
 
-- Lint PASS, typecheck PASS, Jest 55 suites: 1545 passed, 1 env-gated skip.
-- `npm run test:db -- --device <SW iPhone SE 3 iOS 18.5> --record docs/evidence/phase-19/test-db-se-ios18.5.json`: PASS 55/55 + R2.
-- Simulator look on the SE at default and accessibility XXXL: screenshots `docs/evidence/phase-19/00`-`04`.
-- NOT RUN:
-  - physical-iPhone VoiceOver walkthroughs, felt haptics and the D109 reminder checks (no device in the session; no VoiceOver in the simulator);
-  - the Duo matrix;
-  - simulator Reduce Motion walkthrough (the gates are covered by Jest and the audit);
-  - `deps:check`/`doctor` (no dependency change);
-  - release export (no change to how dev tools load).
+- Lint PASS, typecheck PASS, Jest 56 suites: 1577 passed, 1 env-gated skip; icon/launch tests 138/138 after the final art was copied.
+- Throwaway prebuild in the scratchpad: AppIcon set with any/dark/tinted 1024 entries, splash logo 120/240/360 px, splash color `#F6F4EA`; `actool` no warnings. Expo keeps an alpha channel on the dark variant by design; all pixels opaque.
+- EAS development simulator build **0799fb03-84c4-4b0e-91fa-e9d05a19def8** (1.0.0 / build 1 / runtime 1.0.0, fingerprint 935de421…), installed over test data on SE iOS 18.5, 17 Pro Max iOS 26.0, Duo iOS 27.1.
+- Screenshots: cold launch on all three, home light on all three, dark and tinted on iOS 26.0, Spotlight, Settings › Apps, app switcher.
+- NOT RUN: `deps:check`/`doctor` (no dependency change), `test:db` (no persistence change), physical iPhone (Phase 21).
 
 ## Incomplete work and blockers
 
-1. Physical iPhone: VoiceOver is accepted by the owner (D135). Still needed: the felt haptics and the D109 reminder steps from the checklist in the evidence file (needs a device development build on the owner's iPhone and the owner's sandbox account for Pro; never enter Apple passwords or codes on the owner's behalf).
-2. Duo matrix with forms, both themes, charts and native sheets (simulator Duo iOS 27.1 is available; physical split view stays a D48 release gate).
-3. Q09 privacy/support: done (D137). Still open in Q09: final name/identity.
-4. Owner answers: none open (D135, D136).
-5. Known small gaps:
-   - no focus move after Add/Remove deadline;
-   - Home has no spoken screen title and may read its percent twice (Home changes need the owner);
-   - the toast slide follows Reduce Motion only after a relaunch.
-6. Git: Phase 19 work committed and pushed to `main` (031c2b3, plus this docs commit).
+1. Physical-iPhone look of the icon and launch screen: Phase 21 release-candidate check.
+2. One plain white frame with the dev client's Tools button appeared once during a Duo cold launch; the recorded sequence showed cream + mark throughout. Confirm in the Phase 20 release-mode build.
+3. Dark/tinted not shown on the iOS 18.5 simulator (its Customize sheet froze); shown on iOS 26.0.
+4. Simulator state: the iPhone 17 Pro Max iOS 26.0 home screen is left in the Tinted style (Customize → Default to undo).
+5. Git: not committed or pushed.
 
 ## Exact next session
 
-In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_19_5.md` (owner-approved app icon and launch screen, D114). Owner actions outside the app: enter the Privacy Policy and Support URLs (D137) and the App Privacy answers in App Store Connect. Phase 21 repeats the device checks on the release candidate with itemized evidence.
+In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_20.md` (EAS preview delivery and OTA recovery). Owner actions outside the app (unchanged): enter the Privacy Policy and Support URLs (D137) and the App Privacy answers in App Store Connect.
 
 ## Parallel workstream: Garden art (26 October 2026)
 

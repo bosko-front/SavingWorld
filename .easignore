@@ -53,6 +53,8 @@ coverage/
 docs/
 .claude/
 .vscode/
+# app icon source (Blender scripts and renders); the app reads only assets/images/
+assets/branding/
 
 # JetBrains IDE state
 .idea/

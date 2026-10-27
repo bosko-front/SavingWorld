@@ -1,10 +1,14 @@
 # Project status
 
-Updated 27 October 2026 after Phase 19 (accessibility, localization and Settings review; VERIFIED COMPLETE by owner decision D138 after Jest, `test:db`, simulator checks and the owner's own device checks of VoiceOver, haptics, the weekly reminder and Duo; D134-D138). Functional scope is fixed by the local [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx).
+Updated 27 October 2026 after Phase 19.5 (app icon and launch screen; VERIFIED COMPLETE by owner approval D139). Phase 19 was closed earlier the same day by D138. Functional scope is fixed by the local [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx).
 
 ## Current state
 
-- Current stage: **Phase 19 VERIFIED COMPLETE** ([evidence](evidence/PHASE_19.md), owner decision D138). Next prompt: [PHASE_19_5](prompts/PHASE_19_5.md).
+- Current stage: **Phase 19.5 VERIFIED COMPLETE** ([evidence](evidence/PHASE_19_5.md), owner decision D139). Next prompt: [PHASE_20](prompts/PHASE_20.md).
+  - Built: three icon concepts rendered from the approved Island scene (`assets/branding/`, scripts + provenance README, concept sheet at 60/40/29 pt); the owner chose B, the cottage close-up, with a night-blue dark sky. Final `assets/images/icon-light.png`, `icon-dark.png`, `icon-tinted.png` (1024, RGB, no alpha, sRGB) through `ios.icon { light, dark, tinted }` (PNG set chosen over an Icon Composer `.icon`), launch screen = cream `LAUNCH_BACKGROUND` + 120 pt cottage-and-tree mark (`splash-mark.png`). Expo template icon and splash deleted.
+  - Checks: lint, typecheck, Jest 56 suites / 1577 passed (1 env-gated skip; new icon file tests), throwaway prebuild + `actool` without warnings, EAS development simulator build **0799fb03** (1.0.0, runtime 1.0.0, fingerprint 935de421…), installed over test data on the SE iOS 18.5, 17 Pro Max iOS 26.0 and Duo iOS 27.1: cold launch, home screen light (all three), dark and tinted (iOS 26.0), Spotlight, Settings › Apps, app switcher.
+  - Carried: physical-iPhone look to Phase 21; one white dev-client frame seen once on the Duo, re-check in the Phase 20 release-mode build; dark/tinted not shown on the iOS 18.5 simulator (its Customize sheet froze).
+- Previous stage: **Phase 19 VERIFIED COMPLETE** ([evidence](evidence/PHASE_19.md), owner decision D138). Next prompt was: [PHASE_19_5](prompts/PHASE_19_5.md).
   - Closed by the owner (D138): felt haptics, the weekly reminder on a physical iPhone and the Duo checks work (owner-reported), VoiceOver accepted earlier (D135). Phase 21 repeats them with itemized evidence. Git: committed and pushed through de67e31, plus the closing commit.
   - Built: Settings "Your data" (local storage, no backup in the app, deletion/device loss can remove records for good, iOS backups are not an app promise, Restore brings back Pro only; no backup/export/import/sync control; privacy/support links not shown until Q09). English catalog: about 210 inline strings moved unchanged into `*-copy.ts` and `src/shared/i18n/` (`common-copy`, `navigation-copy`, `chart-copy`), enforced by ESLint `catalogGuardrails`, checked by `english-catalog.test.ts`. VoiceOver focus after content swaps (`useAccessibilityFocusOnChange`: onboarding steps, Challenges board, paywall), spoken form errors (`Notice announce`), reachable world-scene fallback, unlock message as a button with live Reduce Motion, display amounts step down above 1.35× text, 44 pt savings-plan info button, History "+" sign on Hermes (`formatMoney` places the sign), RTL readiness (start/end; world art and chart pinned LTR).
   - Checks: lint, typecheck, Jest 55 suites / 1545 passed (1 env-gated skip), `test:db` 55/55 + R2 on the SE iOS 18.5 (I01 asserts "+€5.00" on Hermes), SE simulator look at default and accessibility XXXL.
@@ -111,7 +115,7 @@ Updated 27 October 2026 after Phase 19 (accessibility, localization and Settings
 | 17 | Garden and per-goal theme switching | VERIFIED COMPLETE | [PHASE_17](evidence/PHASE_17.md); D129-D130; Jest + still stack + `test:db` 52/52 + simulator PASS, owner's device look; VoiceOver, felt haptic and physical-iPhone Garden motion carried to Phases 19/21 |
 | 18 | Four precise Pro savings statistics | VERIFIED COMPLETE | [PHASE_18](evidence/PHASE_18.md); D131-D133; Jest 1161 + `test:db` 55/55 + simulator look PASS, owner polish (touched tests 40/40); Statistics VoiceOver carried to Phases 19/21 |
 | 19 | Accessibility localization and Settings review | VERIFIED COMPLETE | [PHASE_19](evidence/PHASE_19.md); D134-D138; lint, typecheck, Jest 1571+, `test:db` 55/55 + R2 (SE), simulator PASS; VoiceOver, haptics, reminder and Duo owner-reported (D135, D138); privacy/support pages live (D137) |
-| 19.5 | App icon and launch screen (owner-added, D114) | NOT STARTED | No implementation evidence |
+| 19.5 | App icon and launch screen (owner-added, D114) | VERIFIED COMPLETE | [PHASE_19_5](evidence/PHASE_19_5.md); D139; owner chose the cottage close-up and approved light/dark/tinted icons and the launch screen; EAS build 0799fb03; physical-iPhone look in Phase 21 |
 | 20 | EAS preview delivery and OTA recovery verification | NOT STARTED | No implementation evidence |
 | 21 | Resilience performance and release candidate | NOT STARTED | No implementation evidence |
 | 22 | App Store release preparation and final handoff | NOT STARTED | No implementation evidence |
@@ -154,13 +158,13 @@ Q01-Q06 are RESOLVED in [SOURCE_RECONCILIATION](SOURCE_RECONCILIATION.md). One g
 - Known limitation: when the closed Duo in landscape collapses the native arrangement, AdaptiveGoalLayout switches to the stacked composition, which rebuilds both regions and drops keyboard focus (drafts and selection are kept).
 - The iOS 27.1 simulator runtime supports only iPhone Duo; ordinary iPhones in this toolchain (iOS ≤ 27.0) always use the stacked fallback. Simulator tap automation is intermittent on the Duo; the lab's `?focus=draft` link avoids depending on taps.
 - No physical-device development build yet; it needs the owner's Apple Developer credentials and device registration.
-- App icon/splash image are Expo template placeholders until Phase 19.5 (D114) replaces them with owner-approved art before the first preview build. Dev-client local-network and default ATS Info.plist entries need release privacy review (Phase 20/22).
+- App icon and launch screen are the owner-approved Phase 19.5 art (D139); their physical-iPhone look is a Phase 21 check, and a later icon change needs a new app version once runtime 1.0.0 is shared. Dev-client local-network and default ATS Info.plist entries need release privacy review (Phase 20/22).
 - Phase 02 limitations (noncritical): pressed state and button keyboard-focus outline not observed on a simulator; VoiceOver not run; iOS 26 draws the back-button glass in its own color. iOS 26 transparent headers let scrolled content pass under the title by design; the native scroll inset keeps it reachable (Phase 03 inset policy). Shell screens still use temporary text.
 - Q07 price/sale copy/product setup and Q09 identity/privacy/support/device resources remain commercial/operational dependencies. Approved licensed Island/Garden art and Apple sandbox/signing/devices are verified at their phase gates. Q08 is future-only.
 
 ## Next action and continuation
 
-Phase 19 is verified complete (D138). Start a new Claude Code session in ~/Desktop/SavingWorld with the full [PHASE_19_5](prompts/PHASE_19_5.md) prompt (owner-approved app icon and launch screen, D114). Open owner actions outside the app: enter the Privacy Policy and Support URLs and the App Privacy answers in App Store Connect (D137).
+Phase 19.5 is verified complete (D139). Start a new Claude Code session in ~/Desktop/SavingWorld with the full [PHASE_20](prompts/PHASE_20.md) prompt (EAS preview delivery and OTA recovery); it also re-checks the Duo cold launch in the release-mode build. Open owner actions outside the app: enter the Privacy Policy and Support URLs and the App Privacy answers in App Store Connect (D137).
 
 ## Ongoing updates
 
