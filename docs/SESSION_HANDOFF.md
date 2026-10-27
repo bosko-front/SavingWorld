@@ -1,6 +1,6 @@
 # Latest session handoff
 
-Session date: 27 October 2026. Session kind: Phase 21 (resilience, performance and release candidate). Result: **IN PROGRESS** — automated, native-SQLite and simulator work done; the release-candidate build, its OTA repeat and every physical-device check remain. Next prompt: [PHASE_21](prompts/PHASE_21.md) again. Details: [PHASE_21 evidence](evidence/PHASE_21.md), decision D144.
+Session date: 27 October 2026. Session kind: Phase 21 (resilience, performance and release candidate). Result: **VERIFIED COMPLETE by owner decision D145** — automated, native-SQLite and simulator work done, release-candidate builds 5e207eba (simulator) and 9a42b94e (device) recorded, owner's RC smoke test on the iPhone 14 Pro passed (owner-reported); the device matrix is carried as accepted limitations. Next prompt: [PHASE_22](prompts/PHASE_22.md). Details: [PHASE_21 evidence](evidence/PHASE_21.md), decisions D144-D145.
 
 The previous handoff (Phase 20, VERIFIED COMPLETE by D143) is superseded; its record remains in [PHASE_20 evidence](evidence/PHASE_20.md).
 
@@ -16,6 +16,7 @@ The previous handoff (Phase 20, VERIFIED COMPLETE by D143) is superseded; its re
 ## Decisions
 
 - D144 (bounded History, date-indexed quest counting, release audit, Maestro journeys, fixtures; JS only, OTA-compatible with runtime 1.0.0).
+- D145 (owner closes Phase 21 on the RC smoke test; ambient motion stays on; Instruments profiling, itemized VoiceOver, Sunday reminder, physical Duo, RC Maestro/OTA repeat carried).
 
 ## Checks
 
@@ -24,14 +25,13 @@ lint, typecheck PASS; Jest 61 suites / 1,625 passed (1 env-gated skip); `test:db
 ## Open items and owner decisions
 
 1. **Release candidate (owner-approved).** Committed locally as ce46419 (not pushed). EAS `preview-simulator` 5e207eba FINISHED and recorded (`delivery/runtime-contracts.json`, fingerprint c83b89a5… = runtime 1.0.0); `preview` device 9a42b94e FINISHED and recorded (same fingerprint); the owner installs it from its EAS build page. The owner's EAS free plan is at ~80% of its builds: start no EAS build without explicit approval; Phase 22 still needs the production build.
-2. **Baseline device.** Only the owner's iPhone 14 Pro is available; name the oldest supported iPhone for profiling or accept the 14 Pro with a recorded limitation.
-3. **Device session.** Instruments profiling (cold launch, 10,000-entry History/Home/Challenges, Collection, both worlds, ambient on/off for the D90 decision, unlock moment), purchase/Restore on the RC, a real Sunday 18:00 reminder with travel/DST/reinstall, itemized VoiceOver and haptics, icon/launch look, physical Duo split view/fold with a draft. Instruments needs a development-signed Release build on the device.
+2. **Carried by D145 (accepted limitations).** Profiling on a named oldest supported iPhone and, on device: Instruments profiling (cold launch, 10,000-entry History/Home/Challenges, Collection, both worlds, ambient on/off for the D90 decision, unlock moment), purchase/Restore on the RC, a real Sunday 18:00 reminder with travel/DST/reinstall, itemized VoiceOver and haptics, icon/launch look, physical Duo split view/fold with a draft. Instruments needs a development-signed Release build on the device.
 4. Simulators made this session (synthetic data, deletable): "SW P21 Perf SE" (89785432…) and "SW P21 E2E" (C4ECF3CB…). Another session in this folder had Metro on 8081, a booted "iPhone Duo" and the "SW iPhone SE 3 iOS 18.5" simulator; they were used read-only for one `test:db` run and not changed.
 5. Carried: PRIVACY.md wording for the update request's user agent/language (owner, before Phase 22); `.easignore` for `assets/worlds/` (optional).
 
 ## Exact next session
 
-In ~/Desktop/SavingWorld, after the owner's answers above, start Claude Code with the full `docs/prompts/PHASE_21.md`. Then: take the owner's smoke-test result for 9a42b94e, download 5e207eba's .app, `node scripts/test-e2e.mjs --app <RC .app> --report docs/evidence/phase-21/e2e-rc.xml`, `node scripts/release-audit.mjs --out docs/evidence/phase-21/release-audit-rc.json`, the Phase 20 runbook (offline launch, one preview update, roll back to embedded) on the RC with the release fixture, then the device matrix.
+In ~/Desktop/SavingWorld, start Claude Code with the full `docs/prompts/PHASE_22.md`. The EAS free plan is at about 80% of its builds: ask before the production build, and use the TestFlight build for the final device smoke test. Runtime 1.0.0 is shared; run `node scripts/release-check.mjs --eas` before any update and `node scripts/release-audit.mjs` on the final tree. Items carried by D145 are listed in the Phase 21 evidence and RELEASE_CHECKLIST.
 
 ## Parallel workstream: Garden art (26 October 2026)
 

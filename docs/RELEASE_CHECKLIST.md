@@ -53,7 +53,7 @@ Product authority is [MVP plan v1.2](Saving_Worlds_MVP_Plan_v1_2.docx). Q01-Q06 
 - [ ] Phase 18 Savings insights on a **physical iPhone** with Pro (deferred by D133 to Phase 19, repeated in Phase 21): VoiceOver reads the headline total, both month cards, the chart as one adjustable element whose value is the selected day and its balance (swipe up/down steps through the 30 days), the Net change card, the Daily balances toggle state and rows, and the Completed goals row; the selection haptic while scrubbing is felt once per day; the chart reflows on Duo.
 - [ ] Phase 10 unlock moment on a **physical iPhone** (deferred by D88 to Phases 19 and 21): device recording/frame inspection of the unlock, rapid deposits and backgrounding mid-moment; VoiceOver hears the milestone message once; the milestone haptic is felt once and the success haptic is not.
 - [ ] Collection card float (D100) included in the Phase 21 physical-iPhone measurement with many souvenirs; static cards if it costs too much.
-- [ ] Phase 10.5 ambient motion measured on a **physical iPhone** (Phase 21, D90): energy, memory and smoothness with ambient on vs off in Xcode Instruments; kept only if acceptable, otherwise water simplified first, then ambient switched off (static Island).
+- [ ] Phase 10.5 ambient motion measured on a **physical iPhone** (Phase 21, D90): energy, memory and smoothness with ambient on vs off in Xcode Instruments; kept only if acceptable, otherwise water simplified first, then ambient switched off (static Island). Phase 21 (D145): kept on the owner's observation on the RC (no heat); Instruments not run, carried.
 - [ ] Empty/error/complete/overfunded/paused/read-only-after-loss/offline/store-unavailable states are present and tested.
 
 ## EAS Build and OTA delivery

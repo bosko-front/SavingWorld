@@ -1,6 +1,6 @@
 # Phase 21 evidence: resilience, performance and release candidate
 
-Session date: 27 October 2026. State: **IN PROGRESS**. The automated, native-SQLite and simulator parts below are done and the RC builds exist (5e207eba simulator, 9a42b94e device building); the checks on the RC, the OTA repeat on it and every physical-iPhone/Duo check are NOT RUN (see "Not run and blockers"). Prompt: [PHASE_21](../prompts/PHASE_21.md). Decision: D144.
+Session date: 27 October 2026. State: **VERIFIED COMPLETE by owner decision D145** (automated, native-SQLite and simulator evidence below, release-candidate builds 5e207eba/9a42b94e, and the owner's smoke test of 9a42b94e on the iPhone 14 Pro; the device matrix is carried as accepted limitations, see "Owner smoke test and closure"). Prompt: [PHASE_21](../prompts/PHASE_21.md). Decisions: D144, D145.
 
 ## Starting point and dependencies
 
@@ -123,9 +123,13 @@ Committed locally as **ce46419** on `main` (not pushed). EAS builds from that co
 
 The owner's EAS free plan is at about 80% of its build allowance: no further EAS build without explicit approval; Phase 22 still needs the `production` build. Not yet run on the RC: `test:e2e`, `release-audit` against its embedded bundle, the Phase 20 OTA/offline runbook, and the device matrix.
 
-## Not run and blockers
+## Owner smoke test and closure (D145)
 
-Every item below is mandatory for Phase 21; each keeps the phase IN PROGRESS.
+The owner installed 9a42b94e over the existing installation on the iPhone 14 Pro (owner-reported, no screenshots): existing data opens; History works; one entry and one correction are correct; Pro stays active; Restore works; launch in Airplane Mode works; the Living Island animation does not heat the phone, so ambient motion stays on (D90) without an Instruments measurement. The owner closed Phase 21 with the items below carried as accepted limitations (not passed).
+
+## Not run and carried (accepted by D145)
+
+Carried by the owner's decision D145; none of these is a pass.
 
 | Item | Owner | Impact | Next action |
 | --- | --- | --- | --- |
