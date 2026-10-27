@@ -1,6 +1,6 @@
 # Phase 21 evidence: resilience, performance and release candidate
 
-Session date: 27 October 2026. State: **IN PROGRESS**. The automated, native-SQLite and simulator parts below are done; the release-candidate EAS build, the OTA repeat on it and every physical-iPhone/Duo check are NOT RUN (see "Not run and blockers"). Prompt: [PHASE_21](../prompts/PHASE_21.md). Decision: D144.
+Session date: 27 October 2026. State: **IN PROGRESS**. The automated, native-SQLite and simulator parts below are done and the RC builds exist (5e207eba simulator, 9a42b94e device building); the checks on the RC, the OTA repeat on it and every physical-iPhone/Duo check are NOT RUN (see "Not run and blockers"). Prompt: [PHASE_21](../prompts/PHASE_21.md). Decision: D144.
 
 ## Starting point and dependencies
 
@@ -112,13 +112,24 @@ Flow lessons recorded in `maestro/`: the number pad has no return key (never tap
 
 Test IDs exercised this session: T01 (exponents in separate whole-app fixtures), T04, T05, T06, T07, T09, T12, T16, T19 (journeys), T27, plus the performance item of "Failure injection and performance".
 
+## Release-candidate builds (owner-approved, 27 October 2026)
+
+Committed locally as **ce46419** on `main` (not pushed). EAS builds from that commit, profile → channel preview, environment production, 1.0.0 (1), runtime 1.0.0:
+
+| Build | Profile | State at session end | Fingerprint |
+| --- | --- | --- | --- |
+| **5e207eba-847f-47c0-98a9-9a7725aec0eb** | `preview-simulator` | FINISHED; recorded with `node scripts/release-check.mjs --record` (gate PASS) | c83b89a5d246 = shared runtime |
+| **9a42b94e-26eb-415a-8aca-1b0698d84f56** | `preview` (ad hoc device) | IN PROGRESS when the session closed; record it with `--record` once finished | c83b89a5d246 (computed at upload) |
+
+The owner's EAS free plan is at about 80% of its build allowance: no further EAS build without explicit approval; Phase 22 still needs the `production` build. Not yet run on the RC: `test:e2e`, `release-audit` against its embedded bundle, the Phase 20 OTA/offline runbook, and the device matrix.
+
 ## Not run and blockers
 
 Every item below is mandatory for Phase 21; each keeps the phase IN PROGRESS.
 
 | Item | Owner | Impact | Next action |
 | --- | --- | --- | --- |
-| Release-candidate EAS builds (`preview` device + `preview-simulator`) from a committed tree | Owner approval to commit; then agent | No installable RC exists yet; the History fix is only in a measurement build | Owner approves a local commit; build both profiles, record IDs with `release-check --record` (same fingerprint) |
+| Device RC 9a42b94e still building at session end | Agent | Not yet installable on the iPhone | Check it finished, `release-check --record 9a42b94e…`, owner installs it |
 | `test:e2e`, `release-audit` and the offline/OTA/known-good fallback repeat on the RC binary with the release fixture | Agent after the RC build | T24-T26 on the RC | Rerun the Phase 20 runbook against the RC simulator build; publish one preview update and roll back to embedded |
 | Oldest supported iPhone for profiling | Owner | The only device available is an iPhone 14 Pro; "oldest supported" is not established | Owner names the baseline (or accepts the 14 Pro plus a recorded limitation) |
 | Device profiling with Instruments: cold launch, History/Home/Challenges/Collection with the 10,000-entry fixture, both worlds stage 0 → 10, decoded image memory vs ~32 MiB/world, ambient on/off energy and hitches (D90 keep/simplify/off decision), unlock moment and rapid deposits (D88), Collection float (D100), celebrations | Owner's device + agent | Release performance unproven; D90 decision open | Development-signed Release build on the device (Instruments needs `get-task-allow`); fixture through the dev runner or the app |
@@ -166,5 +177,5 @@ No known critical financial, data-loss or startup defect remains in code: the on
 
 - New: `tests/native/performance-scenarios.ts`, `tests/native/resilience-scenarios.ts`, `tests/integration/performance-fixture.test.ts`, `scripts/release-audit.mjs`, `scripts/test-e2e.mjs`, `maestro/` (README, 5 journeys, 3 subflows, 2 perf flows), `docs/evidence/PHASE_21.md`, `docs/evidence/phase-21/` (screenshots 01-04, `test-db` records).
 - Changed: `src/features/challenges/domain/challenge-rules.ts`, `src/data/repositories/ledger-repository.ts`, `src/features/ledger/application/ledger-queries.ts`, `src/features/ledger/presentation/history-screen.tsx`, `src/features/ledger/presentation/ledger-copy.ts`, `src/bootstrap/app-data.ts`, `src/app/(tabs)/(home)/details.tsx`, `src/dev/db-test-runner.tsx`, `tests/integration/database-scenarios.test.ts`, `tests/integration/ledger-ui.test.tsx`, `tests/unit/challenge-rules.test.ts`; docs PROJECT_STATUS, SESSION_HANDOFF, DECISIONS (D144), TEST_PLAN, RELEASE_CHECKLIST, CLAUDE.md fact line.
-- No dependency, native, config, migration or stored-data change; nothing committed or pushed; no EAS build or update.
+- No dependency, native, config, migration or stored-data change; committed locally as ce46419 (not pushed); two EAS RC builds (above); no update published.
 - Simulators created (synthetic data only, can be deleted): "SW P21 Perf SE" (iPhone SE 3rd gen iOS 18.5, development build 0799fb03 now installed) and "SW P21 E2E" (iPhone 17 Pro iOS 26.0, e86513c7).

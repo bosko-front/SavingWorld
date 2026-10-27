@@ -26,10 +26,11 @@
           "src/data/repositories/settings-repository.ts": "ffc747ea1bd6e49d2c605321570842474c4636ca53e64ab6f53ed7ed7794c4d7"
         }
       },
-      "sourceRevision": "692abd97d525fcc968388af0d3099f1c0d91077c",
+      "sourceRevision": "ce4641996226b2d351985212ed00207c5e45d5b2",
       "firstSharedBuild": "e86513c7-111c-4e28-b85d-ab04d36bf4a3",
       "builds": [
-        "e86513c7-111c-4e28-b85d-ab04d36bf4a3"
+        "e86513c7-111c-4e28-b85d-ab04d36bf4a3",
+        "5e207eba-847f-47c0-98a9-9a7725aec0eb"
       ],
       "history": [
         {
@@ -37,6 +38,12 @@
           "build": "e86513c7-111c-4e28-b85d-ab04d36bf4a3",
           "revision": "692abd97d525fcc968388af0d3099f1c0d91077c",
           "reason": "Phase 20: first release-mode preview builds (e86513c7 simulator, 638cba93 device) share runtime 1.0.0 with test installations"
+        },
+        {
+          "at": "2026-10-27T16:49:13.658Z",
+          "build": "5e207eba-847f-47c0-98a9-9a7725aec0eb",
+          "revision": "ce4641996226b2d351985212ed00207c5e45d5b2",
+          "reason": "Phase 21 release candidate, preview-simulator (ce46419)"
         }
       ]
     }
