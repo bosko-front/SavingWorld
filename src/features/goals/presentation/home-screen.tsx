@@ -3,6 +3,7 @@ import { useState, type ReactElement } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { accessView, goalCommandDeps, refreshAppData, useAppDataStore, type AccessView } from '@/bootstrap/app-data';
+import { releaseLaunchSplash, useReleaseLaunchSplash } from '@/bootstrap/launch-splash';
 import { canOpenStatistics, type GoalUse } from '@/core/access';
 import { MILESTONE_COUNT, progressPercent, sceneFeedback } from '@/core/progression';
 import type { CollectibleRecord } from '@/data/repositories/collectible-repository';
@@ -57,6 +58,9 @@ import { useGoalAction } from './use-goal-action';
 // savings, and until the person has chosen the goal to keep using a calm card asks them to choose.
 export function HomeScreen() {
   const state = useAppDataStore((store) => store.state);
+  // The launch screen stays until Home's world is drawn (D141); a Home without a world (a failed
+  // read, an unreadable currency) releases it as soon as it renders.
+  useReleaseLaunchSplash(state.status === 'failed' || (state.status === 'ready' && state.data.currency.currency.status !== 'set'));
 
   if (state.status === 'failed') {
     return <LoadFailed />;
@@ -167,6 +171,8 @@ function SelectedGoalHome({ summary, dashboard, open, access, souvenir }: Select
           reveal={motion.reveal}
           ambient={ambientMotion}
           crossfadeTheme={world.crossfade}
+          onShown={releaseLaunchSplash}
+          onUnavailable={releaseLaunchSplash}
           fill>
           {motion.banner ? <UnlockBanner banner={motion.banner} onDismiss={motion.dismissBanner} /> : null}
         </WorldScene>
@@ -242,9 +248,11 @@ function EmptyHome({ completedCount, canCreate, finishedWorld }: EmptyHomeProps)
               manifest={themeManifestAt(finishedWorld.themeId, finishedWorld.themeVersion)}
               backdrop="none"
               decorative
+              onShown={releaseLaunchSplash}
+              onUnavailable={releaseLaunchSplash}
             />
           ) : (
-            <WorldScene themeId="island" stage={0} backdrop="none" decorative />
+            <WorldScene themeId="island" stage={0} backdrop="none" decorative onShown={releaseLaunchSplash} onUnavailable={releaseLaunchSplash} />
           )}
           <AmbientSparkles spots={EMPTY_ISLAND_SPARKLES} testID="home-empty-sparkles" />
         </View>

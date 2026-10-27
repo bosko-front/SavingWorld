@@ -6,6 +6,7 @@ import { refreshAppData, useAppDataStore } from '@/bootstrap/app-data';
 import { useBillingReconciliation } from '@/bootstrap/billing';
 import { DatabaseGate } from '@/bootstrap/database-gate';
 import { useForegroundReconciliation } from '@/bootstrap/foreground';
+import { useReleaseLaunchSplash } from '@/bootstrap/launch-splash';
 import { useReminderReconciliation, useReminderTapRouting } from '@/bootstrap/reminders';
 import { StorageFailureScreen } from '@/bootstrap/storage-failure-screen';
 import { stackScreenOptions } from '@/shared/theme';
@@ -47,15 +48,21 @@ function AppNavigator() {
     }
   }, [state.status]);
 
+  const settled = state.status === 'ready' || state.status === 'failed';
+  const onboarded =
+    state.status === 'ready' ? state.data.currency.currency.status !== 'missing' : state.status === 'failed' && state.onboarded === true;
+  // Onboarding and a failed first read have no world to wait for; Home releases the launch screen
+  // once its world is drawn (D141).
+  useReleaseLaunchSplash(settled && !onboarded);
+
   // A failed first read has nothing to show. A read that fails later keeps the navigator and the
   // current screen; Home and the other screens show their own retry (Phase 08).
   if (state.status === 'failed' && state.onboarded === null) {
     return <StorageFailureScreen code="unknown" retrying={false} onRetry={() => void refreshAppData()} />;
   }
-  if (state.status !== 'ready' && state.status !== 'failed') {
+  if (!settled) {
     return null;
   }
-  const onboarded = state.status === 'ready' ? state.data.currency.currency.status !== 'missing' : state.onboarded === true;
   return (
     <>
       <Stack screenOptions={stackScreenOptions}>

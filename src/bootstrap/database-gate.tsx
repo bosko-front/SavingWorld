@@ -1,15 +1,12 @@
-import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, type ReactNode } from 'react';
 
 import { useDatabaseStore } from './database-readiness';
+import { releaseLaunchSplash, startFirstScreenWait } from './launch-splash';
 import { StorageFailureScreen } from './storage-failure-screen';
 
-// Keep the native splash up while the database opens and migrates, so no screen (and no mutation
-// control) appears before the data is ready. A rejected call only means the splash was already
-// gone, which changes nothing about readiness.
-SplashScreen.preventAutoHideAsync().catch(() => undefined);
-
 // Renders the app only once the database is open and migrated (docs/ARCHITECTURE.md "Startup").
+// The native splash stays up meanwhile, so no screen (and no mutation control) appears before the
+// data is ready; once it is ready the first screen decides when the splash goes (launch-splash.ts).
 export function DatabaseGate({ children }: { children: ReactNode }) {
   const state = useDatabaseStore((store) => store.state);
   const open = useDatabaseStore((store) => store.open);
@@ -20,12 +17,13 @@ export function DatabaseGate({ children }: { children: ReactNode }) {
     }
   }, [state.status, open]);
 
-  const settled = state.status === 'ready' || state.status === 'failed';
   useEffect(() => {
-    if (settled) {
-      SplashScreen.hideAsync().catch(() => undefined);
+    if (state.status === 'ready') {
+      startFirstScreenWait();
+    } else if (state.status === 'failed') {
+      releaseLaunchSplash();
     }
-  }, [settled]);
+  }, [state.status]);
 
   if (state.status === 'ready') {
     return children;

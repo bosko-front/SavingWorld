@@ -87,6 +87,9 @@ type WorldSceneProps = {
   // Called once a stage is on screen with all of its layers loaded (Phase 11, D98: a souvenir's
   // sparkle burst waits for the world it greets).
   onShown?: (stage: Stage) => void;
+  // Called when the art cannot be drawn and the fallback shows instead (D141: Home's launch screen
+  // stops waiting for the world).
+  onUnavailable?: () => void;
   // Phase 17: when `themeId` changes, the old world stays on screen until the new one has loaded and
   // then crosses over to it in a brief crossfade (Home; false under Reduce Motion: the new world
   // replaces the old one at once once it has loaded). Never a replay of milestones.
@@ -111,6 +114,7 @@ export function WorldScene({
   ambient = false,
   children,
   onShown,
+  onUnavailable,
   crossfadeTheme = false,
 }: WorldSceneProps) {
   const [area, onAreaLayout] = useMeasuredSize();
@@ -133,6 +137,11 @@ export function WorldScene({
   const [attempt, setAttempt] = useState(0);
   const [failed, setFailed] = useState(false);
   const showArt = result.ok && !failed;
+  useEffect(() => {
+    if (!showArt) {
+      onUnavailable?.();
+    }
+  }, [showArt, onUnavailable]);
   const retry = () => {
     setFailed(false);
     setAttempt((value) => value + 1);

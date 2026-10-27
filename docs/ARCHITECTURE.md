@@ -77,6 +77,7 @@ Worlds render into their measured region, not physical screen dimensions. Palett
 1. Open one managed database connection, configure integrity settings, and migrate before reading feature data. Serialize writes. Block mutation UI while migrations run.
 2. Read settings, selected goal and goal summaries. Invalid or unavailable selected IDs fall back deterministically to an available goal or the empty Home state.
 3. Render local state without waiting for store connectivity. Load world assets locally. Reconcile native entitlements and reminders as independent work.
+   The native launch screen stays until the first screen is drawn (D141, `src/bootstrap/launch-splash.ts`): Home releases it when its world's current stage has loaded (`WorldScene onShown`, or `onUnavailable` for the fallback); onboarding, failures and notices release it as soon as they render; the wait is capped at 1.5 s after the database opens. Only the first screen's world is loaded, never every asset up front.
 4. On foreground, re-read the civil date/time zone, close expired fixed challenge attempts and recalculate results and estimates, reconcile notification intent and query StoreKit state. A failed native call does not erase local data or previously verified rights.
 5. If a migration/storage read fails, show a retryable recovery state. Never reset the database automatically. Capture a redacted error code for support.
 
