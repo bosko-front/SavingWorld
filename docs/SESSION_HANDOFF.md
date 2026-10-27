@@ -31,7 +31,7 @@ The previous handoff (Phase 18, VERIFIED COMPLETE by D133) is superseded; its re
 
 - VoiceOver is fine everywhere on the owner's iPhone (owner-reported, not itemized). The purchase/restore success haptic stays; DESIGN_SYSTEM updated.
 - V07 built: Savings insights shows "Finished worlds" with "Your completed worlds live in Collection." underneath; the count is unchanged.
-- Remaining for Phase 19: felt haptics other than the purchase, the D109 reminder device checks, the Duo matrix, Q09 links, and the owner's choices on date language and V05.
+- Remaining for Phase 19 (as of the end of this session): felt haptics other than the purchase, the D109 reminder device checks and the Duo matrix. Q09 links, date language and V05 were resolved later (D136, D137).
 
 ## Owner request: milestone previews and English dates (D136)
 
@@ -45,7 +45,7 @@ The previous handoff (Phase 18, VERIFIED COMPLETE by D133) is superseded; its re
 - `PRIVACY.md` and `SUPPORT.md` (root), linked from `docs/README.md` (the README GitHub shows). `_config.yml` makes GitHub Pages publish only these two pages.
 - The claims were checked against the code and SDKs (see PHASE_19 evidence). The EAS update client ID is disclosed; there is no "no data collected" claim.
 - Recommended URLs (GitHub Pages): `https://bosko-front.github.io/SavingWorld/PRIVACY.html` and `…/SUPPORT.html`. Fallback: the `github.com/…/blob/main/…` URLs.
-- Waiting for the owner: the support email and publisher name; approval to commit and push; enabling Pages; confirming the URLs. Then add the Settings › About rows. App Store Connect is untouched.
+- Done with the owner's approval: publisher Bosko Jaksic, support email filled in, commit 031c2b3 pushed to `main`, GitHub Pages enabled and both URLs verified (200; the development docs are not published), Settings › About links added. App Store Connect is untouched: the owner enters the two URLs (and the App Privacy answers) or approves doing it.
 
 ## Decisions
 
@@ -70,13 +70,13 @@ The previous handoff (Phase 18, VERIFIED COMPLETE by D133) is superseded; its re
 
 1. Physical iPhone: VoiceOver is accepted by the owner (D135). Still needed: the felt haptics and the D109 reminder steps from the checklist in the evidence file (needs a device development build on the owner's iPhone and the owner's sandbox account for Pro; never enter Apple passwords or codes on the owner's behalf).
 2. Duo matrix with forms, both themes, charts and native sheets (simulator Duo iOS 27.1 is available; physical split view stays a D48 release gate).
-3. Q09: privacy policy and support URLs and publisher. Until they exist, nothing is linked in the app.
+3. Q09 privacy/support: done (D137). Still open in Q09: final name/identity.
 4. Owner answers: none open (D135, D136).
 5. Known small gaps:
    - no focus move after Add/Remove deadline;
    - Home has no spoken screen title and may read its percent twice (Home changes need the owner);
    - the toast slide follows Reduce Motion only after a relaunch.
-6. Git: nothing committed. The working tree holds the Phase 19 changes on `main`.
+6. Git: Phase 19 work committed and pushed to `main` (031c2b3, plus this docs commit).
 
 ## Exact next session
 

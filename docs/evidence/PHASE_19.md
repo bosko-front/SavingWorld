@@ -46,7 +46,7 @@ Home (D97: changes need an owner request): only the catalog move, one `marginSta
 | Weekly reminder device checks (D109) | — | **NOT RUN** | Device development build needed. |
 | Duo matrix with forms, both themes, charts and sheets | — | **NOT RUN** | Not run this session (the simulator Duo was available; time went to the code audit). |
 | Simulator Reduce Motion relaunch walk-through | — | NOT RUN | Covered by Jest gates (audit: every animation gated; see below). |
-| Privacy/support links | — | **PENDING Q09** | No destinations exist; nothing shown in the app. |
+| Privacy/support links | GitHub Pages | PASS (D137) | Both URLs live (200); Settings › About links them. |
 
 ## Owner follow-up (same day, D135)
 
@@ -86,7 +86,14 @@ Home (D97: changes need an owner request): only the catalog move, one `marginSta
   - Optionally add "Diagnostics → Crash Data, not linked, App Functionality", for the fatal-error header after a failed launch.
   - "Data Not Collected" is defensible only if the owner reads Expo's use of the client ID as servicing the request. Expo keeps it for update insights, so the conservative answer is recommended.
   - Purchases are Apple's and are not declared by the developer.
-- Pending (owner): fill `[SUPPORT EMAIL]` and `[PUBLISHER NAME]`; approve commit/push; enable Pages (Settings › Pages › Deploy from branch `main`, `/ (root)`); confirm the URLs; then the two Settings › About rows are added and App Store Connect is filled in by the owner or with his approval.
+- Owner gave publisher "Bosko Jaksic" and support email boskojaksic2407995@gmail.com and approved the rest:
+  - commit 031c2b3 pushed to `main`;
+  - GitHub Pages enabled through the API (`POST /repos/bosko-front/SavingWorld/pages`, branch `main`, `/`), build `built` in 76 s;
+  - `curl`: PRIVACY.html 200, SUPPORT.html 200, the blob URL 200, `/docs/DECISIONS.html` 404 and `/CLAUDE.html` 404 (only the two pages are published), the internal Support link converts to `/SavingWorld/SUPPORT.html`, mailto present;
+  - the page checked in a browser.
+- Settings › About: "Privacy Policy" and "Support" rows (`hand.raised`/`questionmark.circle`, hint "Opens in Safari.", `Linking.openURL`); Jest checks the URLs; simulator [08](phase-19/08-se-settings-about-links.png).
+- Checks before the push: lint PASS; typecheck PASS; Jest 1571 passed with one icon-map test to update, then that test and the Settings tests 13/13 PASS after the fix.
+- **For App Store Connect (not entered):** Privacy Policy URL `https://bosko-front.github.io/SavingWorld/PRIVACY.html`; Support URL `https://bosko-front.github.io/SavingWorld/SUPPORT.html`.
 
 ## Audit results (code review of every implemented screen)
 
