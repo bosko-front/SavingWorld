@@ -15,7 +15,7 @@ export type PersistedSummary = {
   missingTables: string[];
 };
 
-export type PersistedDigest = { sha256: string; summary: PersistedSummary };
+export type PersistedDigest = { sha256: string; ledgerSha256: string; summary: PersistedSummary };
 
 export function persistedDigest(db: { prepare(sql: string): { all(): unknown[] } }): PersistedDigest;
 export function describeDigest(digest: PersistedDigest): string;

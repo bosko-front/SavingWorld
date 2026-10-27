@@ -90,19 +90,30 @@ function persistedDigest(db) {
       : [],
     missingTables: TABLES.filter((name) => !has(name)),
   };
-  const sha256 = crypto.createHash('sha256').update(JSON.stringify(summary)).digest('hex');
-  return { sha256, summary };
+  const hash = (value) => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
+  // The savings record alone: launches may legitimately rewrite the stored rights (each StoreKit check)
+  // and settings records (reminder reconciliation), never these.
+  const ledger = {
+    migrations: summary.migrations,
+    currency: summary.currency,
+    goals: summary.goals,
+    entries: summary.entries,
+    receipts: summary.receipts,
+    collectibles: summary.collectibles,
+    attempts: summary.attempts,
+  };
+  return { sha256: hash(summary), ledgerSha256: hash(ledger), summary };
 }
 
-// The parts that must never change across an update, rollback or relaunch (everything above), and a
-// short human line for evidence tables.
-function describeDigest({ sha256, summary }) {
+// A short human line for evidence tables: the ledger hash that must never change across an update,
+// rollback or relaunch, and the stored rights.
+function describeDigest({ ledgerSha256, summary }) {
   const balances = summary.goals.map((goal) => `${goal.themeId}:${goal.status}:${goal.balanceMinor}/${goal.targetMinor}`).join(', ');
   const attempts = summary.attempts.map((attempt) => `${attempt.ruleId}=${attempt.result ?? attempt.state}`).join(', ');
   const rights = summary.entitlements.map((row) => row.status).join(', ') || 'none';
   const receipts = summary.receipts.reduce((total, row) => total + row.count, 0);
   return [
-    `digest ${sha256.slice(0, 12)}`,
+    `ledger ${ledgerSha256.slice(0, 12)}`,
     `schema ${summary.migrations.at(-1)?.version ?? 0}`,
     `goals [${balances}]`,
     `entries ${summary.entries.length}`,

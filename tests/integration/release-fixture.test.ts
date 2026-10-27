@@ -69,12 +69,14 @@ describe('release drill fixture', () => {
     // Random IDs differ between builds, so compare a copy of one file with itself, then change it.
     const before = digestOf(copy);
     expect(digestOf(copy)).toEqual(before);
-    expect(describeDigest(before)).toMatch(/schema 5 · goals \[island:active:80000\/100000\] · entries 3 · receipts 9 · souvenirs 1 · attempts \[first_step=completed, next_milestone=completed, next_milestone=active\] · rights none$/);
+    expect(describeDigest(before)).toMatch(/^ledger [0-9a-f]{12} · schema 5 · goals \[island:active:80000\/100000\] · entries 3 · receipts 9 · souvenirs 1 · attempts \[first_step=completed, next_milestone=completed, next_milestone=active\] · rights none$/);
     const db = new DatabaseSync(copy);
     db.exec('DROP TRIGGER IF EXISTS ledger_entries_no_update');
     db.prepare('UPDATE ledger_entries SET revision = revision + 1 WHERE rowid = (SELECT MIN(rowid) FROM ledger_entries)').run();
     db.close();
-    expect(digestOf(copy).sha256).not.toBe(before.sha256);
+    const after = digestOf(copy);
+    expect(after.sha256).not.toBe(before.sha256);
+    expect(after.ledgerSha256).not.toBe(before.ledgerSha256);
     expect(first.summary.goals[0]?.balanceMinor).toBe(RELEASE_FIXTURE.balanceMinor);
   });
 });
