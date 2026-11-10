@@ -8,30 +8,44 @@ import type { PurchaseOutcome, RestoreOutcome } from '../domain/entitlement';
 
 import { purchaseLine, restoreLine, type ProductState, type ResultLine } from './billing-copy';
 
+// The App Store sometimes answers the first request with no product or an error, as App Review saw on
+// 9 November 2026. While the paywall is open, the product is asked for again on its own after these
+// pauses; the last answer stays on screen meanwhile, with "Try again" for the person.
+export const PRODUCT_RETRY_DELAYS_MS = [2000, 5000, 10000] as const;
+
 // The Pro product as the storefront returns it (localized price, Q07/D116), loaded when the paywall
-// opens and again on "Try again". Never a hard-coded price.
+// opens, again after each automatic pause, and on "Try again". Never a hard-coded price.
 export function useProProduct(): { product: ProductState; reload: () => void } {
   const [product, setProduct] = useState<ProductState>({ kind: 'loading' });
   const [attempt, setAttempt] = useState(0);
+  const autoRetries = useRef(0);
 
   useEffect(() => {
     let live = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     void loadProProduct().then((result) => {
       if (!live) {
         return;
       }
-      if (!result.ok) {
-        setProduct({ kind: 'failed', code: result.error });
-      } else {
-        setProduct(result.value ? { kind: 'ready', displayPrice: result.value.displayPrice } : { kind: 'not_offered' });
+      if (result.ok && result.value) {
+        setProduct({ kind: 'ready', displayPrice: result.value.displayPrice });
+        return;
+      }
+      setProduct(result.ok ? { kind: 'not_offered' } : { kind: 'failed', code: result.error });
+      const delay = PRODUCT_RETRY_DELAYS_MS[autoRetries.current];
+      if (delay !== undefined) {
+        autoRetries.current += 1;
+        timer = setTimeout(() => setAttempt((value) => value + 1), delay);
       }
     });
     return () => {
       live = false;
+      clearTimeout(timer);
     };
   }, [attempt]);
 
   const reload = () => {
+    autoRetries.current = 0;
     setProduct({ kind: 'loading' });
     setAttempt((value) => value + 1);
   };

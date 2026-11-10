@@ -34,6 +34,7 @@ The optional Garden screenshot was dropped by the owner. Any future Pro screensh
 | Signed candidate prepared | Store-signed build of the release commit exists and was inspected | See PHASE_22 |
 | Uploaded to TestFlight | Build processed in App Store Connect | Yes: 1.0.0 (7) VALID, internal testing |
 | Submitted for review | Version 1.0.0 with the IAP submitted | Yes: by the owner, 27 October 2026 20:57 UTC (Waiting for Review; release automatically after approval) |
+| Rejected | App Review result | Yes: 9 November 2026, 2.1(b) (no IAP product for the reviewer); fix in build 8, resubmitted 10 November 2026 09:47 UTC: Waiting for Review (PHASE_22, D147) |
 | Approved / Live | Apple approved; released on the store | No |
 
 ## Manual submission procedure (owner or a named operator)

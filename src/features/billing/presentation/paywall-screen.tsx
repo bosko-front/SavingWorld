@@ -140,7 +140,7 @@ function Offer({ hero, pro, onClose, headlineRef }: { hero: ReactNode; pro: bool
           <AppText role="footnote" tone="secondary" style={styles.flexText}>
             {productLine}
           </AppText>
-          {product.kind === 'failed' ? (
+          {product.kind === 'failed' || product.kind === 'not_offered' ? (
             <Button label={PAYWALL_COPY.retry} variant="plain" onPress={reload} testID="paywall-retry" />
           ) : null}
         </View>

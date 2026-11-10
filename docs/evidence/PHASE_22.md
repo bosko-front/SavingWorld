@@ -2,7 +2,7 @@
 
 Session date: 27 October 2026. State: **IN PROGRESS** (signed App Store build made and inspected, uploaded to TestFlight and processed; store materials entered in App Store Connect on the owner's go; installed-build smoke/purchase test, App Privacy, review contact and the remaining owner steps still open). Prompt: [PHASE_22](../prompts/PHASE_22.md). Decision: D146.
 
-Release states now: implementation complete (Phases 01-21) · release checks **not** complete · **signed candidate prepared** (local build 7) · **uploaded to TestFlight** (build 7 VALID, internal testing) · **submitted for review by the owner** (review submission 4b88da3d, 2026-10-27 20:57 UTC: version 1.0.0 build 7 and Saving Worlds Pro, both WAITING_FOR_REVIEW; release type changed by the owner to automatic after approval) · not approved · not live.
+Release states now: implementation complete (Phases 01-21) · release checks **not** complete · **signed candidate prepared** (local build 7) · **uploaded to TestFlight** (build 7 VALID, internal testing) · **submitted for review by the owner** (review submission 4b88da3d, 2026-10-27 20:57 UTC: version 1.0.0 build 7 and Saving Worlds Pro, both WAITING_FOR_REVIEW; release type changed by the owner to automatic after approval) · **rejected by App Review on 9 November 2026** (Guideline 2.1(b): the reviewer's iPad got no Pro product; D147) · **build 1.0.0 (8) uploaded and resubmitted on the owner's go** (10 November 2026 09:47 UTC: build 8 and the Pro IAP WAITING_FOR_REVIEW) · not approved · not live.
 
 ## Starting point and dependencies
 
@@ -110,6 +110,46 @@ Owner: "you can upload the screenshots, headers and everything else to App Store
 
 The optional sixth (Garden) screenshot was **dropped by the owner** ("we won't do the Garden, forget it"); the listing keeps the five approved screenshots.
 
+## App Review rejection and build 8 (9-10 November 2026, D147)
+
+**Rejection.** Submission 4b88da3d, reviewed 9 November 2026 on an iPad Air 11-inch (M4), iPadOS 27.2, version 1.0.0 (7): Guideline 2.1(b) Performance - App Completeness, "we were unable to purchase IAP". Apple's screenshot shows the Pro screen with "Pro isn't offered in this App Store right now" and a disabled "Unlock Pro": StoreKit returned **no product** (`fetchProducts` empty → `not_offered`). State afterwards: submission UNRESOLVED_ISSUES, version REJECTED, IAP READY_TO_SUBMIT.
+
+**Investigation (10 November).**
+
+| Check | Result |
+| --- | --- |
+| IAP in App Store Connect (API) | Non-Consumable `com.bosko123.savingworlds.pro.lifetime`, price schedule base USA (US$7.99), available in 175 territories (all of the app's), en-US name/description present, review screenshot present |
+| Paid Apps Agreement | Not readable through the API; the owner checks App Store Connect › Business. The sandbox product load below needs an active agreement |
+| Release build on "SW P22 Store" (iPhone 17 Pro, iOS 27.0), App Store sandbox | Pro screen shows **"Unlock Pro for $7.99"** |
+| Same release `.app` on a new iPad Air 11-inch (M4) simulator, **iPadOS 27.2** (Apple's review device; iPhone app in a window), fresh install, onboarding, `savingworlds://paywall` | **"Unlock Pro for $7.99"**: not reproducible |
+| Code path | Unchanged since the Phase 15 sandbox purchase on the owner's iPhone |
+
+**Cause.** The storefront returned no product to the reviewer at that moment; everything on our side loads the product. **App weakness found:** the Pro screen asked for the product once when it opened, and offered "Try again" only after a network error, not when the answer was empty, so the reviewer had no way forward.
+
+**Fix (JS only, `src/features/billing/presentation/`).** `useProProduct` asks the storefront again on its own after 2, 5 and 10 s (`PRODUCT_RETRY_DELAYS_MS`) while the screen is open, keeping the last message on screen meanwhile; "Try again" now also shows for `not_offered` (`paywall-screen.tsx`). No copy, layout, price or purchase logic changed. Tests: `tests/integration/paywall-ui.test.tsx` "a storefront without the product offers Try again…" and "asks the storefront again on its own after an empty answer".
+
+**Checks (10 November).** `npm ci` (node_modules had been removed; lockfile unchanged). Lint PASS, typecheck PASS, Jest 62 suites / 1,628 passed / 1 skipped, `release-check` PASS (fingerprint c83b89a5… unchanged, schema 5, stored-data contract unchanged; runtime 1.0.0 stays valid), `release-audit` A1-A6 PASS. An earlier Jest run timed out while three simulators kept the Mac at load ~280; the two agent simulators ("SW P22 Store", "SW Review iPad Air M4 27.2") were shut down (not deleted) and the run passed.
+
+**Build 8.** `npm run eas -- build --platform ios --profile production --local --non-interactive` (credentials now on EAS, no prompts), from the working tree with the fix (uncommitted at build time):
+
+| Field | Value |
+| --- | --- |
+| Version / build | 1.0.0 (8) (EAS remote counter 7 → 8) |
+| Runtime / channel | 1.0.0 / production; embedded update `dbe65524-1f0e-4b3c-b323-e71aab7c7235` |
+| Signing | iPhone Distribution: Bosko Jaksic (86J9LHRPM3); entitlements application-identifier, team-identifier, beta-reports-active, `get-task-allow` false; no push |
+| Info.plist | `ITSAppUsesNonExemptEncryption` false, MinimumOSVersion 16.4, 16 privacy manifests |
+| IPA | `dist/store-builds/SavingWorlds-1.0.0-8.ipa` (git-ignored), 37,880,767 bytes, SHA-256 3ed97382deb2dfc650b0546e8a795d745faf57824a14289a3500e3d0a1b773eb |
+| expo-doctor (inside the build) | 19/20; the one warning lists newer SDK 58 patch versions. Not applied on purpose: runtime 1.0.0 is shared and an SDK patch update is its own reviewed change with a new app version |
+
+The build 7 IPA is no longer in `dist/store-builds/` (the folder had been cleared); build 7 itself stays in App Store Connect.
+
+**Upload and resubmission (10 November, owner: "Upload build 8", then "when it is done, do everything and send it to review again including the message").**
+
+- `eas submit` of `SavingWorlds-1.0.0-8.ipa` (ASC key fields in `eas.json` for the run only, restored; `git diff eas.json` empty): EAS submission [82c5959d](https://expo.dev/accounts/bosko123/projects/saving-worlds/submissions/82c5959d-9407-4aea-9403-215548550069), this time without a queue wait. App Store Connect build `22c01940-87f9-4df8-8dca-ebe6008988d0`: 1.0.0 (8), uploaded 2026-11-10T01:39:33-08:00, **VALID**, `usesNonExemptEncryption` false.
+- Build 8 attached to version 1.0.0 (API), replacing build 7. The reply was added at the top of the App Review notes (API, contact fields kept; 1,752 bytes). The owner posted the same text with "Reply to App Review" in App Store Connect (Claude in Chrome was not connected), and confirmed the Paid Apps Agreement is in effect (another of the owner's apps was approved meanwhile).
+- The API refused `reviewSubmissions.submitted = true` ("Version is not ready to be submitted yet") for about 15 minutes, so the owner signed in to App Store Connect in the built-in browser (the agent typed no credentials) and the agent clicked **Update Review** on version 1.0.0, then **Resubmit to App Review** on submission 4b88da3d (items: Saving Worlds Pro and iOS App 1.0.0 (8), both Ready for Review; the owner's message visible under Messages).
+- Confirmed through the API: submission 4b88da3d **WAITING_FOR_REVIEW** (submitted 2026-11-10T09:47:30Z), version 1.0.0 WAITING_FOR_REVIEW with build 8, release type AFTER_APPROVAL (live automatically once approved), IAP WAITING_FOR_REVIEW.
+
 ## Production update promotion record (prepared, not executed)
 
 No production update is published with the launch: the store build's embedded bundle (update ID 055a9754…) is the baseline. For the first later JS fix, the runbook in [EAS_AND_OTA](../EAS_AND_OTA.md) "Production promotion" applies unchanged, with these Phase 22 facts:
@@ -148,11 +188,11 @@ No production update is published with the launch: the store build's embedded bu
 
 1. Done (owner-reported): build 7 installed from TestFlight and working on the owner's iPhone. The owner filled App Review information and App Privacy and submitted version 1.0.0 themselves; confirmed through the API: review submission 4b88da3d WAITING_FOR_REVIEW (submitted 2026-10-27T20:57:04Z), version 1.0.0 build 7 WAITING_FOR_REVIEW, IAP WAITING_FOR_REVIEW, review contact and notes filled. The owner set release type to **AFTER_APPROVAL** (goes live automatically when approved), replacing the agent's MANUAL. The agent submitted nothing.
 2. Done by the owner: App Review information and App Privacy (entered before submitting). PRIVACY.md wording change is still a local edit; push it so the published policy matches.
-3. Apple's review result (approved → live automatically, or rejected → address and resubmit).
+3. Apple's review result: **rejected 9 November 2026 (2.1(b), no IAP product for the reviewer)**; fix, build 8, reply and resubmission done 10 November (section above); waiting for Apple's result.
 4. Not live until the product page is public.
 5. Accepted limitations still to be acknowledged for release (D145): itemized VoiceOver, Instruments profiling, a real Sunday reminder, physical Duo, icon/launch look on the store build.
 6. Submission: done by the owner (above). Duo screenshots are required only from April 2027 (27.1 SDK).
 
 ## Decisions
 
-D146 (this phase): store build made locally on the owner's choice, store name "Saving Worlds", App Privacy approach, screenshot pipeline and data rules, header, PRIVACY.md wording; no product rule changed.
+D147 (this phase): retry the Pro product after an empty or failed answer and rebuild as 1.0.0 (8) after the 2.1(b) rejection. D146 (this phase): store build made locally on the owner's choice, store name "Saving Worlds", App Privacy approach, screenshot pipeline and data rules, header, PRIVACY.md wording; no product rule changed.

@@ -11,6 +11,7 @@ import { randomUuid, uuidGenerator } from '@/data/ids';
 import { listGoals } from '@/data/repositories/goal-repository';
 import { createGoal } from '@/features/goals/application/goal-commands';
 import { createEntry } from '@/features/ledger/application/ledger-commands';
+import { PRODUCT_RETRY_DELAYS_MS } from '@/features/billing/presentation/use-pro-purchase';
 
 import { APP_DIR, chooseCurrency, freshAppDatabase, grantProForTests, resetApp } from '../support/app-fixture';
 import { playedHaptics } from '../support/expo-haptics-fake';
@@ -150,6 +151,37 @@ describe('"Build another world" (D74)', () => {
     fakeStore.failures = {};
     await userEvent.press(screen.getByTestId('paywall-retry'));
     await waitFor(() => expect(screen.getByTestId('paywall-buy')).toHaveTextContent('Unlock Pro for €4.99'));
+    expect(screen.getByTestId('paywall-buy')).toBeEnabled();
+  });
+
+  // App Review, 9 November 2026: the storefront returned no product and the paywall had no way on.
+  it('a storefront without the product offers Try again, which loads it once it is there', async () => {
+    await setupGoal('Bike');
+    const products = fakeStore.products;
+    fakeStore.products = [];
+    await renderRouter(APP_DIR, { initialUrl: '/' });
+    await chooseGoalOption('New goal');
+    await userEvent.press(screen.getByTestId('paywall-explore'));
+    await waitFor(() => expect(screen.getByTestId('paywall-product-state')).toHaveTextContent(/isn’t offered in this App Store/));
+    expect(screen.getByTestId('paywall-buy')).toBeDisabled();
+    fakeStore.products = products;
+    await userEvent.press(screen.getByTestId('paywall-retry'));
+    await waitFor(() => expect(screen.getByTestId('paywall-buy')).toHaveTextContent('Unlock Pro for €4.99'));
+    expect(screen.queryByTestId('paywall-product-state')).toBeNull();
+  });
+
+  it('asks the storefront again on its own after an empty answer', async () => {
+    await setupGoal('Bike');
+    const products = fakeStore.products;
+    fakeStore.products = [];
+    await renderRouter(APP_DIR, { initialUrl: '/' });
+    await chooseGoalOption('New goal');
+    await userEvent.press(screen.getByTestId('paywall-explore'));
+    await waitFor(() => expect(screen.getByTestId('paywall-product-state')).toHaveTextContent(/isn’t offered/));
+    fakeStore.products = products;
+    await waitFor(() => expect(screen.getByTestId('paywall-buy')).toHaveTextContent('Unlock Pro for €4.99'), {
+      timeout: PRODUCT_RETRY_DELAYS_MS[0] + 2000,
+    });
     expect(screen.getByTestId('paywall-buy')).toBeEnabled();
   });
 });
