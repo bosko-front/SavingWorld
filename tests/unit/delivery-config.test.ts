@@ -36,7 +36,7 @@ describe('app.config.ts', () => {
 
   it('uses the appVersion runtime policy', () => {
     expect(config.runtimeVersion).toEqual({ policy: 'appVersion' });
-    expect(config.version).toBe('1.0.0');
+    expect(config.version).toBe('1.0.1');
   });
 
   it('starts without waiting for the network and activates updates on a later launch', () => {

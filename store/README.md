@@ -1,4 +1,23 @@
-# App Store materials for Saving Worlds 1.0.0 (Phase 22)
+# App Store materials for Saving Worlds
+
+## Version 1.0.1 (23 November 2026, D148)
+
+1.0.0 was approved by Apple. 1.0.1 exists so two App Store Connect questions that are locked on the approved version can be answered (owner: both NO). No app behavior change; `version` 1.0.1, new runtime 1.0.1.
+
+- **What's New in This Version:** "Small UI fixes and improvements."
+- **Screenshots** (replace all of the 1.0.0 set in "iPhone 6.3-inch (Dynamic Island, medium)"), from [screenshots/en-US/](screenshots/en-US/), preview [screenshots/preview.png](screenshots/preview.png):
+  1. `01-grow-a-world.png` "Save money. Grow a world." (approved Island renders at 0/50/100%)
+  2. `02-home.png` "Watch your savings come to life"
+  3. `03-challenges.png` "Make saving a little adventure"
+  4. `04-island-complete.png` "Reach your goal, complete your world" (real capture of the completion moment)
+  5. `05-collection.png` "Every goal becomes a world"
+  6. `06-history.png` "Keep track of every step"
+- The Add savings screenshot is dropped (owner). The 1.0.0 set is kept in `screenshots/en-US-1.0.0/`. `screenshots/_to_delete/` holds two stale drafts to delete.
+- Build: `npm run eas -- build --profile production --platform ios --local` (as builds 7/8), then `npm run eas -- submit --platform ios --path <ipa>`; the build number continues automatically. Then record the build with `node scripts/release-check.mjs --record <build-id> --reason "1.0.1 store build"` if it is an EAS build.
+
+---
+
+## Version 1.0.0 (Phase 22)
 
 Drafts prepared on 27 October 2026 from the shipped release candidate. Nothing in this folder is in App Store Connect until the owner approves it and says go (Phase 22 owner answer: "after I review drafts"). Evidence: [PHASE_22](../docs/evidence/PHASE_22.md).
 

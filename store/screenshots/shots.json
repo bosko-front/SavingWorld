@@ -1,7 +1,8 @@
 [
-  { "file": "raw/01-home.png", "caption": "Watch your savings\ncome to life" },
-  { "file": "raw/02-add-savings.png", "caption": "Every little\nsaving counts" },
-  { "file": "raw/03-challenges.png", "caption": "Make saving a\nlittle adventure" },
-  { "file": "raw/04-history.png", "caption": "Keep track of\nevery step" },
-  { "file": "raw/05-collection.png", "caption": "Every goal\nbecomes a world" }
+  {"hero": {"stages": [0, 5, 10], "labels": ["0%", "50%", "100%"], "subtitle": "Your island grows with every milestone"}, "name": "grow-a-world", "caption": "Save money.\nGrow a world."},
+  {"file": "raw/01-home.png", "caption": "Watch your savings\ncome to life"},
+  {"file": "raw/03-challenges.png", "caption": "Make saving a\nlittle adventure"},
+  {"file": "raw/spare-island-complete.png", "caption": "Reach your goal,\ncomplete your world"},
+  {"file": "raw/05-collection.png", "caption": "Every goal\nbecomes a world"},
+  {"file": "raw/04-history.png", "caption": "Keep track of\nevery step"}
 ]

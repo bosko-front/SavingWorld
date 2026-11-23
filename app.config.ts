@@ -22,7 +22,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   owner: 'bosko123',
   // appVersion runtime policy: any native, SDK, permission or persisted-data contract change
   // requires a new `version` (and native build). Bumping only ios.buildNumber keeps the runtime.
-  version: '1.0.0',
+  version: '1.0.1',
   runtimeVersion: { policy: 'appVersion' },
   scheme: 'savingworlds',
   platforms: ['ios'],
